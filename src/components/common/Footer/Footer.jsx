@@ -9,7 +9,7 @@ const Footer = () => {
     { path: '/testimonials', label: 'Testimonials' },
     { path: '/gallery', label: 'Gallery' },
     { path: '/contact', label: 'Contact' },
-    { path: '/register', label: 'Event Schedule & Registration' }
+    { path: '/register', label: 'Event Schedule & Registration' },
   ];
 
   return (
@@ -30,7 +30,8 @@ const Footer = () => {
               </div>
             </div>
             <p className="text-neutral-text text-sm">
-              Premier hockey training in the DMV area. Developing athletes and better people through passion, discipline, and results.
+              Premier hockey training in the DMV area. Developing athletes and better people through
+              passion, discipline, and results.
             </p>
           </div>
 
@@ -38,7 +39,7 @@ const Footer = () => {
           <div>
             <h3 className="text-white font-semibold text-lg mb-4">Quick Links</h3>
             <nav className="space-y-2">
-              {navLinks.map((link) => (
+              {navLinks.map(link => (
                 <Link
                   key={link.path}
                   to={link.path}
@@ -86,17 +87,11 @@ const Footer = () => {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-neutral-text text-sm">
             <p>&copy; 2025 by New Era Hockey. All rights reserved.</p>
             <div className="flex items-center gap-4">
-              <Link
-                to="/terms-and-conditions"
-                className="hover:text-white transition-colors"
-              >
+              <Link to="/terms-and-conditions" className="hover:text-white transition-colors">
                 Terms & Conditions
               </Link>
               <span className="text-neutral-dark">|</span>
-              <Link
-                to="/privacy-policy"
-                className="hover:text-white transition-colors"
-              >
+              <Link to="/privacy-policy" className="hover:text-white transition-colors">
                 Privacy Policy
               </Link>
             </div>

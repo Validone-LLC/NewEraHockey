@@ -13,13 +13,13 @@ const ContactForm = () => {
       name: '',
       phone: '',
       email: '',
-      message: ''
+      message: '',
     },
     validationSchema: Yup.object({
       name: Yup.string().required('Name is required'),
       phone: Yup.string(),
       email: Yup.string().email('Invalid email address').required('Email is required'),
-      message: Yup.string().max(1000, 'Message must be 1000 characters or less')
+      message: Yup.string().max(1000, 'Message must be 1000 characters or less'),
     }),
     onSubmit: async (values, { resetForm }) => {
       setIsSubmitting(true);
@@ -27,14 +27,14 @@ const ContactForm = () => {
       // Simulate API call
       try {
         await new Promise(resolve => setTimeout(resolve, 1500));
-        toast.success('Message sent successfully! We\'ll get back to you soon.');
+        toast.success("Message sent successfully! We'll get back to you soon.");
         resetForm();
       } catch (error) {
         toast.error('Failed to send message. Please try again or contact us directly.');
       } finally {
         setIsSubmitting(false);
       }
-    }
+    },
   });
 
   return (
@@ -50,9 +50,7 @@ const ContactForm = () => {
           type="text"
           {...formik.getFieldProps('name')}
           className={`w-full px-4 py-3 bg-primary border ${
-            formik.touched.name && formik.errors.name
-              ? 'border-teal-500'
-              : 'border-neutral-dark'
+            formik.touched.name && formik.errors.name ? 'border-teal-500' : 'border-neutral-dark'
           } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors`}
         />
         {formik.touched.name && formik.errors.name && (
@@ -85,9 +83,7 @@ const ContactForm = () => {
           type="email"
           {...formik.getFieldProps('email')}
           className={`w-full px-4 py-3 bg-primary border ${
-            formik.touched.email && formik.errors.email
-              ? 'border-teal-500'
-              : 'border-neutral-dark'
+            formik.touched.email && formik.errors.email ? 'border-teal-500' : 'border-neutral-dark'
           } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors`}
         />
         {formik.touched.email && formik.errors.email && (

@@ -35,16 +35,19 @@ A modern, responsive single-page application for New Era Hockey, a premier hocke
 ## 📦 Installation
 
 1. **Install dependencies**:
+
    ```bash
    npm install
    ```
 
 2. **Set up environment variables**:
+
    ```bash
    cp .env.example .env.local
    ```
 
    Update `.env.local` with your configuration:
+
    ```
    VITE_API_BASE_URL=http://localhost:3000
    VITE_CONTACT_EMAIL=Nehockeytraining@outlook.com
@@ -54,11 +57,13 @@ A modern, responsive single-page application for New Era Hockey, a premier hocke
    ```
 
 3. **Run development server**:
+
    ```bash
    npm run dev
    ```
 
 4. **Build for production**:
+
    ```bash
    npm run build
    ```
@@ -124,6 +129,7 @@ newerahockey/
 ### Components
 
 All components follow modern React patterns with:
+
 - Framer Motion animations
 - Responsive design (mobile-first)
 - Accessibility features
@@ -164,6 +170,7 @@ Tailwind utility classes are used throughout. Customize the theme in `tailwind.c
 ## 📞 Contact
 
 **New Era Hockey**
+
 - Email: Nehockeytraining@outlook.com
 - Phone: (571) 274-4691
 - Instagram: @NewEraHockeyDMV

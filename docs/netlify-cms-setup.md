@@ -51,9 +51,10 @@ git push origin main
 ```
 
 **Important**: Update `public/admin/config.yml` line 2 to match your deployment branch:
+
 ```yaml
 backend:
-  branch: main  # Change from NEH-3 to main
+  branch: main # Change from NEH-3 to main
 ```
 
 ### Step 3: Enable Netlify Identity
@@ -90,6 +91,7 @@ backend:
 4. **Send invitation**
 
 **User receives**:
+
 - Email with "Accept Invitation" link
 - Creates password on first login
 - Gets admin access to CMS
@@ -99,6 +101,7 @@ backend:
 **Admin URL**: `https://newerahockey.validone-llc.com/admin`
 
 **First Login**:
+
 1. Go to admin URL
 2. Click "Log in with Netlify Identity"
 3. Enter email/password
@@ -121,6 +124,7 @@ backend:
 ### Adding New Content
 
 **Example: Add Testimonial**
+
 1. Click "Testimonials" collection
 2. Click "New Testimonial"
 3. Fill in fields:
@@ -133,6 +137,7 @@ backend:
 4. Click "Save" → "Publish"
 
 **Example: Add Gallery Image**
+
 1. Click "Gallery Images"
 2. Click "New Gallery Image"
 3. Upload image
@@ -150,17 +155,17 @@ backend:
 
 ### Content Organization
 
-| Collection | What It Controls |
-|------------|------------------|
-| **Core Values** | Home page values section |
-| **Coach Information** | Coach Will page content |
-| **FAQs** | Contact page questions |
-| **Gallery Categories** | Gallery page categories |
-| **Privacy Policy** | Legal page sections |
-| **Terms & Conditions** | Legal page sections |
-| **Testimonials** | Testimonials page items |
-| **Gallery Images** | Gallery page photos |
-| **Camp Photos** | Home page carousel |
+| Collection             | What It Controls         |
+| ---------------------- | ------------------------ |
+| **Core Values**        | Home page values section |
+| **Coach Information**  | Coach Will page content  |
+| **FAQs**               | Contact page questions   |
+| **Gallery Categories** | Gallery page categories  |
+| **Privacy Policy**     | Legal page sections      |
+| **Terms & Conditions** | Legal page sections      |
+| **Testimonials**       | Testimonials page items  |
+| **Gallery Images**     | Gallery page photos      |
+| **Camp Photos**        | Home page carousel       |
 
 ---
 
@@ -178,6 +183,7 @@ backend:
 - **Alternative**: `editorial_workflow` (draft → review → publish)
 
 To enable draft workflow, change `config.yml`:
+
 ```yaml
 publish_mode: editorial_workflow
 ```
@@ -188,9 +194,10 @@ publish_mode: editorial_workflow
 **Production**: Change to `main` after merge
 
 Update `public/admin/config.yml`:
+
 ```yaml
 backend:
-  branch: main  # or master, depending on your default branch
+  branch: main # or master, depending on your default branch
 ```
 
 ---
@@ -222,6 +229,7 @@ backend:
 ### "Unable to access Netlify Identity"
 
 **Solution**:
+
 1. Check Identity is enabled in Netlify dashboard
 2. Verify email confirmation was completed
 3. Clear browser cache and retry
@@ -229,6 +237,7 @@ backend:
 ### "Error loading config.yml"
 
 **Solution**:
+
 1. Check file exists: `public/admin/config.yml`
 2. Verify YAML syntax (use YAML validator)
 3. Check file is committed to Git
@@ -236,6 +245,7 @@ backend:
 ### "Cannot save/publish changes"
 
 **Solution**:
+
 1. Verify Git Gateway is enabled
 2. Check GitHub connection in Netlify
 3. Ensure user has Identity access
@@ -244,6 +254,7 @@ backend:
 ### "Images not uploading"
 
 **Solution**:
+
 1. Check image size (max 10MB recommended)
 2. Verify media folder path in config
 3. Check file format (JPG/PNG/WebP)
@@ -252,6 +263,7 @@ backend:
 ### "Changes not appearing on site"
 
 **Solution**:
+
 1. Wait 2-3 minutes for deployment
 2. Check Netlify deploy log for errors
 3. Clear browser cache (Ctrl+Shift+R)
@@ -298,11 +310,13 @@ Changes live on newerahockey.validone-llc.com
 ## 📞 Support
 
 ### For Technical Issues
+
 - **Developer**: Review this guide
 - **Netlify Docs**: https://docs.netlify.com/visitor-access/identity/
 - **Sveltia CMS**: https://github.com/sveltia/sveltia-cms
 
 ### For Content Editing Help
+
 - **Admin URL**: https://newerahockey.validone-llc.com/admin
 - **Training**: Provide client with video walkthrough
 - **Documentation**: Share this guide's "How to Use" section
@@ -312,17 +326,20 @@ Changes live on newerahockey.validone-llc.com
 ## ✨ Next Steps After Setup
 
 ### Immediate (Post-Deployment)
+
 - [ ] Verify `/admin` URL loads
 - [ ] Test login with invited user
 - [ ] Edit one piece of content
 - [ ] Confirm changes appear on site
 
 ### Training
+
 - [ ] Record 5-minute video tutorial
 - [ ] Walk client through common tasks
 - [ ] Share this documentation
 
 ### Ongoing
+
 - [ ] Monitor first few edits
 - [ ] Address any user questions
 - [ ] Adjust config based on feedback

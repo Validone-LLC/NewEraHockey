@@ -27,14 +27,10 @@ const ValueCard = ({ value, index }) => {
           </div>
 
           {/* Title */}
-          <h3 className="text-2xl font-display font-bold text-white mb-4">
-            {value.title}
-          </h3>
+          <h3 className="text-2xl font-display font-bold text-white mb-4">{value.title}</h3>
 
           {/* Description */}
-          <p className="text-neutral-light leading-relaxed">
-            {value.description}
-          </p>
+          <p className="text-neutral-light leading-relaxed">{value.description}</p>
         </div>
       </div>
     </Card>

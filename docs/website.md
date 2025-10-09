@@ -1,10 +1,11 @@
 # New Era Hockey - React SPA Project
 
 ### src/services/api/contactApi.js
+
 ```javascript
 import axios from './axiosConfig';
 
-export const sendContactMessage = async (formData) => {
+export const sendContactMessage = async formData => {
   try {
     const response = await axios.post('/api/contact', formData);
     return response.data;
@@ -15,10 +16,11 @@ export const sendContactMessage = async (formData) => {
 ```
 
 ### src/services/api/registrationApi.js
+
 ```javascript
 import axios from './axiosConfig';
 
-export const registerForEvent = async (registrationData) => {
+export const registerForEvent = async registrationData => {
   try {
     const response = await axios.post('/api/events/register', registrationData);
     return response.data;

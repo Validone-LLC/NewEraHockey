@@ -33,8 +33,9 @@ const EventRegistration = () => {
               Event Calendar Coming Soon
             </h2>
             <p className="text-neutral-light max-w-2xl mx-auto mb-8">
-              We're working on an interactive calendar to help you find and register for upcoming camps
-              and training sessions. In the meantime, please contact us directly for availability.
+              We're working on an interactive calendar to help you find and register for upcoming
+              camps and training sessions. In the meantime, please contact us directly for
+              availability.
             </p>
             <Button to="/contact" variant="primary">
               Contact Us for Schedule

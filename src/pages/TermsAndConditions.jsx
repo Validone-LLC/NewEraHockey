@@ -8,7 +8,7 @@ import { termsAndConditions } from '@data/termsAndConditions';
 const TermsAndConditions = () => {
   const [activeSection, setActiveSection] = useState(null);
 
-  const scrollToSection = (sectionId) => {
+  const scrollToSection = sectionId => {
     setActiveSection(sectionId);
     const element = document.getElementById(sectionId);
     if (element) {
@@ -92,19 +92,14 @@ const TermsAndConditions = () => {
               <div key={section.id} id={section.id}>
                 <Card>
                   <div className="flex items-start gap-4 mb-4">
-                    <span className="text-3xl font-bold text-teal-500">
-                      {index + 1}
-                    </span>
+                    <span className="text-3xl font-bold text-teal-500">{index + 1}</span>
                     <h2 className="text-2xl font-display font-bold text-white pt-1">
                       {section.title}
                     </h2>
                   </div>
                   <div className="space-y-4 ml-12">
                     {section.content.map((paragraph, pIndex) => (
-                      <p
-                        key={pIndex}
-                        className="text-neutral-light leading-relaxed"
-                      >
+                      <p key={pIndex} className="text-neutral-light leading-relaxed">
                         {paragraph}
                       </p>
                     ))}
@@ -127,9 +122,7 @@ const TermsAndConditions = () => {
             {/* Additional Links */}
             <Card>
               <div className="text-center">
-                <p className="text-neutral-light mb-4">
-                  Have questions about our terms?
-                </p>
+                <p className="text-neutral-light mb-4">Have questions about our terms?</p>
                 <Link
                   to="/contact"
                   className="inline-block px-6 py-3 bg-gradient-to-r from-teal-500 to-teal-600 text-white font-semibold rounded-lg hover:from-teal-600 hover:to-teal-700 transition-all"
