@@ -1,5 +1,6 @@
 backend:
-  name: git-gateway
+  name: github
+  repo: Validone-LLC/NewEraHockey
   branch: master
 
 # Publish mode - set to editorial_workflow for draft/review/publish flow
