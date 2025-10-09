@@ -11,7 +11,10 @@
       "WebSearch",
       "Bash(npm run build:*)",
       "WebFetch(domain:newerahockey.co)",
-      "mcp__playwright__browser_close"
+      "mcp__playwright__browser_close",
+      "Bash(npx husky init:*)",
+      "Bash(cat:*)",
+      "Bash(npm run lint)"
     ],
     "deny": [],
     "ask": []
