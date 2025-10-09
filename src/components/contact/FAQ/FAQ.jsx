@@ -22,7 +22,7 @@ const FAQ = () => {
               animate={{ rotate: openIndex === index ? 180 : 0 }}
               transition={{ duration: 0.3 }}
             >
-              <HiChevronDown className="w-5 h-5 text-accent-blue flex-shrink-0" />
+              <HiChevronDown className="w-5 h-5 text-teal-500 flex-shrink-0" />
             </motion.div>
           </button>
 

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { HiCheckCircle } from 'react-icons/hi';
+import { CheckCircle } from 'lucide-react';
 import Button from '@components/common/Button/Button';
 
 const AboutSection = () => {
@@ -55,7 +55,7 @@ const AboutSection = () => {
                     viewport={{ once: true }}
                     transition={{ delay: index * 0.1 }}
                   >
-                    <HiCheckCircle className="w-5 h-5 text-accent-gold flex-shrink-0 mt-0.5" />
+                    <CheckCircle className="w-5 h-5 text-teal-400 flex-shrink-0 mt-0.5" />
                     <span className="text-sm text-neutral-light">{cert}</span>
                   </motion.div>
                 ))}
@@ -84,10 +84,10 @@ const AboutSection = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <StatCard number="6+" label="Years Coaching" gradient="from-accent-red to-red-700" />
-          <StatCard number="23+" label="Years Playing" gradient="from-accent-blue to-blue-700" />
-          <StatCard number="100+" label="Players Trained" gradient="from-accent-gold to-yellow-700" />
-          <StatCard number="DMV" label="Service Area" gradient="from-purple-600 to-pink-600" />
+          <StatCard number="6+" label="Years Coaching" gradient="from-teal-400 to-teal-600" />
+          <StatCard number="23+" label="Years Playing" gradient="from-teal-500 to-teal-700" />
+          <StatCard number="100+" label="Players Trained" gradient="from-teal-300 to-teal-500" />
+          <StatCard number="DMV" label="Service Area" gradient="from-teal-600 to-teal-800" />
         </motion.div>
       </div>
     </section>
@@ -97,8 +97,8 @@ const AboutSection = () => {
 const StatCard = ({ number, label, gradient }) => {
   return (
     <motion.div
-      className={`bg-gradient-to-br ${gradient} rounded-xl p-6 text-center shadow-lg`}
-      whileHover={{ scale: 1.05, rotate: 2 }}
+      className={`bg-gradient-to-br ${gradient} rounded-xl p-6 text-center shadow shadow-teal-500/10`}
+      whileHover={{ rotate: 2 }}
       transition={{ duration: 0.3 }}
     >
       <div className="text-4xl font-display font-bold text-white mb-2">{number}</div>

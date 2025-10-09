@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion';
-import { HiMail, HiPhone } from 'react-icons/hi';
-import { FaInstagram } from 'react-icons/fa';
+import { Mail, Phone, Instagram } from 'lucide-react';
 import ContactForm from '@components/contact/ContactForm/ContactForm';
 import FAQ from '@components/contact/FAQ/FAQ';
 import Card from '@components/common/Card/Card';
@@ -29,29 +28,14 @@ const Contact = () => {
       {/* Contact Section */}
       <section className="section-container">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Contact Form */}
+          {/* Contact Info */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-3xl font-display font-bold text-white mb-8">
-              Get In Touch
-            </h2>
-            <Card>
-              <ContactForm />
-            </Card>
-          </motion.div>
-
-          {/* Contact Info */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <h2 className="text-3xl font-display font-bold text-white mb-8">
+            <h2 className="text-2xl font-display font-bold text-white mb-8">
               Talk To Us
             </h2>
 
@@ -62,8 +46,8 @@ const Contact = () => {
                   href="mailto:Nehockeytraining@outlook.com"
                   className="flex items-center gap-3 text-neutral-light hover:text-white transition-colors group"
                 >
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-accent-red to-red-700 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <HiMail className="w-6 h-6 text-white" />
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center">
+                    <Mail className="w-6 h-6 text-white" />
                   </div>
                   <span className="text-lg">Nehockeytraining@outlook.com</span>
                 </a>
@@ -75,8 +59,8 @@ const Contact = () => {
                   href="tel:+15712744691"
                   className="flex items-center gap-3 text-neutral-light hover:text-white transition-colors group"
                 >
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-accent-blue to-blue-700 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <HiPhone className="w-6 h-6 text-white" />
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center">
+                    <Phone className="w-6 h-6 text-white" />
                   </div>
                   <span className="text-lg">(571) 274-4691</span>
                 </a>
@@ -90,13 +74,28 @@ const Contact = () => {
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 text-neutral-light hover:text-white transition-colors group"
                 >
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-accent-gold to-yellow-700 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <FaInstagram className="w-6 h-6 text-white" />
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-300 to-teal-500 flex items-center justify-center">
+                    <Instagram className="w-6 h-6 text-white" />
                   </div>
                   <span className="text-lg">@NewEraHockeyDMV</span>
                 </a>
               </Card>
             </div>
+          </motion.div>
+
+          {/* Contact Form */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <h2 className="text-3xl font-display font-bold text-white mb-8">
+              Get In Touch
+            </h2>
+            <Card hover={false}>
+              <ContactForm />
+            </Card>
           </motion.div>
         </div>
       </section>

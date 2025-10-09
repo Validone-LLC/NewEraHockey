@@ -7,6 +7,8 @@ import Testimonials from '@pages/Testimonials';
 import Gallery from '@pages/Gallery';
 import Contact from '@pages/Contact';
 import EventRegistration from '@pages/EventRegistration';
+import TermsAndConditions from '@pages/TermsAndConditions';
+import PrivacyPolicy from '@pages/PrivacyPolicy';
 import NotFound from '@pages/NotFound';
 
 const AppRoutes = () => {
@@ -21,6 +23,8 @@ const AppRoutes = () => {
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/register" element={<EventRegistration />} />
+          <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

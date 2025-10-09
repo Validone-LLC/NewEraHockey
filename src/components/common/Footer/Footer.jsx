@@ -51,14 +51,14 @@ const Footer = () => {
                 href="mailto:Nehockeytraining@outlook.com"
                 className="flex items-center gap-2 text-neutral-text hover:text-white transition-colors text-sm"
               >
-                <HiMail className="w-5 h-5 text-accent-red" />
+                <HiMail className="w-5 h-5 text-teal-400" />
                 Nehockeytraining@outlook.com
               </a>
               <a
                 href="tel:+15712744691"
                 className="flex items-center gap-2 text-neutral-text hover:text-white transition-colors text-sm"
               >
-                <HiPhone className="w-5 h-5 text-accent-blue" />
+                <HiPhone className="w-5 h-5 text-teal-500" />
                 (571) 274-4691
               </a>
               <a
@@ -67,7 +67,7 @@ const Footer = () => {
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 text-neutral-text hover:text-white transition-colors text-sm"
               >
-                <FaInstagram className="w-5 h-5 text-accent-gold" />
+                <FaInstagram className="w-5 h-5 text-teal-600" />
                 @NewEraHockeyDMV
               </a>
             </div>
@@ -75,8 +75,25 @@ const Footer = () => {
         </div>
 
         {/* Copyright */}
-        <div className="mt-12 pt-8 border-t border-neutral-dark text-center text-neutral-text text-sm">
-          <p>&copy; 2025 by New Era Hockey. All rights reserved.</p>
+        <div className="mt-12 pt-8 border-t border-neutral-dark">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-neutral-text text-sm">
+            <p>&copy; 2025 by New Era Hockey. All rights reserved.</p>
+            <div className="flex items-center gap-4">
+              <Link
+                to="/terms-and-conditions"
+                className="hover:text-white transition-colors"
+              >
+                Terms & Conditions
+              </Link>
+              <span className="text-neutral-dark">|</span>
+              <Link
+                to="/privacy-policy"
+                className="hover:text-white transition-colors"
+              >
+                Privacy Policy
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </footer>

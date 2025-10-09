@@ -6,7 +6,8 @@
       "mcp__playwright__browser_tabs",
       "mcp__playwright__browser_evaluate",
       "Bash(curl:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []
