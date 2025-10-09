@@ -110,9 +110,7 @@ const CoachWill = () => {
             <p className="text-neutral-light leading-relaxed text-lg italic mb-6">
               {coachInfo.statement}
             </p>
-            <p className="text-teal-500 font-semibold text-right text-xl">
-              {coachInfo.signature}
-            </p>
+            <p className="text-teal-500 font-semibold text-right text-xl">{coachInfo.signature}</p>
           </Card>
         </div>
       </section>

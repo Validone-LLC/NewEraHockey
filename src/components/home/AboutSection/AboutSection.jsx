@@ -7,7 +7,7 @@ const AboutSection = () => {
     'Safe Sport Certified',
     'Fully Insured',
     'USA Hockey Certified Coach',
-    'Currently coaching MYHA 14\'s'
+    "Currently coaching MYHA 14's",
   ];
 
   return (
@@ -26,10 +26,10 @@ const AboutSection = () => {
 
           <div className="space-y-6 text-neutral-light">
             <p className="leading-relaxed">
-              At New Era Hockey, we promise more than just your average private coach – we deliver an
-              unparalleled experience where results and enjoyment go hand in hand. Our players are not
-              only fulfilled but also brimming with motivation to persist in their hard work, all while
-              enjoying the process while parents and players become like family.
+              At New Era Hockey, we promise more than just your average private coach – we deliver
+              an unparalleled experience where results and enjoyment go hand in hand. Our players
+              are not only fulfilled but also brimming with motivation to persist in their hard
+              work, all while enjoying the process while parents and players become like family.
             </p>
 
             <p className="leading-relaxed">
@@ -103,8 +103,8 @@ const AboutSection = () => {
       >
         <p className="text-neutral-light leading-relaxed">
           This unique blend of elements allows players and parents alike to fully immerse themselves
-          in the world of hockey training and development within the DMV area, ranging from prep-schools,
-          all the way to the various clubs in the DMV, to complete beginners.
+          in the world of hockey training and development within the DMV area, ranging from
+          prep-schools, all the way to the various clubs in the DMV, to complete beginners.
         </p>
       </motion.div>
     </section>

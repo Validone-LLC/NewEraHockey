@@ -35,9 +35,7 @@ const Contact = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-2xl font-display font-bold text-white mb-8">
-              Talk To Us
-            </h2>
+            <h2 className="text-2xl font-display font-bold text-white mb-8">Talk To Us</h2>
 
             <div className="space-y-6">
               <Card hover={false}>
@@ -90,9 +88,7 @@ const Contact = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-3xl font-display font-bold text-white mb-8">
-              Get In Touch
-            </h2>
+            <h2 className="text-3xl font-display font-bold text-white mb-8">Get In Touch</h2>
             <Card hover={false}>
               <ContactForm />
             </Card>

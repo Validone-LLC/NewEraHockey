@@ -7,17 +7,14 @@ const navLinks = [
   { path: '/testimonials', label: 'Testimonials' },
   { path: '/gallery', label: 'Gallery' },
   { path: '/contact', label: 'Contact' },
-  { path: '/register', label: 'Register' }
+  { path: '/register', label: 'Register' },
 ];
 
 const Navigation = ({ mobile = false }) => {
   const linkClasses = ({ isActive }) => `
     ${mobile ? 'block py-3 px-4 text-lg' : 'px-4 py-2'}
     font-medium transition-colors duration-200
-    ${isActive
-      ? 'text-teal-500'
-      : 'text-neutral-light hover:text-white'
-    }
+    ${isActive ? 'text-teal-500' : 'text-neutral-light hover:text-white'}
   `;
 
   if (mobile) {
@@ -41,12 +38,8 @@ const Navigation = ({ mobile = false }) => {
 
   return (
     <nav className="flex items-center space-x-1">
-      {navLinks.map((link) => (
-        <NavLink
-          key={link.path}
-          to={link.path}
-          className={linkClasses}
-        >
+      {navLinks.map(link => (
+        <NavLink key={link.path} to={link.path} className={linkClasses}>
           {link.label}
         </NavLink>
       ))}

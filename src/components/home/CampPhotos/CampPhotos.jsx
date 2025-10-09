@@ -30,9 +30,7 @@ const CampPhotos = () => {
         viewport={{ once: true }}
         transition={{ duration: 0.6 }}
       >
-        <h3 className="text-2xl sm:text-3xl font-display font-bold text-white mb-6">
-          Talk to us!
-        </h3>
+        <h3 className="text-2xl sm:text-3xl font-display font-bold text-white mb-6">Talk to us!</h3>
         <p className="text-neutral-light max-w-2xl mx-auto mb-8">
           <strong>Have any questions?</strong> Not sure what to do from here? Contact us about any
           inquiries today and we will get back to you as soon as possible!

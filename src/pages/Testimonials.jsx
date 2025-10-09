@@ -11,7 +11,7 @@ const Testimonials = () => {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % carouselTestimonials.length);
+      setActiveIndex(prev => (prev + 1) % carouselTestimonials.length);
     }, 5000);
     return () => clearInterval(timer);
   }, [carouselTestimonials.length]);
@@ -59,10 +59,7 @@ const Testimonials = () => {
                 transition={{ duration: 0.5 }}
                 className="absolute inset-0"
               >
-                <TestimonialCard
-                  testimonial={carouselTestimonials[activeIndex]}
-                  index={0}
-                />
+                <TestimonialCard testimonial={carouselTestimonials[activeIndex]} index={0} />
               </motion.div>
             </AnimatePresence>
           </div>
@@ -74,9 +71,7 @@ const Testimonials = () => {
                 key={idx}
                 onClick={() => setActiveIndex(idx)}
                 className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  idx === activeIndex
-                    ? 'bg-teal-500 w-8'
-                    : 'bg-neutral-dark hover:bg-neutral-text'
+                  idx === activeIndex ? 'bg-teal-500 w-8' : 'bg-neutral-dark hover:bg-neutral-text'
                 }`}
                 aria-label={`Go to testimonial ${idx + 1}`}
               />
@@ -98,11 +93,7 @@ const Testimonials = () => {
           </motion.h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
             {otherTestimonials.map((testimonial, index) => (
-              <TestimonialCard
-                key={testimonial.id}
-                testimonial={testimonial}
-                index={index}
-              />
+              <TestimonialCard key={testimonial.id} testimonial={testimonial} index={index} />
             ))}
           </div>
         </section>
@@ -121,9 +112,7 @@ const Testimonials = () => {
           <Button to="/contact" variant="primary">
             Submit Review
           </Button>
-          <p className="text-neutral-light mt-8 text-lg">
-            Your feedback is appreciated
-          </p>
+          <p className="text-neutral-light mt-8 text-lg">Your feedback is appreciated</p>
         </motion.div>
       </section>
     </div>

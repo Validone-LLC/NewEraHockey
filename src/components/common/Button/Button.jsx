@@ -10,14 +10,14 @@ const Button = ({
   type = 'button',
   className = '',
   disabled = false,
-  icon: Icon
+  icon: Icon,
 }) => {
   const baseClasses = `inline-flex items-center justify-center gap-2 font-semibold rounded-lg transition-all duration-300 ${className}`;
 
   const variants = {
     primary: 'btn-primary',
     secondary: 'btn-secondary',
-    ghost: 'px-6 py-3 text-neutral-light hover:text-white hover:bg-primary-light transition-colors'
+    ghost: 'px-6 py-3 text-neutral-light hover:text-white hover:bg-primary-light transition-colors',
   };
 
   const classes = `${baseClasses} ${variants[variant]} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`;

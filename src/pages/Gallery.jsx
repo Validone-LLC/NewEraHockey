@@ -5,9 +5,10 @@ import { galleryImages, galleryCategories } from '@data/galleryImages';
 const Gallery = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
 
-  const filteredImages = selectedCategory === 'all'
-    ? galleryImages
-    : galleryImages.filter(img => img.category === selectedCategory);
+  const filteredImages =
+    selectedCategory === 'all'
+      ? galleryImages
+      : galleryImages.filter(img => img.category === selectedCategory);
 
   return (
     <div className="min-h-screen">
@@ -41,9 +42,7 @@ const Gallery = () => {
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
             >
-              <h3 className="text-2xl font-display font-bold text-white mb-2">
-                {category.title}
-              </h3>
+              <h3 className="text-2xl font-display font-bold text-white mb-2">{category.title}</h3>
               <p className="text-neutral-light">{category.description}</p>
             </motion.div>
           ))}
@@ -122,9 +121,7 @@ const Gallery = () => {
           <h2 className="text-3xl font-display font-bold text-white mb-4">
             Videos <span className="gradient-text">(Coming Soon!)</span>
           </h2>
-          <p className="text-neutral-light">
-            Check back soon for training videos and highlights
-          </p>
+          <p className="text-neutral-light">Check back soon for training videos and highlights</p>
         </motion.div>
       </section>
     </div>

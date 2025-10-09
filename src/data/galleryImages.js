@@ -3,18 +3,18 @@ export const galleryCategories = [
   {
     id: 1,
     title: 'Training Camps',
-    description: 'High-intensity training camps across the DMV area'
+    description: 'High-intensity training camps across the DMV area',
   },
   {
     id: 2,
     title: 'Inside Look at Lessons and Camps',
-    description: 'Behind the scenes of our coaching sessions'
+    description: 'Behind the scenes of our coaching sessions',
   },
   {
     id: 3,
     title: 'Trained Players',
-    description: 'Players who have elevated their game with New Era Hockey'
-  }
+    description: 'Players who have elevated their game with New Era Hockey',
+  },
 ];
 
 // Import all gallery JSON files
@@ -58,7 +58,7 @@ export const galleryImages = [
   camp4,
   camp5,
   camp6,
-  camp7
+  camp7,
 ];
 
 // Import all camp photos JSON files
@@ -86,5 +86,7 @@ export const campPhotos = [
   campPhoto8,
   campPhoto9,
   campPhoto10,
-  campPhoto11
-].sort((a, b) => a.order - b.order).map(photo => photo.src);
+  campPhoto11,
+]
+  .sort((a, b) => a.order - b.order)
+  .map(photo => photo.src);
