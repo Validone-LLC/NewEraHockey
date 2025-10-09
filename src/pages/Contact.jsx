@@ -1,8 +1,8 @@
 import { motion } from 'framer-motion';
 import { Mail, Phone, Instagram } from 'lucide-react';
 import ContactForm from '@components/contact/ContactForm/ContactForm';
-import FAQ from '@components/contact/FAQ/FAQ';
 import Card from '@components/common/Card/Card';
+import Button from '@components/common/Button/Button';
 
 const Contact = () => {
   return (
@@ -96,19 +96,21 @@ const Contact = () => {
         </div>
       </section>
 
-      {/* FAQ Section */}
-      <section className="section-container bg-primary/30">
+      {/* FAQ CTA */}
+      <section className="section-container bg-primary/30 text-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >
-          <h2 className="text-3xl font-display font-bold text-white mb-12 text-center">
-            Frequently Asked Questions
-          </h2>
-          <div className="max-w-4xl mx-auto">
-            <FAQ />
-          </div>
+          <h2 className="text-3xl font-display font-bold text-white mb-6">Have Questions?</h2>
+          <p className="text-neutral-light mb-8 text-lg max-w-2xl mx-auto">
+            Check out our Frequently Asked Questions page for answers to common inquiries about
+            training programs, schedules, and more
+          </p>
+          <Button to="/faq" variant="primary">
+            View FAQs
+          </Button>
         </motion.div>
       </section>
     </div>

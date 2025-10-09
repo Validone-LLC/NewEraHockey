@@ -7,6 +7,7 @@ import CoachWill from '@pages/CoachWill';
 import Testimonials from '@pages/Testimonials';
 import Gallery from '@pages/Gallery';
 import Contact from '@pages/Contact';
+import FAQ from '@pages/FAQ';
 import EventRegistration from '@pages/EventRegistration';
 import TermsAndConditions from '@pages/TermsAndConditions';
 import PrivacyPolicy from '@pages/PrivacyPolicy';
@@ -24,6 +25,7 @@ const AppRoutes = () => {
           <Route path="/testimonials" element={<Testimonials />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/faq" element={<FAQ />} />
           <Route path="/register" element={<EventRegistration />} />
           <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
