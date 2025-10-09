@@ -1,5 +1,4 @@
 # ToDo Implementation
 
-## Github
-
-Add dependency checker so Github checks during PRs
+## Accessibility
+- let's add accessibility capability based on w3.org Web Content Accessibility standards
