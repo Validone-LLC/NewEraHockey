@@ -1,23 +1,69 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
+# Dependencies
+node_modules/
 /.pnp
 .pnp.js
+.yarn/
+.npm/
+package-lock.json
 
-# testing
+# Testing
 /coverage
+*.lcov
+.nyc_output
 
-# production
+# Production builds
 /build
+/dist
+*.local
 
-# misc
-.DS_Store
+# Environment variables
+.env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env.*.local
 
+# Logs
+logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+.temp/
+
+# Playwright MCP
+.playwright-mcp/
+
+# Claude docs (optional - remove if you want to commit these)
+claudedocs/screenshots/
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*

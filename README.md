@@ -1,70 +1,173 @@
-# Getting Started with Create React App
+# New Era Hockey - React SPA
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A modern, responsive single-page application for New Era Hockey, a premier hockey training program in the DMV area led by Coach Will Pasko.
 
-## Available Scripts
+## 🚀 Features
 
-In the project directory, you can run:
+- **Modern Design**: Built with React 18 and Tailwind CSS for a sleek, responsive UI
+- **Smooth Animations**: Framer Motion for engaging user experience
+- **Optimized Performance**: Vite for lightning-fast development and optimized builds
+- **Accessibility**: WCAG-compliant components with proper semantic HTML
+- **Mobile-First**: Fully responsive design for all device sizes
+- **SEO-Friendly**: Proper meta tags and semantic structure
 
-### `npm start`
+## 📋 Pages
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+1. **Home** - Hero section, core values, about section, and camp photos
+2. **Coach Will** - Coach biography, certifications, and personal statement
+3. **Testimonials** - Parent and player success stories
+4. **Gallery** - Training camp photos and player highlights
+5. **Contact** - Contact form, direct contact info, and FAQ section
+6. **Event Registration** - Upcoming camps and training sessions (calendar integration ready)
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 🛠️ Tech Stack
 
-### `npm test`
+- **Framework**: React 18.3.1
+- **Build Tool**: Vite 5.1.4
+- **Styling**: Tailwind CSS 3.4.1
+- **Routing**: React Router DOM 6.22.0
+- **Animations**: Framer Motion 11.0.8
+- **Form Handling**: Formik 2.4.5 + Yup 1.4.0
+- **Notifications**: React Toastify 10.0.4
+- **Icons**: React Icons 5.0.1
+- **Calendar**: React Big Calendar 1.11.2
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 📦 Installation
 
-### `npm run build`
+1. **Install dependencies**:
+   ```bash
+   npm install
+   ```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+2. **Set up environment variables**:
+   ```bash
+   cp .env.example .env.local
+   ```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+   Update `.env.local` with your configuration:
+   ```
+   VITE_API_BASE_URL=http://localhost:3000
+   VITE_CONTACT_EMAIL=Nehockeytraining@outlook.com
+   VITE_PHONE=(571) 274-4691
+   VITE_INSTAGRAM=@NewEraHockeyDMV
+   VITE_RECAPTCHA_SITE_KEY=your_recaptcha_key
+   ```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+3. **Run development server**:
+   ```bash
+   npm run dev
+   ```
 
-### `npm run eject`
+4. **Build for production**:
+   ```bash
+   npm run build
+   ```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+5. **Preview production build**:
+   ```bash
+   npm run preview
+   ```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## 📁 Project Structure
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+```
+newerahockey/
+├── public/                 # Static assets
+├── src/
+│   ├── assets/            # Images, icons
+│   │   └── images/
+│   │       └── camp-photos/
+│   ├── components/        # React components
+│   │   ├── common/        # Reusable components
+│   │   │   ├── Button/
+│   │   │   ├── Card/
+│   │   │   ├── Header/
+│   │   │   └── Footer/
+│   │   ├── home/          # Home page components
+│   │   ├── contact/       # Contact page components
+│   │   └── testimonials/  # Testimonials components
+│   ├── data/              # Static data files
+│   │   ├── coreValues.js
+│   │   ├── coachInfo.js
+│   │   ├── testimonials.js
+│   │   ├── galleryImages.js
+│   │   └── faqs.js
+│   ├── pages/             # Page components
+│   ├── routes/            # Routing configuration
+│   ├── App.jsx            # Main app component
+│   ├── index.jsx          # Entry point
+│   └── index.css          # Global styles
+├── .env.example           # Environment variables template
+├── index.html             # HTML template
+├── package.json           # Dependencies
+├── tailwind.config.js     # Tailwind configuration
+├── vite.config.js         # Vite configuration
+└── README.md
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## 🎨 Design System
 
-## Learn More
+### Colors
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- **Primary**: Dark charcoal background (#1a1a1b)
+- **Accent Colors**:
+  - Red: #c8102e (Passion)
+  - Blue: #003087 (Discipline)
+  - Gold: #fcb514 (Results)
+- **Neutral**: Various grays for text and backgrounds
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Typography
 
-### Code Splitting
+- **Display Font**: Montserrat (headings)
+- **Body Font**: Roboto (content)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### Components
 
-### Analyzing the Bundle Size
+All components follow modern React patterns with:
+- Framer Motion animations
+- Responsive design (mobile-first)
+- Accessibility features
+- Hover and interaction states
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## 🔧 Customization
 
-### Making a Progressive Web App
+### Adding New Pages
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+1. Create page component in `src/pages/`
+2. Add route in `src/routes/AppRoutes.jsx`
+3. Update navigation in `src/components/common/Header/Navigation.jsx`
 
-### Advanced Configuration
+### Modifying Content
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+All static content is stored in `src/data/` for easy updates without touching component code.
 
-### Deployment
+### Styling
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+Tailwind utility classes are used throughout. Customize the theme in `tailwind.config.js`.
 
-### `npm run build` fails to minify
+## 📱 Responsive Breakpoints
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- **Mobile**: < 640px
+- **Tablet**: 640px - 1024px
+- **Desktop**: > 1024px
+
+## 🚧 Future Enhancements
+
+- [ ] Integrate backend API for contact form
+- [ ] Add event calendar with registration system
+- [ ] Implement image lightbox for gallery
+- [ ] Add Google Analytics
+- [ ] Integrate ReCAPTCHA for forms
+- [ ] Add blog/news section
+- [ ] Player progress tracking portal
+
+## 📞 Contact
+
+**New Era Hockey**
+- Email: Nehockeytraining@outlook.com
+- Phone: (571) 274-4691
+- Instagram: @NewEraHockeyDMV
+
+## 📄 License
+
+© 2025 New Era Hockey. All rights reserved.
