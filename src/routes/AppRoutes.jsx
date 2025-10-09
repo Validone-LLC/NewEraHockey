@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import Header from '@components/common/Header/Header';
 import Footer from '@components/common/Footer/Footer';
+import SkipLink from '@components/common/SkipLink/SkipLink';
 import Home from '@pages/Home';
 import CoachWill from '@pages/CoachWill';
 import Testimonials from '@pages/Testimonials';
@@ -14,8 +15,9 @@ import NotFound from '@pages/NotFound';
 const AppRoutes = () => {
   return (
     <>
+      <SkipLink />
       <Header />
-      <main className="flex-grow pt-20">
+      <main id="main-content" className="flex-grow pt-20">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/coach-will" element={<CoachWill />} />

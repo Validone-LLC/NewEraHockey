@@ -49,12 +49,17 @@ const ContactForm = () => {
           name="name"
           type="text"
           {...formik.getFieldProps('name')}
+          aria-required="true"
+          aria-invalid={formik.touched.name && formik.errors.name ? 'true' : 'false'}
+          aria-describedby={formik.touched.name && formik.errors.name ? 'name-error' : undefined}
           className={`w-full px-4 py-3 bg-primary border ${
             formik.touched.name && formik.errors.name ? 'border-teal-500' : 'border-neutral-dark'
           } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors`}
         />
         {formik.touched.name && formik.errors.name && (
-          <p className="mt-1 text-sm text-teal-500">{formik.errors.name}</p>
+          <p id="name-error" className="mt-1 text-sm text-teal-500" role="alert">
+            {formik.errors.name}
+          </p>
         )}
       </div>
 
@@ -82,12 +87,17 @@ const ContactForm = () => {
           name="email"
           type="email"
           {...formik.getFieldProps('email')}
+          aria-required="true"
+          aria-invalid={formik.touched.email && formik.errors.email ? 'true' : 'false'}
+          aria-describedby={formik.touched.email && formik.errors.email ? 'email-error' : undefined}
           className={`w-full px-4 py-3 bg-primary border ${
             formik.touched.email && formik.errors.email ? 'border-teal-500' : 'border-neutral-dark'
           } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors`}
         />
         {formik.touched.email && formik.errors.email && (
-          <p className="mt-1 text-sm text-teal-500">{formik.errors.email}</p>
+          <p id="email-error" className="mt-1 text-sm text-teal-500" role="alert">
+            {formik.errors.email}
+          </p>
         )}
       </div>
 
@@ -101,6 +111,10 @@ const ContactForm = () => {
           name="message"
           rows={6}
           {...formik.getFieldProps('message')}
+          aria-invalid={formik.touched.message && formik.errors.message ? 'true' : 'false'}
+          aria-describedby={
+            formik.touched.message && formik.errors.message ? 'message-error' : undefined
+          }
           className={`w-full px-4 py-3 bg-primary border ${
             formik.touched.message && formik.errors.message
               ? 'border-teal-500'
@@ -108,7 +122,9 @@ const ContactForm = () => {
           } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors resize-none`}
         />
         {formik.touched.message && formik.errors.message && (
-          <p className="mt-1 text-sm text-teal-500">{formik.errors.message}</p>
+          <p id="message-error" className="mt-1 text-sm text-teal-500" role="alert">
+            {formik.errors.message}
+          </p>
         )}
       </div>
 

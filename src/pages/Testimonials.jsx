@@ -16,6 +16,21 @@ const Testimonials = () => {
     return () => clearInterval(timer);
   }, [carouselTestimonials.length]);
 
+  // Keyboard navigation for carousel
+  useEffect(() => {
+    const handleKeyDown = e => {
+      if (e.key === 'ArrowLeft') {
+        setActiveIndex(
+          prev => (prev - 1 + carouselTestimonials.length) % carouselTestimonials.length
+        );
+      } else if (e.key === 'ArrowRight') {
+        setActiveIndex(prev => (prev + 1) % carouselTestimonials.length);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [carouselTestimonials.length]);
+
   return (
     <div className="min-h-screen">
       {/* Hero */}
@@ -49,6 +64,11 @@ const Testimonials = () => {
 
         {/* Carousel Container */}
         <div className="max-w-4xl mx-auto">
+          {/* ARIA live region for screen reader announcements */}
+          <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+            Showing testimonial {activeIndex + 1} of {carouselTestimonials.length}
+          </div>
+
           <div className="relative min-h-[400px]">
             <AnimatePresence mode="wait">
               <motion.div
@@ -65,7 +85,11 @@ const Testimonials = () => {
           </div>
 
           {/* Dot Navigation */}
-          <div className="flex justify-center gap-3 mt-8">
+          <div
+            className="flex justify-center gap-3 mt-8"
+            role="group"
+            aria-label="Testimonial navigation"
+          >
             {carouselTestimonials.map((_, idx) => (
               <button
                 key={idx}
@@ -74,6 +98,7 @@ const Testimonials = () => {
                   idx === activeIndex ? 'bg-teal-500 w-8' : 'bg-neutral-dark hover:bg-neutral-text'
                 }`}
                 aria-label={`Go to testimonial ${idx + 1}`}
+                aria-current={idx === activeIndex ? 'true' : 'false'}
               />
             ))}
           </div>

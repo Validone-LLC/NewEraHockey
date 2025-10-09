@@ -15,7 +15,7 @@ const PhotoGallery = ({ photos }) => {
         >
           <img
             src={photo}
-            alt={`Camp photo ${index + 1}`}
+            alt={`Training camp scene ${index + 1}`}
             className="w-full h-full object-cover"
             loading="lazy"
           />
