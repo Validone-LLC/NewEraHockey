@@ -1,0 +1,162 @@
+backend:
+  name: git-gateway
+  branch: NEH-3  # Your current branch - change to main/master after merging
+
+# Publish mode - set to editorial_workflow for draft/review/publish flow
+publish_mode: simple
+
+# Media storage
+media_folder: "public/assets/images"
+public_folder: "/assets/images"
+
+# Collections
+collections:
+  # Site Content - Editable data files
+  - name: "site-content"
+    label: "Site Content"
+    files:
+      # Core Values
+      - label: "Core Values"
+        name: "coreValues"
+        file: "src/data/coreValues.js"
+        fields:
+          - label: "Values"
+            name: "coreValues"
+            widget: "list"
+            fields:
+              - {label: "ID", name: "id", widget: "number", value_type: "int"}
+              - {label: "Title", name: "title", widget: "string"}
+              - {label: "Description", name: "description", widget: "text"}
+              - label: "Icon"
+                name: "icon"
+                widget: "select"
+                options: ["Flame", "Dumbbell", "Trophy"]
+              - {label: "Gradient Classes", name: "gradient", widget: "string", hint: "Tailwind gradient classes, e.g., 'from-teal-400 to-teal-600'"}
+
+      # Coach Information
+      - label: "Coach Information"
+        name: "coachInfo"
+        file: "src/data/coachInfo.js"
+        fields:
+          - {label: "Name", name: "name", widget: "string"}
+          - {label: "Title", name: "title", widget: "string"}
+          - {label: "Image Path", name: "image", widget: "image"}
+          - {label: "Vision Statement", name: "statement", widget: "text"}
+          - label: "Certifications"
+            name: "certifications"
+            widget: "list"
+            fields:
+              - {label: "ID", name: "id", widget: "number", value_type: "int"}
+              - {label: "Title", name: "title", widget: "string"}
+              - {label: "Organization", name: "organization", widget: "string"}
+
+      # FAQs
+      - label: "Frequently Asked Questions"
+        name: "faqs"
+        file: "src/data/faqs.js"
+        fields:
+          - label: "FAQs"
+            name: "faqs"
+            widget: "list"
+            fields:
+              - {label: "ID", name: "id", widget: "number", value_type: "int"}
+              - {label: "Question", name: "question", widget: "string"}
+              - {label: "Answer", name: "answer", widget: "text"}
+
+      # Gallery Categories
+      - label: "Gallery Categories"
+        name: "galleryCategories"
+        file: "src/data/galleryImages.js"
+        fields:
+          - label: "Categories"
+            name: "galleryCategories"
+            widget: "list"
+            fields:
+              - {label: "ID", name: "id", widget: "number", value_type: "int"}
+              - {label: "Title", name: "title", widget: "string"}
+              - {label: "Description", name: "description", widget: "string"}
+
+      # Privacy Policy
+      - label: "Privacy Policy"
+        name: "privacyPolicy"
+        file: "src/data/privacyPolicy.js"
+        fields:
+          - {label: "Last Updated", name: "lastUpdated", widget: "string"}
+          - label: "Sections"
+            name: "sections"
+            widget: "list"
+            fields:
+              - {label: "Section ID", name: "id", widget: "string"}
+              - {label: "Title", name: "title", widget: "string"}
+              - label: "Content Paragraphs"
+                name: "content"
+                widget: "list"
+                field: {label: "Paragraph", name: "paragraph", widget: "text"}
+
+      # Terms and Conditions
+      - label: "Terms & Conditions"
+        name: "termsAndConditions"
+        file: "src/data/termsAndConditions.js"
+        fields:
+          - {label: "Last Updated", name: "lastUpdated", widget: "string"}
+          - label: "Sections"
+            name: "sections"
+            widget: "list"
+            fields:
+              - {label: "Section ID", name: "id", widget: "string"}
+              - {label: "Title", name: "title", widget: "string"}
+              - label: "Content Paragraphs"
+                name: "content"
+                widget: "list"
+                field: {label: "Paragraph", name: "paragraph", widget: "text"}
+
+  # Testimonials - Individual items
+  - name: "testimonials"
+    label: "Testimonials"
+    label_singular: "Testimonial"
+    folder: "src/data/testimonials"
+    create: true
+    slug: "{{year}}-{{month}}-{{slug}}"
+    extension: "json"
+    format: "json"
+    fields:
+      - {label: "ID", name: "id", widget: "number", value_type: "int"}
+      - {label: "Author Name", name: "author", widget: "string"}
+      - {label: "Role/Relation", name: "role", widget: "string", hint: "e.g., 'Parent of player' or 'Player'"}
+      - {label: "Testimonial Text", name: "text", widget: "text"}
+      - {label: "Image", name: "image", widget: "image", required: false}
+      - {label: "Featured", name: "featured", widget: "boolean", default: false}
+
+  # Gallery Images - Individual items
+  - name: "gallery"
+    label: "Gallery Images"
+    label_singular: "Gallery Image"
+    folder: "src/data/gallery"
+    create: true
+    slug: "{{slug}}"
+    extension: "json"
+    format: "json"
+    fields:
+      - {label: "ID", name: "id", widget: "number", value_type: "int"}
+      - {label: "Image", name: "src", widget: "image"}
+      - {label: "Description/Alt Text", name: "alt", widget: "string"}
+      - label: "Category"
+        name: "category"
+        widget: "select"
+        options: ["players", "camps", "behind-scenes"]
+      - {label: "Featured", name: "featured", widget: "boolean", default: false}
+
+  # Camp Photos (Home Page Carousel)
+  - name: "camp-photos"
+    label: "Camp Photos (Home Carousel)"
+    label_singular: "Camp Photo"
+    folder: "src/data/camp-photos"
+    create: true
+    slug: "{{slug}}"
+    extension: "json"
+    format: "json"
+    fields:
+      - {label: "ID", name: "id", widget: "number", value_type: "int"}
+      - {label: "Photo", name: "src", widget: "image"}
+      - {label: "Caption", name: "caption", widget: "string", required: false}
+      - {label: "Order", name: "order", widget: "number", value_type: "int", hint: "Display order in carousel"}
