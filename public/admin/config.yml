@@ -3,8 +3,12 @@ backend:
   repo: Validone-LLC/NewEraHockey
   branch: master
 
+# Site URL for preview
+site_url: https://newerahockey.validone-llc.com
+
 # Publish mode - set to editorial_workflow for draft/review/publish flow
-publish_mode: simple
+# Change to 'editorial_workflow' to enable draft → review → publish with previews
+publish_mode: simple  # Change to: editorial_workflow
 
 # Media storage
 media_folder: "public/assets/images"
