@@ -18,9 +18,16 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Brand */}
           <div>
-            <div className="text-2xl font-display font-bold mb-4">
-              <span className="gradient-text">New Era</span>
-              <span className="text-white ml-2">Hockey</span>
+            <div className="flex items-center space-x-3 mb-4">
+              <img
+                src="/assets/images/logo/neh-logo.png"
+                alt="New Era Hockey Logo"
+                className="h-12 w-auto"
+              />
+              <div className="text-2xl font-display font-bold">
+                <span className="gradient-text">New Era</span>
+                <span className="text-white ml-2">Hockey</span>
+              </div>
             </div>
             <p className="text-neutral-text text-sm">
               Premier hockey training in the DMV area. Developing athletes and better people through passion, discipline, and results.

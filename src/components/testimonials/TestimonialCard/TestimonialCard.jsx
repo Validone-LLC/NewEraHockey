@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { HiStar } from 'react-icons/hi';
 import Card from '@components/common/Card/Card';
 

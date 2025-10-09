@@ -13,9 +13,22 @@ const Hero = () => {
       {/* Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6 }}
+          className="mb-8"
+        >
+          <img
+            src="/assets/images/logo/neh-logo.png"
+            alt="New Era Hockey Logo"
+            className="h-32 sm:h-40 lg:h-48 w-auto mx-auto drop-shadow-2xl"
+          />
+        </motion.div>
+
+        <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
         >
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-display font-extrabold mb-6">
             <span className="block text-white mb-2">Welcome to</span>

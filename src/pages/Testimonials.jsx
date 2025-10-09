@@ -1,11 +1,20 @@
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { testimonials } from '@data/testimonials';
 import TestimonialCard from '@components/testimonials/TestimonialCard/TestimonialCard';
 import Button from '@components/common/Button/Button';
 
 const Testimonials = () => {
-  const featuredTestimonials = testimonials.filter(t => t.featured);
-  const otherTestimonials = testimonials.filter(t => !t.featured);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const carouselTestimonials = testimonials.slice(0, 5);
+  const otherTestimonials = testimonials.slice(5);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % carouselTestimonials.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [carouselTestimonials.length]);
 
   return (
     <div className="min-h-screen">
@@ -27,7 +36,7 @@ const Testimonials = () => {
         </div>
       </section>
 
-      {/* Featured Testimonials */}
+      {/* Carousel Testimonials */}
       <section className="section-container">
         <motion.h2
           className="text-3xl font-display font-bold text-white mb-12 text-center"
@@ -37,14 +46,42 @@ const Testimonials = () => {
         >
           Featured Stories
         </motion.h2>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
-          {featuredTestimonials.map((testimonial, index) => (
-            <TestimonialCard
-              key={testimonial.id}
-              testimonial={testimonial}
-              index={index}
-            />
-          ))}
+
+        {/* Carousel Container */}
+        <div className="max-w-4xl mx-auto">
+          <div className="relative min-h-[400px]">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeIndex}
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -50 }}
+                transition={{ duration: 0.5 }}
+                className="absolute inset-0"
+              >
+                <TestimonialCard
+                  testimonial={carouselTestimonials[activeIndex]}
+                  index={0}
+                />
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Dot Navigation */}
+          <div className="flex justify-center gap-3 mt-8">
+            {carouselTestimonials.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setActiveIndex(idx)}
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                  idx === activeIndex
+                    ? 'bg-teal-500 w-8'
+                    : 'bg-neutral-dark hover:bg-neutral-text'
+                }`}
+                aria-label={`Go to testimonial ${idx + 1}`}
+              />
+            ))}
+          </div>
         </div>
       </section>
 
