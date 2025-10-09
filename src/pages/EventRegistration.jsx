@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { HiCalendar } from 'react-icons/hi';
+import { Calendar, Instagram, MapPin } from 'lucide-react';
 import Button from '@components/common/Button/Button';
 import Card from '@components/common/Card/Card';
 
@@ -28,7 +28,7 @@ const EventRegistration = () => {
       <section className="section-container">
         <Card>
           <div className="text-center py-20">
-            <HiCalendar className="w-24 h-24 mx-auto mb-6 text-teal-500 opacity-50" />
+            <Calendar className="w-24 h-24 mx-auto mb-6 text-teal-500 opacity-50" />
             <h2 className="text-3xl font-display font-bold text-white mb-4">
               Event Calendar Coming Soon
             </h2>
@@ -60,7 +60,7 @@ const EventRegistration = () => {
             <Card>
               <div className="text-center">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center">
-                  <HiCalendar className="w-8 h-8 text-white" />
+                  <Calendar className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-xl font-semibold text-white mb-2">Event Calendar</h3>
                 <p className="text-neutral-light text-sm">
@@ -71,8 +71,8 @@ const EventRegistration = () => {
 
             <Card>
               <div className="text-center">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center text-3xl">
-                  📸
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center">
+                  <Instagram className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-xl font-semibold text-white mb-2">Instagram</h3>
                 <p className="text-neutral-light text-sm">
@@ -83,8 +83,8 @@ const EventRegistration = () => {
 
             <Card>
               <div className="text-center">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-teal-300 to-teal-500 flex items-center justify-center text-3xl">
-                  🏒
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-teal-300 to-teal-500 flex items-center justify-center">
+                  <MapPin className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-xl font-semibold text-white mb-2">Host Rinks</h3>
                 <p className="text-neutral-light text-sm">

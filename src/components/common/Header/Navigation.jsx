@@ -6,6 +6,7 @@ const navLinks = [
   { path: '/coach-will', label: 'Coach Will' },
   { path: '/testimonials', label: 'Testimonials' },
   { path: '/gallery', label: 'Gallery' },
+  { path: '/faq', label: 'FAQ' },
   { path: '/contact', label: 'Contact' },
   { path: '/register', label: 'Register' },
 ];

@@ -1,4 +1,4 @@
 # ToDo Implementation
 
-## Accessibility
-- let's add accessibility capability based on w3.org Web Content Accessibility standards
+## Page / Components
+- Separate FAQ to be it's own page, Contact Us should have a CTA to point to FAQ
