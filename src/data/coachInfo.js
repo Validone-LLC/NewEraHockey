@@ -1,6 +1,7 @@
 export const coachInfo = {
   name: 'Coach Will Pasko',
   title: 'Head Coach & Founder',
+  image: '/assets/images/coach-will/coach-will.webp',
   bio: {
     intro: "Meet Coach Will, a native of Virginia, who not only is a first-generation hockey player and coach with parents from Ukraine and Russia, but also an ardent advocate of the sport. Having taken to the ice at the young age of two, and later playing at the Junior level, his profound love for hockey was instilled by his father, an enduring influence who ignited his passion for the sport and his desire to uplift the hockey community!",
     experience: "Boasting over two decades of expertise in fundamental power skating techniques, in-game awareness both with and without the puck, and all requisite skills for hockey, Coach Will has left a lasting impact. His coaching has benefited an array of hockey players in the DMV area, pro athletes competing abroad, and prep school athletes nationwide.",

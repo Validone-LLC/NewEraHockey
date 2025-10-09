@@ -1,3 +1,4 @@
+// Gallery categories
 export const galleryCategories = [
   {
     id: 1,
@@ -16,104 +17,74 @@ export const galleryCategories = [
   }
 ];
 
+// Import all gallery JSON files
+import kuzy from './gallery/kuzy.json';
+import ashton from './gallery/ashton.json';
+import ovechkin from './gallery/ovechkin.json';
+import matt from './gallery/matt.json';
+import domenic from './gallery/domenic.json';
+import pacioretty from './gallery/pacioretty.json';
+import future from './gallery/future.json';
+import sully from './gallery/sully.json';
+import wheatonCamp from './gallery/wheaton-camp-2023.json';
+import restonCamp from './gallery/reston-camp-2023.json';
+import coaches from './gallery/coaches.json';
+import dmvTryout from './gallery/dmv-2024-tryout.json';
+import camp1 from './gallery/camp-1.json';
+import camp2 from './gallery/camp-2.json';
+import camp3 from './gallery/camp-3.json';
+import camp4 from './gallery/camp-4.json';
+import camp5 from './gallery/camp-5.json';
+import camp6 from './gallery/camp-6.json';
+import camp7 from './gallery/camp-7.json';
+
+// Combine all gallery images
 export const galleryImages = [
-  {
-    id: 1,
-    src: '/assets/gallery/kuzy.jpg',
-    alt: 'KUZY!',
-    category: 'players',
-    featured: true
-  },
-  {
-    id: 2,
-    src: '/assets/gallery/ashton.jpg',
-    alt: 'Ashton',
-    category: 'players',
-    featured: true
-  },
-  {
-    id: 3,
-    src: '/assets/gallery/ovechkin.jpg',
-    alt: 'With the Great 8, Alex Ovechkin!',
-    category: 'players',
-    featured: true
-  },
-  {
-    id: 4,
-    src: '/assets/gallery/matt.jpg',
-    alt: 'Matt',
-    category: 'players',
-    featured: false
-  },
-  {
-    id: 5,
-    src: '/assets/gallery/domenic.jpg',
-    alt: 'Domenic',
-    category: 'players',
-    featured: false
-  },
-  {
-    id: 6,
-    src: '/assets/gallery/wheaton-camp-2023.jpg',
-    alt: 'Wheaton Ice Arena camp, June 2023',
-    category: 'camps',
-    featured: true
-  },
-  {
-    id: 7,
-    src: '/assets/gallery/reston-camp-2023.jpg',
-    alt: 'Reston Camp AUG 2023',
-    category: 'camps',
-    featured: true
-  },
-  {
-    id: 8,
-    src: '/assets/gallery/pacioretty.jpg',
-    alt: 'NHL Player Max Pacioretty',
-    category: 'players',
-    featured: false
-  },
-  {
-    id: 9,
-    src: '/assets/gallery/the-coaches.jpg',
-    alt: 'The Coaches',
-    category: 'behind-scenes',
-    featured: false
-  },
-  {
-    id: 10,
-    src: '/assets/gallery/the-future.jpg',
-    alt: 'The Future',
-    category: 'players',
-    featured: false
-  },
-  {
-    id: 11,
-    src: '/assets/gallery/sully.jpg',
-    alt: 'Sully',
-    category: 'players',
-    featured: false
-  },
-  {
-    id: 12,
-    src: '/assets/gallery/dmv-2024-tryout.jpg',
-    alt: 'DMV 2024 Tryout Prep Camp',
-    category: 'camps',
-    featured: true
-  }
+  kuzy,
+  ashton,
+  ovechkin,
+  matt,
+  domenic,
+  pacioretty,
+  future,
+  sully,
+  wheatonCamp,
+  restonCamp,
+  coaches,
+  dmvTryout,
+  camp1,
+  camp2,
+  camp3,
+  camp4,
+  camp5,
+  camp6,
+  camp7
 ];
 
-// Camp photos from home page
+// Import all camp photos JSON files
+import campPhoto1 from './camp-photos/camp-photo-1.json';
+import campPhoto2 from './camp-photos/camp-photo-2.json';
+import campPhoto3 from './camp-photos/camp-photo-3.json';
+import campPhoto4 from './camp-photos/camp-photo-4.json';
+import campPhoto5 from './camp-photos/camp-photo-5.json';
+import campPhoto6 from './camp-photos/camp-photo-6.json';
+import campPhoto7 from './camp-photos/camp-photo-7.json';
+import campPhoto8 from './camp-photos/camp-photo-8.json';
+import campPhoto9 from './camp-photos/camp-photo-9.json';
+import campPhoto10 from './camp-photos/camp-photo-10.json';
+import campPhoto11 from './camp-photos/camp-photo-11.json';
+
+// Camp photos for home page carousel - sorted by order field
 export const campPhotos = [
-  '/assets/images/camp-photos/IMG_1097.jpg',
-  '/assets/images/camp-photos/IMG_1104.jpg',
-  '/assets/images/camp-photos/IMG_1094.jpg',
-  '/assets/images/camp-photos/IMG_1100.jpg',
-  '/assets/images/camp-photos/IMG_1118.jpg',
-  '/assets/images/camp-photos/IMG_1087.jpg',
-  '/assets/images/camp-photos/IMG_1095.jpg',
-  '/assets/images/camp-photos/IMG_1115.jpg',
-  '/assets/images/camp-photos/IMG_1120.jpg',
-  '/assets/images/camp-photos/IMG_1117.jpg',
-  '/assets/images/camp-photos/IMG_1090.jpg'
-];
+  campPhoto1,
+  campPhoto2,
+  campPhoto3,
+  campPhoto4,
+  campPhoto5,
+  campPhoto6,
+  campPhoto7,
+  campPhoto8,
+  campPhoto9,
+  campPhoto10,
+  campPhoto11
+].sort((a, b) => a.order - b.order).map(photo => photo.src);

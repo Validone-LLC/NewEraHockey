@@ -39,9 +39,29 @@ const CoachWill = () => {
           </motion.h2>
 
           <Card>
-            <div className="space-y-6 text-neutral-light leading-relaxed">
-              <p>{coachInfo.bio.intro}</p>
-              <p>{coachInfo.bio.experience}</p>
+            <div className="grid md:grid-cols-3 gap-8">
+              {/* Coach Image */}
+              <motion.div
+                className="md:col-span-1"
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+              >
+                <div className="relative rounded-lg overflow-hidden aspect-square">
+                  <img
+                    src={coachInfo.image}
+                    alt={coachInfo.name}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                </div>
+              </motion.div>
+
+              {/* Bio Text */}
+              <div className="md:col-span-2 space-y-6 text-neutral-light leading-relaxed">
+                <p>{coachInfo.bio.intro}</p>
+                <p>{coachInfo.bio.experience}</p>
+              </div>
             </div>
           </Card>
 

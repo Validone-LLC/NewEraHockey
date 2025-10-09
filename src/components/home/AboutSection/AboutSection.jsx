@@ -37,36 +37,6 @@ const AboutSection = () => {
               competitiveness, and a safe atmosphere that simultaneously creates good athletes, and
               better people.
             </p>
-
-            <div className="bg-primary border border-neutral-dark rounded-lg p-6 my-8">
-              <h3 className="text-xl font-semibold text-white mb-4">Coach Will's Experience</h3>
-              <p className="text-neutral-light mb-4">
-                Coach Will has trained and guided hockey players in the DMV for 6 years and has played
-                hockey for 23. He is known for his commitment to the sport we all love.
-              </p>
-
-              <div className="space-y-2">
-                {certifications.map((cert, index) => (
-                  <motion.div
-                    key={index}
-                    className="flex items-start gap-2"
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <CheckCircle className="w-5 h-5 text-teal-400 flex-shrink-0 mt-0.5" />
-                    <span className="text-sm text-neutral-light">{cert}</span>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-
-            <p className="leading-relaxed">
-              This unique blend of elements allows players and parents alike to fully immerse themselves
-              in the world of hockey training and development within the DMV area, ranging from prep-schools,
-              all the way to the various clubs in the DMV, to complete beginners.
-            </p>
           </div>
 
           <div className="mt-8">
@@ -76,20 +46,67 @@ const AboutSection = () => {
           </div>
         </motion.div>
 
-        {/* Image/Stats Side */}
+        {/* Coach Will's Experience */}
         <motion.div
-          className="grid grid-cols-2 gap-6"
           initial={{ opacity: 0, x: 30 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <StatCard number="6+" label="Years Coaching" gradient="from-teal-400 to-teal-600" />
-          <StatCard number="23+" label="Years Playing" gradient="from-teal-500 to-teal-700" />
-          <StatCard number="100+" label="Players Trained" gradient="from-teal-300 to-teal-500" />
-          <StatCard number="DMV" label="Service Area" gradient="from-teal-600 to-teal-800" />
+          <div className="bg-primary border border-neutral-dark rounded-lg p-6">
+            <h3 className="text-xl font-semibold text-white mb-4">Coach Will's Experience</h3>
+            <p className="text-neutral-light mb-4">
+              Coach Will has trained and guided hockey players in the DMV for 6 years and has played
+              hockey for 23. He is known for his commitment to the sport we all love.
+            </p>
+
+            <div className="space-y-2">
+              {certifications.map((cert, index) => (
+                <motion.div
+                  key={index}
+                  className="flex items-start gap-2"
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <CheckCircle className="w-5 h-5 text-teal-400 flex-shrink-0 mt-0.5" />
+                  <span className="text-sm text-neutral-light">{cert}</span>
+                </motion.div>
+              ))}
+            </div>
+          </div>
         </motion.div>
       </div>
+
+      {/* Stats Section */}
+      <motion.div
+        className="grid grid-cols-2 lg:grid-cols-4 gap-6 mt-12"
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+      >
+        <StatCard number="6+" label="Years Coaching" gradient="from-teal-400 to-teal-600" />
+        <StatCard number="23+" label="Years Playing" gradient="from-teal-500 to-teal-700" />
+        <StatCard number="100+" label="Players Trained" gradient="from-teal-300 to-teal-500" />
+        <StatCard number="DMV" label="Service Area" gradient="from-teal-600 to-teal-800" />
+      </motion.div>
+
+      {/* Additional Context */}
+      <motion.div
+        className="mt-12 max-w-3xl mx-auto text-center"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+      >
+        <p className="text-neutral-light leading-relaxed">
+          This unique blend of elements allows players and parents alike to fully immerse themselves
+          in the world of hockey training and development within the DMV area, ranging from prep-schools,
+          all the way to the various clubs in the DMV, to complete beginners.
+        </p>
+      </motion.div>
     </section>
   );
 };

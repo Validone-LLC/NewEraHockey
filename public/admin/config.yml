@@ -37,6 +37,7 @@ collections:
                 widget: "select"
                 options: ["Flame", "Dumbbell", "Trophy"]
               - {label: "Gradient Classes", name: "gradient", widget: "string", hint: "Tailwind gradient classes, e.g., 'from-teal-400 to-teal-600'"}
+              - {label: "Image", name: "image", widget: "image", required: false, hint: "Background image for the value card"}
 
       # Coach Information
       - label: "Coach Information"
@@ -143,7 +144,7 @@ collections:
     format: "json"
     fields:
       - {label: "ID", name: "id", widget: "number", value_type: "int"}
-      - {label: "Image", name: "src", widget: "image"}
+      - {label: "Image URL", name: "src", widget: "string", hint: "Can be a local path (e.g., /assets/gallery/image.jpg) or external URL"}
       - {label: "Description/Alt Text", name: "alt", widget: "string"}
       - label: "Category"
         name: "category"
@@ -162,6 +163,6 @@ collections:
     format: "json"
     fields:
       - {label: "ID", name: "id", widget: "number", value_type: "int"}
-      - {label: "Photo", name: "src", widget: "image"}
+      - {label: "Photo URL", name: "src", widget: "string", hint: "Can be a local path (e.g., /assets/images/camp.jpg) or external URL"}
       - {label: "Caption", name: "caption", widget: "string", required: false}
       - {label: "Order", name: "order", widget: "number", value_type: "int", hint: "Display order in carousel"}
