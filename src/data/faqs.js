@@ -1,32 +1,4 @@
-export const faqs = [
-  {
-    id: 1,
-    question: 'When will a camp be available at a rink near me?',
-    answer: 'Available camps will be posted on our Event Calendar and Instagram account @NewEraHockeyDMV. Additionally, official flyers will be posted on the home page and host rink.'
-  },
-  {
-    id: 2,
-    question: "Can I get a refund for a session I've already paid for?",
-    answer: 'Refund policies vary depending on the type of session and timing of cancellation. Please contact us directly at Nehockeytraining@outlook.com or call (571) 274-4691 to discuss your specific situation.'
-  },
-  {
-    id: 3,
-    question: 'Will my hockey player be safe?',
-    answer: 'Absolutely. Safety is our top priority. Coach Will is Safe Sport Certified and fully insured. We maintain proper player-to-coach ratios, follow all safety protocols, and create a positive, supportive environment where players can develop their skills safely.'
-  },
-  {
-    id: 4,
-    question: 'What age groups do you coach?',
-    answer: 'We work with hockey players of all ages and skill levels - from complete beginners taking their first steps on the ice to prep school and junior level athletes. Our personalized approach ensures every player gets training tailored to their specific needs and goals.'
-  },
-  {
-    id: 5,
-    question: 'Where are training sessions held?',
-    answer: 'We conduct training sessions at various rinks throughout the DMV area (DC, Maryland, and Virginia). Specific locations are communicated when you book your session or register for a camp.'
-  },
-  {
-    id: 6,
-    question: 'What should my player bring to training?',
-    answer: 'Players should bring full hockey gear including skates, helmet with cage/visor, gloves, stick, and appropriate padding. For specific camp or session requirements, you will receive detailed information upon registration.'
-  }
-];
+import faqsData from './faqs.json';
+
+// Export FAQs from JSON (CMS-managed)
+export const faqs = faqsData.faqs;

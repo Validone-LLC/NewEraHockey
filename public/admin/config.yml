@@ -19,7 +19,7 @@ collections:
       # Core Values
       - label: "Core Values"
         name: "coreValues"
-        file: "src/data/coreValues.js"
+        file: "src/data/coreValues.json"
         fields:
           - label: "Values"
             name: "coreValues"
@@ -54,7 +54,7 @@ collections:
       # FAQs
       - label: "Frequently Asked Questions"
         name: "faqs"
-        file: "src/data/faqs.js"
+        file: "src/data/faqs.json"
         fields:
           - label: "FAQs"
             name: "faqs"
