@@ -1,0 +1,28 @@
+{
+  "stats": [
+    {
+      "id": 1,
+      "number": "6+",
+      "label": "Years Coaching",
+      "gradient": "from-teal-400 to-teal-600"
+    },
+    {
+      "id": 2,
+      "number": "23+",
+      "label": "Years Playing",
+      "gradient": "from-teal-500 to-teal-700"
+    },
+    {
+      "id": 3,
+      "number": "100+",
+      "label": "Players Trained",
+      "gradient": "from-teal-300 to-teal-500"
+    },
+    {
+      "id": 4,
+      "number": "DMV",
+      "label": "Service Area",
+      "gradient": "from-teal-600 to-teal-800"
+    }
+  ]
+}

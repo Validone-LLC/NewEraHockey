@@ -1,0 +1,14 @@
+{
+  "hero": {
+    "title": "COACH WILL",
+    "tagline": "First-generation hockey player and coach with a passion for developing athletes"
+  },
+  "bioHeading": "Meet Coach Will Pasko",
+  "certificationsHeading": "Certifications & Experience",
+  "statementHeading": "Personal Statement from Coach Will",
+  "cta": {
+    "title": "Still Have Questions?",
+    "buttonText": "Contact Coach Will",
+    "buttonLink": "/contact"
+  }
+}

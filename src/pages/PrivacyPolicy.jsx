@@ -3,7 +3,9 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { HiChevronRight } from 'react-icons/hi';
 import Card from '@components/common/Card/Card';
-import { privacyPolicy } from '@data/privacyPolicy';
+import privacyPolicyData from '@data/privacyPolicy.json';
+
+const privacyPolicy = privacyPolicyData;
 
 const PrivacyPolicy = () => {
   const [activeSection, setActiveSection] = useState(null);
