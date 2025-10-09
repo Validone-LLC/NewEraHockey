@@ -3,24 +3,19 @@ import Card from '@components/common/Card/Card';
 const ValueCard = ({ value, index }) => {
   return (
     <Card delay={index * 0.2} hover={false}>
-      <div className="relative overflow-hidden rounded-lg">
-        {/* Background Image */}
+      <div className="overflow-hidden rounded-lg">
+        {/* Image at Top */}
         {value.image && (
-          <div className="absolute inset-0 z-0">
-            <img
-              src={value.image}
-              alt={`${value.title} background`}
-              className="w-full h-full object-cover opacity-20"
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-neutral-bg/80 to-neutral-bg" />
+          <div className="w-full h-64 overflow-hidden">
+            <img src={value.image} alt={`${value.title}`} className="w-full h-full object-cover" />
           </div>
         )}
 
-        {/* Content */}
-        <div className="relative z-10 text-center">
+        {/* Content Below */}
+        <div className="text-center pt-6">
           {/* Icon with gradient background */}
           <div
-            className={`w-20 h-20 mx-auto mb-6 mt-2 rounded-full bg-gradient-to-br ${value.gradient}
+            className={`w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br ${value.gradient}
               flex items-center justify-center shadow`}
           >
             <value.icon className="w-10 h-10 text-white" />

@@ -1,0 +1,14 @@
+{
+  "title": "Welcome to",
+  "brandName": "New Era Hockey",
+  "tagline": "Premier hockey training in the DMV area. Transforming players through passion, discipline, and results.",
+  "primaryCTA": {
+    "text": "Register for Training",
+    "link": "/register"
+  },
+  "secondaryCTA": {
+    "text": "Contact Coach Will",
+    "link": "/contact"
+  },
+  "logoImage": "/assets/images/logo/neh-logo.png"
+}
