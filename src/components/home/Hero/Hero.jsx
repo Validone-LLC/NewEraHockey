@@ -32,9 +32,9 @@ const Hero = () => {
           transition={{ duration: 0.8, delay: 0.2 }}
         >
           Premier hockey training in the DMV area. Transforming players through{' '}
-          <span className="text-accent-red font-semibold">passion</span>,{' '}
-          <span className="text-accent-blue font-semibold">discipline</span>, and{' '}
-          <span className="text-accent-gold font-semibold">results</span>.
+          <span className="text-teal-300 font-semibold">passion</span>,{' '}
+          <span className="text-teal-400 font-semibold">discipline</span>, and{' '}
+          <span className="text-teal-500 font-semibold">results</span>.
         </motion.p>
 
         <motion.div

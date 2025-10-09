@@ -18,13 +18,13 @@
 
 @layer components {
   .btn-primary {
-    @apply px-6 py-3 bg-gradient-to-r from-accent-red to-red-700 text-white font-semibold rounded-lg
-    hover:shadow-lg hover:scale-105 transition-all duration-300 ease-out;
+    @apply px-6 py-3 bg-gradient-to-r from-teal-500 to-teal-600 text-white font-semibold rounded-lg
+    hover:shadow hover:shadow-teal-500/20 transition-all duration-300 ease-out;
   }
 
   .btn-secondary {
-    @apply px-6 py-3 border-2 border-accent-blue text-accent-blue font-semibold rounded-lg
-    hover:bg-accent-blue hover:text-white transition-all duration-300 ease-out;
+    @apply px-6 py-3 border-2 border-teal-400 text-teal-400 font-semibold rounded-lg
+    hover:bg-teal-400 hover:text-primary transition-all duration-300 ease-out;
   }
 
   .section-container {
@@ -32,12 +32,12 @@
   }
 
   .card {
-    @apply bg-primary border border-neutral-dark rounded-xl p-6 shadow-lg
-    hover:shadow-2xl hover:border-accent-blue/50 transition-all duration-300;
+    @apply bg-primary border border-teal-900/30 rounded-xl p-6 shadow
+    hover:shadow-md hover:shadow-teal-500/5 hover:border-teal-500/50 transition-all duration-300;
   }
 
   .gradient-text {
-    @apply bg-gradient-to-r from-accent-red via-accent-blue to-accent-gold
+    @apply bg-gradient-to-r from-teal-300 via-teal-400 to-teal-500
     bg-clip-text text-transparent;
   }
 }

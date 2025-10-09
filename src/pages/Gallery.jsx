@@ -102,7 +102,7 @@ const Gallery = () => {
               <img
                 src={image.src}
                 alt={image.alt}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                className="w-full h-full object-cover"
                 loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
@@ -137,8 +137,8 @@ const FilterButton = ({ label, active, onClick }) => {
       onClick={onClick}
       className={`px-6 py-2 rounded-lg font-semibold transition-all duration-300 ${
         active
-          ? 'bg-gradient-to-r from-accent-red to-red-700 text-white'
-          : 'bg-primary border border-neutral-dark text-neutral-light hover:border-accent-blue'
+          ? 'bg-gradient-to-r from-teal-500 to-teal-700 text-white'
+          : 'bg-primary border border-neutral-dark text-neutral-light hover:border-teal-500'
       }`}
     >
       {label}

@@ -42,7 +42,7 @@ const ContactForm = () => {
       {/* Name */}
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-neutral-light mb-2">
-          Your Name <span className="text-accent-red">*</span>
+          Your Name <span className="text-teal-500">*</span>
         </label>
         <input
           id="name"
@@ -51,12 +51,12 @@ const ContactForm = () => {
           {...formik.getFieldProps('name')}
           className={`w-full px-4 py-3 bg-primary border ${
             formik.touched.name && formik.errors.name
-              ? 'border-accent-red'
+              ? 'border-teal-500'
               : 'border-neutral-dark'
-          } rounded-lg text-white focus:outline-none focus:border-accent-blue transition-colors`}
+          } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors`}
         />
         {formik.touched.name && formik.errors.name && (
-          <p className="mt-1 text-sm text-accent-red">{formik.errors.name}</p>
+          <p className="mt-1 text-sm text-teal-500">{formik.errors.name}</p>
         )}
       </div>
 
@@ -70,14 +70,14 @@ const ContactForm = () => {
           name="phone"
           type="tel"
           {...formik.getFieldProps('phone')}
-          className="w-full px-4 py-3 bg-primary border border-neutral-dark rounded-lg text-white focus:outline-none focus:border-accent-blue transition-colors"
+          className="w-full px-4 py-3 bg-primary border border-neutral-dark rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors"
         />
       </div>
 
       {/* Email */}
       <div>
         <label htmlFor="email" className="block text-sm font-medium text-neutral-light mb-2">
-          Email <span className="text-accent-red">*</span>
+          Email <span className="text-teal-500">*</span>
         </label>
         <input
           id="email"
@@ -86,12 +86,12 @@ const ContactForm = () => {
           {...formik.getFieldProps('email')}
           className={`w-full px-4 py-3 bg-primary border ${
             formik.touched.email && formik.errors.email
-              ? 'border-accent-red'
+              ? 'border-teal-500'
               : 'border-neutral-dark'
-          } rounded-lg text-white focus:outline-none focus:border-accent-blue transition-colors`}
+          } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors`}
         />
         {formik.touched.email && formik.errors.email && (
-          <p className="mt-1 text-sm text-accent-red">{formik.errors.email}</p>
+          <p className="mt-1 text-sm text-teal-500">{formik.errors.email}</p>
         )}
       </div>
 
@@ -107,12 +107,12 @@ const ContactForm = () => {
           {...formik.getFieldProps('message')}
           className={`w-full px-4 py-3 bg-primary border ${
             formik.touched.message && formik.errors.message
-              ? 'border-accent-red'
+              ? 'border-teal-500'
               : 'border-neutral-dark'
-          } rounded-lg text-white focus:outline-none focus:border-accent-blue transition-colors resize-none`}
+          } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors resize-none`}
         />
         {formik.touched.message && formik.errors.message && (
-          <p className="mt-1 text-sm text-accent-red">{formik.errors.message}</p>
+          <p className="mt-1 text-sm text-teal-500">{formik.errors.message}</p>
         )}
       </div>
 

@@ -42,8 +42,7 @@ const Button = ({
       <motion.a
         href={href}
         className={classes}
-        whileHover={{ scale: disabled ? 1 : 1.05 }}
-        whileTap={{ scale: disabled ? 1 : 0.95 }}
+        whileTap={{ scale: disabled ? 1 : 0.98 }}
         target="_blank"
         rel="noopener noreferrer"
       >
@@ -58,8 +57,7 @@ const Button = ({
       className={classes}
       onClick={onClick}
       disabled={disabled}
-      whileHover={{ scale: disabled ? 1 : 1.05 }}
-      whileTap={{ scale: disabled ? 1 : 0.95 }}
+      whileTap={{ scale: disabled ? 1 : 0.98 }}
     >
       {content}
     </motion.button>

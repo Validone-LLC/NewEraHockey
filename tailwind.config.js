@@ -8,18 +8,30 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#1a1a1b',
-          dark: '#0d0d0e',
-          light: '#2a2a2b'
+          DEFAULT: '#0a0e12',
+          dark: '#050709',
+          light: '#141b24'
         },
-        accent: {
-          red: '#c8102e',
-          blue: '#003087',
-          gold: '#fcb514'
+        teal: {
+          50: '#e6f7fb',
+          100: '#b3e8f4',
+          200: '#80d9ed',
+          300: '#4dcae6',
+          400: '#33c2e3',
+          500: '#1ab8df',  // Main brand teal
+          600: '#159fbd',
+          700: '#11869b',
+          800: '#0d6d7a',
+          900: '#095458'
+        },
+        silver: {
+          DEFAULT: '#b8c5d0',
+          light: '#d4dde5',
+          dark: '#8a9baa'
         },
         neutral: {
-          bg: '#181a1b',
-          text: '#494b51',
+          bg: '#0f1419',
+          text: '#9ca3af',
           light: '#e5e7eb',
           dark: '#1f2937'
         }

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { HiHome } from 'react-icons/hi';
+import { Home } from 'lucide-react';
 import Button from '@components/common/Button/Button';
 
 const NotFound = () => {
@@ -20,7 +20,7 @@ const NotFound = () => {
           <p className="text-xl text-neutral-light mb-12">
             Looks like you've taken a wrong turn on the ice. Let's get you back to the game!
           </p>
-          <Button to="/" variant="primary" icon={HiHome}>
+          <Button to="/" variant="primary" icon={Home}>
             Return to Home
           </Button>
         </motion.div>

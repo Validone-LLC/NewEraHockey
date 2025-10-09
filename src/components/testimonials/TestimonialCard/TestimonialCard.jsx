@@ -8,7 +8,7 @@ const TestimonialCard = ({ testimonial, index }) => {
       {/* Stars */}
       <div className="flex gap-1 mb-4">
         {[...Array(5)].map((_, i) => (
-          <HiStar key={i} className="w-5 h-5 text-accent-gold" />
+          <HiStar key={i} className="w-5 h-5 text-teal-400" />
         ))}
       </div>
 

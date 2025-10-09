@@ -8,7 +8,7 @@ const Card = ({ children, className = '', hover = true, delay = 0 }) => {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.6, delay }}
-      whileHover={hover ? { y: -8, scale: 1.02 } : {}}
+      whileHover={hover ? { y: -4 } : {}}
     >
       {children}
     </motion.div>

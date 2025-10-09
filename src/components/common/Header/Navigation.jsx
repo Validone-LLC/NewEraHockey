@@ -15,7 +15,7 @@ const Navigation = ({ mobile = false }) => {
     ${mobile ? 'block py-3 px-4 text-lg' : 'px-4 py-2'}
     font-medium transition-colors duration-200
     ${isActive
-      ? 'text-accent-red'
+      ? 'text-teal-500'
       : 'text-neutral-light hover:text-white'
     }
   `;

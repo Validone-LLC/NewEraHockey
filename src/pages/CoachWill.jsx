@@ -65,7 +65,7 @@ const CoachWill = () => {
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1 }}
                 >
-                  <HiCheckCircle className="w-6 h-6 text-accent-gold flex-shrink-0" />
+                  <HiCheckCircle className="w-6 h-6 text-teal-500 flex-shrink-0" />
                   <span className="text-neutral-light">{cert}</span>
                 </motion.div>
               ))}
@@ -75,7 +75,7 @@ const CoachWill = () => {
       </section>
 
       {/* Personal Statement */}
-      <section className="section-container bg-gradient-to-br from-accent-red/10 to-accent-blue/10">
+      <section className="section-container bg-gradient-to-br from-teal-500/10 to-teal-700/10">
         <div className="max-w-4xl mx-auto">
           <motion.h3
             className="text-3xl font-display font-bold text-white mb-8 text-center"
@@ -90,7 +90,7 @@ const CoachWill = () => {
             <p className="text-neutral-light leading-relaxed text-lg italic mb-6">
               {coachInfo.statement}
             </p>
-            <p className="text-accent-gold font-semibold text-right text-xl">
+            <p className="text-teal-500 font-semibold text-right text-xl">
               {coachInfo.signature}
             </p>
           </Card>

@@ -28,7 +28,7 @@ const EventRegistration = () => {
       <section className="section-container">
         <Card>
           <div className="text-center py-20">
-            <HiCalendar className="w-24 h-24 mx-auto mb-6 text-accent-blue opacity-50" />
+            <HiCalendar className="w-24 h-24 mx-auto mb-6 text-teal-500 opacity-50" />
             <h2 className="text-3xl font-display font-bold text-white mb-4">
               Event Calendar Coming Soon
             </h2>
@@ -58,7 +58,7 @@ const EventRegistration = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card>
               <div className="text-center">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-accent-red to-red-700 flex items-center justify-center">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center">
                   <HiCalendar className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-xl font-semibold text-white mb-2">Event Calendar</h3>
@@ -70,7 +70,7 @@ const EventRegistration = () => {
 
             <Card>
               <div className="text-center">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-accent-gold to-yellow-700 flex items-center justify-center text-3xl">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center text-3xl">
                   📸
                 </div>
                 <h3 className="text-xl font-semibold text-white mb-2">Instagram</h3>
@@ -82,7 +82,7 @@ const EventRegistration = () => {
 
             <Card>
               <div className="text-center">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-accent-blue to-blue-700 flex items-center justify-center text-3xl">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-teal-300 to-teal-500 flex items-center justify-center text-3xl">
                   🏒
                 </div>
                 <h3 className="text-xl font-semibold text-white mb-2">Host Rinks</h3>
