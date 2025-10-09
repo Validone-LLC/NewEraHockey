@@ -1,6 +1,6 @@
 backend:
   name: git-gateway
-  branch: NEH-3  # Your current branch - change to main/master after merging
+  branch: master
 
 # Publish mode - set to editorial_workflow for draft/review/publish flow
 publish_mode: simple
