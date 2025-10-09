@@ -21,7 +21,7 @@ const Hero = () => {
           <img
             src="/assets/images/logo/neh-logo.png"
             alt="New Era Hockey Logo"
-            className="h-32 sm:h-40 lg:h-48 w-auto mx-auto drop-shadow-2xl"
+            className="h-56 sm:h-40 lg:h-64 w-auto mx-auto drop-shadow-2xl"
           />
         </motion.div>
 
@@ -32,9 +32,7 @@ const Hero = () => {
         >
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-display font-extrabold mb-6">
             <span className="block text-white mb-2">Welcome to</span>
-            <span className="gradient-text text-6xl sm:text-7xl lg:text-8xl">
-              New Era Hockey
-            </span>
+            <span className="gradient-text text-6xl sm:text-7xl lg:text-8xl">New Era Hockey</span>
           </h1>
         </motion.div>
 

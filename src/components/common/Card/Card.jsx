@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 
-const Card = ({ children, className = '', hover = true, delay = 0 }) => {
+const Card = ({ children, className = '', delay = 0 }) => {
   return (
     <motion.div
       className={`card ${className}`}
