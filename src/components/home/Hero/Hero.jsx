@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import Button from '@components/common/Button/Button';
+import heroData from '@data/homeHero.json';
 
 const Hero = () => {
   return (
@@ -19,7 +20,7 @@ const Hero = () => {
           className="mb-8"
         >
           <img
-            src="/assets/images/logo/neh-logo.png"
+            src={heroData.logoImage}
             alt="New Era Hockey Logo"
             className="h-56 sm:h-40 lg:h-64 w-auto mx-auto drop-shadow-2xl"
           />
@@ -31,8 +32,10 @@ const Hero = () => {
           transition={{ duration: 0.8, delay: 0.2 }}
         >
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-display font-extrabold mb-6">
-            <span className="block text-white mb-2">Welcome to</span>
-            <span className="gradient-text text-6xl sm:text-7xl lg:text-8xl">New Era Hockey</span>
+            <span className="block text-white mb-2">{heroData.title}</span>
+            <span className="gradient-text text-6xl sm:text-7xl lg:text-8xl">
+              {heroData.brandName}
+            </span>
           </h1>
         </motion.div>
 
@@ -42,10 +45,13 @@ const Hero = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
-          Premier hockey training in the DMV area. Transforming players through{' '}
-          <span className="text-teal-300 font-semibold">passion</span>,{' '}
-          <span className="text-teal-400 font-semibold">discipline</span>, and{' '}
-          <span className="text-teal-500 font-semibold">results</span>.
+          {heroData.tagline.text}{' '}
+          {heroData.tagline.highlights.map((highlight, index) => (
+            <span key={index}>
+              <span className={`${highlight.color} font-semibold`}>{highlight.word}</span>
+              {index < heroData.tagline.highlights.length - 1 ? ', ' : '.'}
+            </span>
+          ))}
         </motion.p>
 
         <motion.div
@@ -54,11 +60,11 @@ const Hero = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
         >
-          <Button to="/register" variant="primary">
-            Register for Training
+          <Button to={heroData.primaryCTA.link} variant="primary">
+            {heroData.primaryCTA.text}
           </Button>
-          <Button to="/contact" variant="secondary">
-            Contact Coach Will
+          <Button to={heroData.secondaryCTA.link} variant="secondary">
+            {heroData.secondaryCTA.text}
           </Button>
         </motion.div>
       </div>

@@ -7,7 +7,11 @@ const ValueCard = ({ value, index }) => {
         {/* Image at Top */}
         {value.image && (
           <div className="w-full h-64 overflow-hidden">
-            <img src={value.image} alt={`${value.title}`} className="w-full h-full object-cover" />
+            <img
+              src={value.image}
+              alt={`${value.title}`}
+              className="w-full h-full object-cover rounded-lg"
+            />
           </div>
         )}
 

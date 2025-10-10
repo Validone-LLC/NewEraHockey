@@ -1,7 +1,23 @@
 {
   "title": "Welcome to",
   "brandName": "New Era Hockey",
-  "tagline": "Premier hockey training in the DMV area. Transforming players through passion, discipline, and results.",
+  "tagline": {
+    "text": "Premier hockey training in the DMV area. Transforming players through",
+    "highlights": [
+      {
+        "word": "passion",
+        "color": "text-teal-300"
+      },
+      {
+        "word": "discipline",
+        "color": "text-teal-400"
+      },
+      {
+        "word": "results",
+        "color": "text-teal-500"
+      }
+    ]
+  },
   "primaryCTA": {
     "text": "Register for Training",
     "link": "/register"

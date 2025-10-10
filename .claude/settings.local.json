@@ -15,7 +15,10 @@
       "Bash(npx husky init:*)",
       "Bash(cat:*)",
       "Bash(npm run lint)",
-      "mcp__sequential-thinking__sequentialthinking"
+      "mcp__sequential-thinking__sequentialthinking",
+      "Bash(node:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
