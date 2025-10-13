@@ -3,7 +3,7 @@ import Header from '@components/common/Header/Header';
 import Footer from '@components/common/Footer/Footer';
 import SkipLink from '@components/common/SkipLink/SkipLink';
 import Home from '@pages/Home';
-import CoachWill from '@pages/CoachWill';
+import CoachTeam from '@pages/CoachTeam';
 import Testimonials from '@pages/Testimonials';
 import Gallery from '@pages/Gallery';
 import Contact from '@pages/Contact';
@@ -21,7 +21,7 @@ const AppRoutes = () => {
       <main id="main-content" className="flex-grow pt-20">
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/coach-will" element={<CoachWill />} />
+          <Route path="/coach-team" element={<CoachTeam />} />
           <Route path="/testimonials" element={<Testimonials />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/contact" element={<Contact />} />
