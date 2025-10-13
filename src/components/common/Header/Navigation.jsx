@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 
 const navLinks = [
   { path: '/', label: 'Home' },
-  { path: '/coach-will', label: 'Coach Will' },
+  { path: '/coach-team', label: 'Coach Team' },
   { path: '/testimonials', label: 'Testimonials' },
   { path: '/gallery', label: 'Gallery' },
   { path: '/contact', label: 'Contact' },

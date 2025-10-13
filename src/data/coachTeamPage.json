@@ -1,0 +1,13 @@
+{
+  "hero": {
+    "title": "COACH TEAM",
+    "tagline": "Meet our dedicated coaching staff committed to developing elite hockey players"
+  },
+  "primaryCoachHeading": "Head Coach & Founder",
+  "staffHeading": "Our Coaching Staff",
+  "cta": {
+    "title": "Still Have Questions?",
+    "buttonText": "Contact Our Team",
+    "buttonLink": "/contact"
+  }
+}
