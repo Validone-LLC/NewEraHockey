@@ -20,7 +20,7 @@ const CoachTeam = () => {
             transition={{ duration: 0.8 }}
           >
             <h1 className="text-5xl sm:text-6xl font-display font-bold mb-4">
-              <span className="gradient-text">COACH TEAM</span>
+              <span className="gradient-text">MEET THE COACHES</span>
             </h1>
             <p className="text-xl text-neutral-light max-w-2xl mx-auto">
               Meet our dedicated coaching staff committed to developing elite hockey players

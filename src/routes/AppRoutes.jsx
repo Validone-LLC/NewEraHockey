@@ -21,7 +21,7 @@ const AppRoutes = () => {
       <main id="main-content" className="flex-grow pt-20">
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/coach-team" element={<CoachTeam />} />
+          <Route path="/coaches" element={<CoachTeam />} />
           <Route path="/testimonials" element={<Testimonials />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/contact" element={<Contact />} />

@@ -117,6 +117,16 @@ const CoachCard = ({ coach, isPrimary = false, index = 0 }) => {
                       )}
                     </div>
                   )}
+
+                  {/* Fun Fact */}
+                  {coach.funFact && (
+                    <div className="bg-gradient-to-br from-primary-dark to-neutral-bg border border-teal-500/30 rounded-lg p-6">
+                      <h4 className="text-xl font-display font-bold text-teal-500 mb-3">
+                        Fun Fact
+                      </h4>
+                      <p className="text-neutral-light leading-relaxed">{coach.funFact}</p>
+                    </div>
+                  )}
                 </div>
               </motion.div>
             )}
