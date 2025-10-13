@@ -3,7 +3,7 @@ export const coaches = [
     id: 'will-pasko',
     name: 'Coach Will Pasko',
     title: 'Head Coach & Founder',
-    image: '/assets/images/coach-will/PHOTO-2025-10-12-14-41-32.webp',
+    image: '/assets/images/coaches/PHOTO-2025-10-12-14-41-32.webp',
     quickSummary:
       'First-generation hockey player and coach with over two decades of expertise in power skating, in-game awareness, and hockey fundamentals. Passionate about developing athletes and uplifting the hockey community.',
     bio: {
@@ -28,23 +28,23 @@ export const coaches = [
     service_area: 'DMV (DC, Maryland, Virginia)',
     isPrimary: true,
   },
-  // Add additional coaches here as needed
-  // Example structure:
-  // {
-  //   id: 'coach-name',
-  //   name: 'Coach First Last',
-  //   title: 'Assistant Coach',
-  //   image: '/assets/images/coach-name/photo.webp',
-  //   quickSummary: 'Brief introduction...',
-  //   bio: {
-  //     intro: 'Full introduction...',
-  //     experience: 'Experience details...',
-  //   },
-  //   statement: 'Personal statement...',
-  //   signature: '~Coach Name.',
-  //   certifications: ['Cert 1', 'Cert 2'],
-  //   isPrimary: false,
-  // },
+  {
+    id: 'dennis-nayandin',
+    name: 'Coach Dennis Nayandin',
+    title: 'Assistant Coach',
+    image: '/assets/images/coaches/dennis-n-coach.webp',
+    quickSummary:
+      'Late-starting hockey player who rapidly progressed from beginning at age 14 to playing junior hockey by 18. Now plays adult league and brings enthusiasm, speed, and a passion for teaching to the coaching staff.',
+    bio: {
+      intro:
+        "Coach Dennis is proof that it's never too late to start hockey. Born in Michigan to Russian parents and raised in Virginia, Dennis discovered hockey at 14 and quickly fell in love with the sport. Through dedicated training and an unwavering commitment to improvement, he achieved what many thought impossible—progressing from a beginner to junior hockey in just four years.",
+      experience:
+        'Dennis played for the George Mason University (GMU) D3 NCAA Club team before transitioning to adult league hockey, where he continues to compete today. A left-handed shooter known for his exceptional speed on the ice, Dennis loves helping Coach Will whenever the opportunity arises and has developed a genuine passion for teaching the game to others. His unique journey from late starter to competitive player gives him valuable insight into the challenges new players face.',
+    },
+    funFact:
+      'Dennis is friends with Russian NHL stars Alexander Ovechkin, Evgeny Kuznetsov, and Dmitry Orlov—and he claims to be faster than Coach Will on the ice!',
+    isPrimary: false,
+  },
 ];
 
 // Legacy export for backward compatibility (if needed elsewhere)
