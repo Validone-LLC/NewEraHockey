@@ -10,6 +10,17 @@ const ses = new AWS.SES({
 });
 
 exports.handler = async (event) => {
+  // Debug: Log environment variable status (NOT the actual values for security)
+  console.log('AWS Environment Check:', {
+    hasAccessKey: !!process.env.NEH_AWS_ACCESS_KEY_ID,
+    hasSecretKey: !!process.env.NEH_AWS_SECRET_ACCESS_KEY,
+    region: process.env.NEH_AWS_REGION || 'default-us-east-1',
+    hasAdminEmail: !!process.env.ADMIN_EMAIL,
+    hasFromEmail: !!process.env.SES_FROM_EMAIL,
+    // Show first 8 chars of access key to verify it's loading (safe to log)
+    accessKeyPrefix: process.env.NEH_AWS_ACCESS_KEY_ID?.substring(0, 8) || 'NOT_SET'
+  });
+
   // Only allow POST requests
   if (event.httpMethod !== 'POST') {
     return {
