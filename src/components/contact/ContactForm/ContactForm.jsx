@@ -24,13 +24,29 @@ const ContactForm = () => {
     onSubmit: async (values, { resetForm }) => {
       setIsSubmitting(true);
 
-      // Simulate API call
       try {
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        toast.success("Message sent successfully! We'll get back to you soon.");
+        // Send form data to Netlify Function
+        const response = await fetch('/.netlify/functions/contact', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(values),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to send message');
+        }
+
+        toast.success(data.message || "Message sent successfully! We'll get back to you soon.");
         resetForm();
       } catch (error) {
-        toast.error('Failed to send message. Please try again or contact us directly.');
+        console.error('Contact form error:', error);
+        toast.error(
+          error.message || 'Failed to send message. Please try again or contact us directly.'
+        );
       } finally {
         setIsSubmitting(false);
       }

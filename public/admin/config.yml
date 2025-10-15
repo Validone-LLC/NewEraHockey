@@ -466,20 +466,53 @@ collections:
       - { label: 'Location', name: 'location', widget: 'string' }
       - { label: 'Registration Link', name: 'registrationLink', widget: 'string', required: false }
 
-  # Contact Form Submissions (Not Implemented Yet)
-  # Note: This would require backend integration for form submission storage
-  - divider: true 
-  - name: 'contact-submissions'
-    label: 'Contact Submissions (Not Implemented)'
-    label_singular: 'Submission'
-    folder: 'src/data/contact-submissions'
+  # Email Management - Contact Form Submissions with AWS SES
+  - divider: true
+  - name: 'email-management'
+    label: 'Email Management'
+    label_singular: 'Email'
+    folder: 'src/data/emails'
     create: false
     slug: '{{year}}-{{month}}-{{day}}-{{slug}}'
     extension: 'json'
     format: 'json'
+    identifier_field: 'id'
+    sortable_fields: ['timestamp', 'status', 'from.name']
+    summary: '{{id}} - {{status}} - {{from.name}} ({{from.email}})'
+    view_filters:
+      - label: 'New'
+        field: 'status'
+        pattern: 'NEW'
+      - label: 'Viewed'
+        field: 'status'
+        pattern: 'VIEWED'
+      - label: 'Responded'
+        field: 'status'
+        pattern: 'RESPONDED'
     fields:
-      - { label: 'Name', name: 'name', widget: 'string' }
-      - { label: 'Email', name: 'email', widget: 'string' }
-      - { label: 'Phone', name: 'phone', widget: 'string', required: false }
+      - { label: 'Email ID', name: 'id', widget: 'string', hint: 'Unique identifier' }
+      - { label: 'Message ID', name: 'messageId', widget: 'string', hint: 'Email threading identifier' }
+      - { label: 'Thread ID', name: 'threadId', widget: 'string', hint: 'Conversation thread identifier' }
+      - label: 'Status'
+        name: 'status'
+        widget: 'select'
+        options: ['NEW', 'VIEWED', 'RESPONDED']
+        default: 'NEW'
+      - label: 'From'
+        name: 'from'
+        widget: 'object'
+        fields:
+          - { label: 'Name', name: 'name', widget: 'string' }
+          - { label: 'Email', name: 'email', widget: 'string' }
+          - { label: 'Phone', name: 'phone', widget: 'string', required: false }
+      - { label: 'Subject', name: 'subject', widget: 'string' }
       - { label: 'Message', name: 'message', widget: 'text' }
-      - { label: 'Submitted At', name: 'submittedAt', widget: 'datetime' }
+      - { label: 'Timestamp', name: 'timestamp', widget: 'datetime' }
+      - label: 'Metadata'
+        name: 'metadata'
+        widget: 'object'
+        collapsed: true
+        fields:
+          - { label: 'User Agent', name: 'userAgent', widget: 'string', required: false }
+          - { label: 'IP Address', name: 'ip', widget: 'string', required: false }
+          - { label: 'Form Type', name: 'formType', widget: 'string', default: 'contact' }
