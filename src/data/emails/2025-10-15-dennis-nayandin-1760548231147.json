@@ -1,0 +1,29 @@
+{
+  "id": "email_1760548231147",
+  "messageId": "<1760548231147.6n28tut9z@newerahockeytraining.com>",
+  "threadId": "thread_1760548231147",
+  "status": "NEW",
+  "from": {
+    "name": "Dennis Nayandin",
+    "email": "nayandindennis@yahoo.com",
+    "phone": "7033893015"
+  },
+  "subject": "Contact Form: General Inquiry",
+  "message": "Test the message!",
+  "timestamp": "2025-10-15T13:10:00",
+  "replies": [
+    {
+      "id": "01",
+      "messageId": "02",
+      "from": "Coach Dennis",
+      "message": "test CMS",
+      "timestamp": "2025-10-15T13:19:00",
+      "sentBy": "Dennis N"
+    }
+  ],
+  "metadata": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+    "ip": "::1",
+    "formType": "contact"
+  }
+}

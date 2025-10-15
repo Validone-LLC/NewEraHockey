@@ -67,3 +67,6 @@ claudedocs/screenshots/
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Local Netlify folder
+.netlify

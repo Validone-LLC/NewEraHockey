@@ -1,5 +1,7 @@
-# ToDo Implementation
+# Todo
 
-## About Section
-
-how come it seems like the About section isn't tied to homeAbout.json? I think this and other files should be fixed
+## Email
+- Based on email-service-alternatives-research, let's utilize AWS SES
+- Let's create the suggested Netlify functions
+- Let's Update CMS to handle 
+- Provide me instructions on how to set-up AWS SES
