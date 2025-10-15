@@ -26,7 +26,6 @@ import domenic from './gallery/domenic.json';
 import pacioretty from './gallery/pacioretty.json';
 import future from './gallery/future.json';
 import sully from './gallery/sully.json';
-import wheatonCamp from './gallery/wheaton-camp-2023.json';
 import restonCamp from './gallery/reston-camp-2023.json';
 import coaches from './gallery/coaches.json';
 import dmvTryout from './gallery/dmv-2024-tryout.json';
@@ -48,7 +47,6 @@ export const galleryImages = [
   pacioretty,
   future,
   sully,
-  wheatonCamp,
   restonCamp,
   coaches,
   dmvTryout,

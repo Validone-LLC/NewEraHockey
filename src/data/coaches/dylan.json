@@ -1,0 +1,13 @@
+{
+  "id": "dylan",
+  "name": "Coach Dylan",
+  "title": "Assistant Coach",
+  "image": "/assets/images/coaches/dylan.webp",
+  "quickSummary": "Virginia native with deep hockey roots and 6 years of coaching experience. Specializes in strategy, positioning, and hockey IQ development. Known for his keen eye for details that accelerates player growth.",
+  "bio": {
+    "intro": "Coach Dylan is a native of Virginia whose love for hockey was passed down from his father. Hockey has always been his passion, and at the age of 11, he began his journey at the house level. Through dedication and hard work, by age 16 Dylan was playing at a high level and practicing alongside collegiate players, demonstrating the rapid progression that comes from commitment to the sport.",
+    "experience": "Dylan has been an integral part of New Era Hockey for 6 years, providing personal training and player development. He is a true teacher of the game, with particular expertise in strategy, positioning, hockey IQ, and instilling determination in his athletes. Coach Dylan's keen eye for details helps accelerate each player's learning curve, allowing them to maximize their potential and develop a deeper understanding of the game."
+  },
+  "isPrimary": false,
+  "order": 4
+}

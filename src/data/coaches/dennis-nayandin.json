@@ -1,0 +1,14 @@
+{
+  "id": "dennis-nayandin",
+  "name": "Coach Dennis Nayandin",
+  "title": "Assistant Coach",
+  "image": "/assets/images/coaches/dennis-n-coach.webp",
+  "quickSummary": "Late-starting hockey player who rapidly progressed from beginning at age 14 to playing junior hockey by 18. Now plays adult league and brings enthusiasm, speed, and a passion for teaching to the coaching staff.",
+  "bio": {
+    "intro": "Coach Dennis is proof that it's never too late to start hockey. Born in Michigan to Russian parents and raised in Virginia, Dennis discovered hockey at 14 and quickly fell in love with the sport. Through dedicated training and an unwavering commitment to improvement, he achieved what many thought impossible—progressing from a beginner to junior hockey in just four years.",
+    "experience": "Dennis played for the George Mason University (GMU) D3 NCAA Club team before transitioning to adult league hockey, where he continues to compete today. A left-handed shooter known for his exceptional speed on the ice, Dennis loves helping Coach Will whenever the opportunity arises and has developed a genuine passion for teaching the game to others. His unique journey from late starter to competitive player gives him valuable insight into the challenges new players face."
+  },
+  "funFact": "Dennis is friends with Russian NHL stars Alexander Ovechkin, Evgeny Kuznetsov, and Dmitry Orlov—and he claims to be faster than Coach Will on the ice!",
+  "isPrimary": false,
+  "order": 2
+}
