@@ -1,10 +1,29 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HiCheckCircle, HiChevronDown } from 'react-icons/hi';
 import Card from '@components/common/Card/Card';
 
 const CoachCard = ({ coach, isPrimary = false, index = 0 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const location = useLocation();
+  const cardRef = useRef(null);
+
+  // Check if this coach should be expanded based on URL hash
+  const shouldExpandFromHash = location.hash === `#${coach.id}`;
+  const [isExpanded, setIsExpanded] = useState(shouldExpandFromHash);
+
+  // Handle hash-based expansion and scrolling
+  useEffect(() => {
+    if (shouldExpandFromHash && cardRef.current) {
+      // Expand the card
+      setIsExpanded(true);
+
+      // Scroll to the card after a short delay to allow for page load
+      setTimeout(() => {
+        cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 300);
+    }
+  }, [shouldExpandFromHash]);
 
   const toggleExpand = () => {
     setIsExpanded(!isExpanded);
@@ -12,6 +31,7 @@ const CoachCard = ({ coach, isPrimary = false, index = 0 }) => {
 
   return (
     <motion.div
+      ref={cardRef}
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}

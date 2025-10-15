@@ -151,14 +151,14 @@ collections:
           hint: 'Display order in carousel',
         }
 
-  # Coach Will Page Content
-  - name: 'content-coach-will-page'
-    label: 'Coach Will Page'
+  # Coaches Page Content
+  - name: 'content-coaches-page'
+    label: 'Coaches Page'
     files:
-      # Coach Will Page Labels
+      # Coaches Page Labels
       - label: 'Page Labels & Headings'
-        name: 'coachWillPage'
-        file: 'src/data/coachWillPage.json'
+        name: 'coachTeamPage'
+        file: 'src/data/coachTeamPage.json'
         fields:
           - label: 'Hero Section'
             name: 'hero'
@@ -166,9 +166,8 @@ collections:
             fields:
               - { label: 'Title', name: 'title', widget: 'string' }
               - { label: 'Tagline', name: 'tagline', widget: 'text' }
-          - { label: 'Bio Heading', name: 'bioHeading', widget: 'string' }
-          - { label: 'Certifications Heading', name: 'certificationsHeading', widget: 'string' }
-          - { label: 'Statement Heading', name: 'statementHeading', widget: 'string' }
+          - { label: 'Primary Coach Heading', name: 'primaryCoachHeading', widget: 'string' }
+          - { label: 'Staff Heading', name: 'staffHeading', widget: 'string' }
           - label: 'CTA Section'
             name: 'cta'
             widget: 'object'
@@ -177,22 +176,46 @@ collections:
               - { label: 'Button Text', name: 'buttonText', widget: 'string' }
               - { label: 'Button Link', name: 'buttonLink', widget: 'string' }
 
-      # Coach Information (Bio, Certifications, etc.)
-      - label: 'Coach Information'
-        name: 'coachInfo'
-        file: 'src/data/coachInfo.js'
+  # Individual Coaches
+  - name: 'content-coaches'
+    label: 'Coaches'
+    label_singular: 'Coach'
+    folder: 'src/data/coaches'
+    create: true
+    slug: '{{slug}}'
+    extension: 'json'
+    format: 'json'
+    identifier_field: 'name'
+    fields:
+      - { label: 'ID', name: 'id', widget: 'string', hint: 'Unique identifier (e.g., will-pasko)' }
+      - { label: 'Coach Name', name: 'name', widget: 'string' }
+      - { label: 'Title/Role', name: 'title', widget: 'string', hint: "e.g., 'Head Coach & Founder' or 'Assistant Coach'" }
+      - { label: 'Profile Image', name: 'image', widget: 'image' }
+      - { label: 'Quick Summary', name: 'quickSummary', widget: 'text', hint: 'Brief description shown in collapsed view' }
+      - label: 'Biography'
+        name: 'bio'
+        widget: 'object'
         fields:
-          - { label: 'Name', name: 'name', widget: 'string' }
-          - { label: 'Title', name: 'title', widget: 'string' }
-          - { label: 'Image Path', name: 'image', widget: 'image' }
-          - { label: 'Vision Statement', name: 'statement', widget: 'text' }
-          - label: 'Certifications'
-            name: 'certifications'
-            widget: 'list'
-            fields:
-              - { label: 'ID', name: 'id', widget: 'number', value_type: 'int' }
-              - { label: 'Title', name: 'title', widget: 'string' }
-              - { label: 'Organization', name: 'organization', widget: 'string' }
+          - { label: 'Introduction', name: 'intro', widget: 'text' }
+          - { label: 'Experience', name: 'experience', widget: 'text' }
+      - { label: 'Personal Statement', name: 'statement', widget: 'text', required: false, hint: 'Vision or coaching philosophy' }
+      - { label: 'Signature', name: 'signature', widget: 'string', required: false, hint: "e.g., '~Coach Will.'" }
+      - label: 'Certifications'
+        name: 'certifications'
+        widget: 'list'
+        required: false
+        field: { label: 'Certification', name: 'cert', widget: 'string' }
+      - { label: 'Fun Fact', name: 'funFact', widget: 'text', required: false }
+      - label: 'Experience Years'
+        name: 'experienceYears'
+        widget: 'object'
+        required: false
+        fields:
+          - { label: 'Years Coaching', name: 'coaching', widget: 'number', value_type: 'int' }
+          - { label: 'Years Playing', name: 'playing', widget: 'number', value_type: 'int' }
+      - { label: 'Service Area', name: 'serviceArea', widget: 'string', required: false }
+      - { label: 'Primary Coach', name: 'isPrimary', widget: 'boolean', default: false, hint: 'Set to true for head coach' }
+      - { label: 'Display Order', name: 'order', widget: 'number', value_type: 'int', default: 99, hint: 'Lower numbers appear first' }
 
   # Testimonials Page Content
   - name: 'content-testimonials-page'

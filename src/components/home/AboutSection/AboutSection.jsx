@@ -1,15 +1,10 @@
 import { motion } from 'framer-motion';
 import { CheckCircle } from 'lucide-react';
 import Button from '@components/common/Button/Button';
+import aboutData from '@data/homeAbout.json';
+import statsData from '@data/homeStats.json';
 
 const AboutSection = () => {
-  const certifications = [
-    'Safe Sport Certified',
-    'Fully Insured',
-    'USA Hockey Certified Coach',
-    "Currently coaching MYHA 14's",
-  ];
-
   return (
     <section className="section-container bg-primary/50">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -21,27 +16,21 @@ const AboutSection = () => {
           transition={{ duration: 0.6 }}
         >
           <h2 className="text-4xl sm:text-5xl font-display font-bold text-white mb-6">
-            About <span className="gradient-text">Us</span>
+            {aboutData.title.split(' ')[0]}{' '}
+            <span className="gradient-text">{aboutData.title.split(' ').slice(1).join(' ')}</span>
           </h2>
 
           <div className="space-y-6 text-neutral-light">
-            <p className="leading-relaxed">
-              At New Era Hockey, we promise more than just your average private coach – we deliver
-              an unparalleled experience where results and enjoyment go hand in hand. Our players
-              are not only fulfilled but also brimming with motivation to persist in their hard
-              work, all while enjoying the process while parents and players become like family.
-            </p>
-
-            <p className="leading-relaxed">
-              We take immense pride in our ability to cultivate a hockey environment of learning,
-              competitiveness, and a safe atmosphere that simultaneously creates good athletes, and
-              better people.
-            </p>
+            {aboutData.paragraphs.map((paragraph, index) => (
+              <p key={index} className="leading-relaxed">
+                {paragraph}
+              </p>
+            ))}
           </div>
 
           <div className="mt-8">
-            <Button to="/coach-will" variant="primary">
-              Learn More About Coach Will
+            <Button to={aboutData.cta.link} variant="primary">
+              {aboutData.cta.text}
             </Button>
           </div>
         </motion.div>
@@ -54,14 +43,11 @@ const AboutSection = () => {
           transition={{ duration: 0.6 }}
         >
           <div className="bg-primary border border-neutral-dark rounded-lg p-6">
-            <h3 className="text-xl font-semibold text-white mb-4">Coach Will's Experience</h3>
-            <p className="text-neutral-light mb-4">
-              Coach Will has trained and guided hockey players in the DMV for 6 years and has played
-              hockey for 23. He is known for his commitment to the sport we all love.
-            </p>
+            <h3 className="text-xl font-semibold text-white mb-4">{aboutData.experience.title}</h3>
+            <p className="text-neutral-light mb-4">{aboutData.experience.description}</p>
 
             <div className="space-y-2">
-              {certifications.map((cert, index) => (
+              {aboutData.experience.certifications.map((cert, index) => (
                 <motion.div
                   key={index}
                   className="flex items-start gap-2"
@@ -87,10 +73,15 @@ const AboutSection = () => {
         viewport={{ once: true }}
         transition={{ duration: 0.6 }}
       >
-        <StatCard number="6+" label="Years Coaching" gradient="from-teal-400 to-teal-600" />
-        <StatCard number="23+" label="Years Playing" gradient="from-teal-500 to-teal-700" />
-        <StatCard number="100+" label="Players Trained" gradient="from-teal-300 to-teal-500" />
-        <StatCard number="DMV" label="Service Area" gradient="from-teal-600 to-teal-800" />
+        {statsData.stats.map((stat, index) => (
+          <StatCard
+            key={stat.id}
+            number={stat.number}
+            label={stat.label}
+            gradient={stat.gradient}
+            index={index}
+          />
+        ))}
       </motion.div>
 
       {/* Additional Context */}
@@ -101,11 +92,7 @@ const AboutSection = () => {
         viewport={{ once: true }}
         transition={{ duration: 0.6, delay: 0.2 }}
       >
-        <p className="text-neutral-light leading-relaxed">
-          This unique blend of elements allows players and parents alike to fully immerse themselves
-          in the world of hockey training and development within the DMV area, ranging from
-          prep-schools, all the way to the various clubs in the DMV, to complete beginners.
-        </p>
+        <p className="text-neutral-light leading-relaxed">{aboutData.additionalContext}</p>
       </motion.div>
     </section>
   );

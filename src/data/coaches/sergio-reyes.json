@@ -1,0 +1,13 @@
+{
+  "id": "sergio-reyes",
+  "name": "Coach Sergio Reyes",
+  "title": "Assistant Coach",
+  "image": "/assets/images/coaches/sergio.webp",
+  "quickSummary": "Former junior player with USPHL and GOJHL experience, now focused on skill development and coaching. Brings a player-first approach with emphasis on fundamentals, skating technique, and game awareness.",
+  "bio": {
+    "intro": "Coach Sergio brings valuable experience from his time as a junior player in both the USPHL with the Potomac Patriots and the GOJHL with the Buffalo Regals. His journey through competitive junior hockey has given him firsthand knowledge of what it takes to succeed at higher levels of the game.",
+    "experience": "Sergio's coaching background includes skill development work with Elite Hockey Science, where he honed his teaching methodology and technical expertise. Working closely with Coach Will, Sergio has developed a coaching philosophy centered on building strong fundamentals, improving skating mechanics, and enhancing game awareness. His experience as a recent player allows him to connect with athletes and understand the challenges they face in their development."
+  },
+  "isPrimary": false,
+  "order": 3
+}
