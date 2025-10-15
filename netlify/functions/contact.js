@@ -40,7 +40,14 @@ exports.handler = async (event) => {
     const emailId = `email_${timestamp}`;
 
     // Admin notification email
-    const adminEmail = process.env.ADMIN_EMAIL || 'Nehockeytraining@outlook.com';
+    const adminEmail = process.env.ADMIN_EMAIL;
+
+    // Validate admin email is configured
+    if (!adminEmail) {
+      console.error('ADMIN_EMAIL environment variable is not set');
+      throw new Error('Server configuration error: Admin email not configured');
+    }
+
     console.log(`Sending admin notification to: ${adminEmail}`);
 
     const adminEmailParams = {
