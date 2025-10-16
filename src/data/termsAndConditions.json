@@ -23,8 +23,9 @@
       "id": "registration",
       "title": "Registration and Payment",
       "content": [
-        "Registration for programs and events requires completion of all required forms and payment of applicable fees.",
-        "Payment is due at the time of registration unless alternative arrangements have been made.",
+        "This website serves as an informational resource for New Era Hockey services. Registration for programs and events is handled through direct contact with our coaching staff via email, phone, or in-person consultation.",
+        "When our online event registration system becomes available, it will collect basic contact information (name, email, phone number) only. Payment arrangements and program details will be coordinated separately.",
+        "Payment is due at the time of registration unless alternative arrangements have been made. Payment methods (cash, Venmo, or other arrangements) will be communicated directly by our staff.",
         "All fees are in USD and are non-refundable except as specifically outlined in our cancellation policy.",
         "We reserve the right to cancel or modify programs due to insufficient enrollment, facility issues, or other unforeseen circumstances. In such cases, full refunds will be provided."
       ]
@@ -33,10 +34,11 @@
       "id": "cancellation",
       "title": "Cancellation Policy",
       "content": [
-        "Cancellations made more than 48 hours before a scheduled session may be eligible for rescheduling or credit toward future sessions.",
-        "Cancellations made less than 48 hours before a session are non-refundable.",
-        "New Era Hockey reserves the right to cancel sessions due to weather, facility closures, or other circumstances beyond our control. Affected participants will be notified promptly and offered rescheduling options.",
-        "No-shows forfeit the session fee and training time."
+        "Camps: All camp registrations are non-refundable. Once registered for a camp, fees cannot be refunded regardless of cancellation timing.",
+        "Lessons: Individual lessons must be canceled at least 48 hours before the scheduled lesson time to be eligible for a refund. Cancellations made less than 48 hours before a lesson are non-refundable.",
+        "New Era Hockey reserves the right to cancel sessions due to weather, facility closures, or other circumstances beyond our control. Affected participants will be notified promptly and offered rescheduling options or full refunds.",
+        "No-shows forfeit the session fee and training time without refund or rescheduling option.",
+        "For any questions or concerns regarding cancellations, please contact Coach Will directly. We're happy to help!"
       ]
     },
     {
@@ -91,8 +93,9 @@
       "id": "privacy",
       "title": "Privacy and Data",
       "content": [
-        "Personal information collected during registration is used solely for program administration and communication.",
-        "We do not sell or share participant information with third parties except as required by law.",
+        "Personal information collected through our contact form or during registration is used solely for program administration and communication.",
+        "Our website collects name, email address, and phone number only. No payment or billing information is collected through this website.",
+        "We do not sell or share participant information with third parties except as required by law or as necessary to provide our services.",
         "For complete details on data collection and usage, please review our Privacy Policy."
       ]
     },

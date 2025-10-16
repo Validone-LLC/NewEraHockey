@@ -14,11 +14,11 @@
       "id": "information-collected",
       "title": "Information We Collect",
       "content": [
-        "We collect information that you provide directly to us when registering for programs, contacting us, or using our services:",
-        "• Personal Information: Name, email address, phone number, mailing address",
-        "• Participant Information: Age, skill level, medical information relevant to training, emergency contact details",
-        "• Payment Information: Billing address and payment method details (processed securely through third-party payment processors)",
-        "• Communications: Messages, inquiries, and feedback you send to us",
+        "We collect information that you provide directly to us when contacting us or expressing interest in our services:",
+        "• Personal Information: Name, email address, phone number",
+        "• Participant Information: Age, skill level, medical information relevant to training, emergency contact details (collected during in-person registration or consultation)",
+        "• Event Registration: When our event registration system is available, we will collect name, email address, and phone number only",
+        "• Communications: Messages, inquiries, and feedback you send to us through our contact form or social media",
         "• Usage Data: Information about how you interact with our website, including IP address, browser type, pages visited, and access times"
       ]
     },
@@ -27,10 +27,9 @@
       "title": "How We Use Your Information",
       "content": [
         "We use the collected information for the following purposes:",
-        "• Program Administration: Managing registrations, scheduling, and participant communications",
+        "• Program Administration: Managing inquiries, scheduling, and participant communications",
         "• Service Delivery: Providing coaching, training programs, and related services",
         "• Safety: Ensuring participant safety through emergency contact information and medical awareness",
-        "• Payment Processing: Handling transactions and billing for services",
         "• Communication: Sending updates, confirmations, schedule changes, and promotional information about our programs",
         "• Improvement: Analyzing usage patterns to enhance our services and website functionality",
         "• Legal Compliance: Meeting legal obligations and protecting our rights"
@@ -41,7 +40,7 @@
       "title": "Information Sharing and Disclosure",
       "content": [
         "We do not sell, trade, or rent your personal information to third parties. We may share information only in the following circumstances:",
-        "• Service Providers: With trusted third-party vendors who assist in operating our website, processing payments, or providing services (e.g., payment processors, email service providers)",
+        "• Service Providers: With trusted third-party vendors who assist in operating our website or providing services (e.g., email service providers for contact form submissions)",
         "• Facility Partners: With ice rink facilities where training sessions occur, for scheduling and access purposes",
         "• Emergency Situations: With emergency responders or medical personnel if participant safety requires it",
         "• Legal Requirements: When required by law, court order, or government regulation",
@@ -54,8 +53,8 @@
       "title": "Data Security",
       "content": [
         "We implement reasonable security measures to protect your personal information from unauthorized access, alteration, disclosure, or destruction.",
-        "These measures include secure servers, encryption of sensitive data, and limited employee access to personal information.",
-        "Payment information is processed through secure, PCI-compliant third-party processors. We do not store credit card details on our servers.",
+        "These measures include secure servers, encryption of data transmitted through our contact forms, and limited access to personal information.",
+        "Our website uses HTTPS encryption to protect data in transit. Contact form submissions are processed securely through our email service provider (AWS SES).",
         "However, no method of transmission over the internet or electronic storage is 100% secure. While we strive to protect your information, we cannot guarantee absolute security."
       ]
     },
