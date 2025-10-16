@@ -9,6 +9,7 @@ import Gallery from '@pages/Gallery';
 import Contact from '@pages/Contact';
 import FAQ from '@pages/FAQ';
 import EventRegistration from '@pages/EventRegistration';
+import TrainingSchedule from '@pages/TrainingSchedule';
 import TermsAndConditions from '@pages/TermsAndConditions';
 import PrivacyPolicy from '@pages/PrivacyPolicy';
 import Waiver from '@pages/Waiver';
@@ -28,6 +29,7 @@ const AppRoutes = () => {
           <Route path="/contact" element={<Contact />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/register" element={<EventRegistration />} />
+          <Route path="/schedule" element={<TrainingSchedule />} />
           <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/waiver" element={<Waiver />} />
