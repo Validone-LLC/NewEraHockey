@@ -1,6 +1,4 @@
 const AWS = require('aws-sdk');
-const fs = require('fs').promises;
-const path = require('path');
 
 // Initialize AWS SES
 const ses = new AWS.SES({
@@ -42,13 +40,6 @@ exports.handler = async (event) => {
         body: JSON.stringify({ error: 'Name, email, and message are required' }),
       };
     }
-
-    // Generate unique identifiers
-    const timestamp = Date.now();
-    const randomId = Math.random().toString(36).substr(2, 9);
-    const messageId = `<${timestamp}.${randomId}@newerahockeytraining.com>`;
-    const threadId = `thread_${timestamp}`;
-    const emailId = `email_${timestamp}`;
 
     // Admin notification email
     const adminEmail = process.env.ADMIN_EMAIL;
@@ -158,37 +149,9 @@ exports.handler = async (event) => {
     console.log(`Admin email sent successfully. MessageId: ${adminResult.MessageId}`);
     console.log(`User confirmation sent successfully. MessageId: ${userResult.MessageId}`);
 
-    // Create email record for CMS
-    const emailData = {
-      id: emailId,
-      messageId: messageId,
-      threadId: threadId,
-      status: 'NEW',
-      from: {
-        name: name,
-        email: email,
-        phone: phone || '',
-      },
-      subject: 'Contact Form: General Inquiry',
-      message: message,
-      timestamp: new Date().toISOString(),
-      replies: [],
-      metadata: {
-        userAgent: event.headers['user-agent'] || '',
-        ip: event.headers['x-forwarded-for'] || event.headers['client-ip'] || '',
-        formType: 'contact',
-      },
-    };
-
-    // Save email JSON to file system
-    const dateStr = new Date().toISOString().split('T')[0];
-    const slugName = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').substring(0, 30);
-    const fileName = `${dateStr}-${slugName}-${timestamp}.json`;
-    const filePath = path.join(process.cwd(), 'src', 'data', 'emails', fileName);
-
-    await fs.writeFile(filePath, JSON.stringify(emailData, null, 2), 'utf8');
-
-    console.log(`Email saved: ${fileName}`);
+    // TODO: Implement CMS email storage later
+    // For now, emails are sent successfully via AWS SES
+    // Admin receives notification, user receives confirmation
 
     return {
       statusCode: 200,
