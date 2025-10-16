@@ -1,5 +1,5 @@
 {
   "fromEmail": "noreply@newerahockey.com",
-  "toEmail": "Nehockeytraining@outlook.com",
+  "toEmail": "coachwill@newerahockeytraining.com",
   "subjectTemplate": "New Contact Form Submission from {name}"
 }
