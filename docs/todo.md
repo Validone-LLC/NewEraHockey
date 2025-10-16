@@ -1,23 +1,30 @@
 # TODO
 
-## ✅ Google Calendar integration with app - RESEARCH COMPLETE
-**Status**: Comprehensive implementation plan created
-**Document**: See `claudedocs/google-calendar-integration-plan.md` for complete phased implementation guide
+## ✅ Completed Tasks
 
-### Solution Summary:
-- **Authentication**: Service Account with domain-wide delegation
-- **Event Categorization**: Extended Properties + Color-coding (Red = Camps, Blue = Lessons)
-- **Calendar Library**: react-big-calendar (lightweight, React-native)
-- **Sync Strategy**: Polling (5-min) → Webhooks (future enhancement)
-- **Page Name**: "Training Schedule" (recommended)
-- **Timeline**: 6-8 weeks for full implementation (6 phases)
+### Testimonials Updates (Completed: 2025-10-15)
 
-### Implementation Phases:
-1. Phase 1: Google Calendar API Setup & Authentication (1-2 weeks)
-2. Phase 2: Event Fetching & Categorization (1-2 weeks)
-3. Phase 3: UI Components - List & Calendar Views (2-3 weeks)
-4. Phase 4: Real-Time Sync with Polling (1 week)
-5. Phase 5: Testing & Deployment (1 week)
-6. Phase 6: Webhook Push Notifications (Optional - 2-3 weeks)
+**Task**: Update testimonials page with layout and functionality improvements.
 
-**Next Action**: Review implementation plan, get stakeholder approval, begin Phase 1
+**Completed**:
+- ✅ Removed 3 testimonials: Sergei, Ethan, and Elliot Ackerman
+- ✅ Changed desktop layout from 3 testimonials per row to 2 per row
+- ✅ Implemented "Read More" / "Show Less" functionality for long testimonials (>400 characters)
+- ✅ Build verified successfully
+
+**Key Changes**:
+- **testimonials.js**: Removed testimonials with id 6 (Sergei), id 8 (Ethan), id 9 (Elliot Ackerman)
+- **Testimonials.jsx**: Updated grid from `lg:grid-cols-3` to `lg:grid-cols-2` for better readability
+- **TestimonialCard.jsx**: Added expandable text functionality with toggle button and icons
+
+**Files Modified**:
+- `src/data/testimonials.js` - 3 testimonials removed
+- `src/pages/Testimonials.jsx` - Layout updated to 2 columns
+- `src/components/testimonials/TestimonialCard/TestimonialCard.jsx` - Read more functionality added
+
+**Features Added**:
+- Expandable testimonials with 400 character limit
+- "Read More" button with chevron down icon
+- "Show Less" button with chevron up icon
+- Featured testimonials always show full text
+- Smooth transitions and accessibility support (aria-expanded, aria-label)
