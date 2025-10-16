@@ -51,6 +51,9 @@ exports.handler = async (event, context) => {
     // Detect environment: local dev vs production Netlify
     const isLocalDev = !context.clientContext || process.env.NETLIFY_DEV === 'true';
 
+    // Calendar ID (used for both authentication subject and API calls)
+    const calendarId = process.env.CALENDAR_ID || 'coachwill@newerahockeytraining.com';
+
     let auth;
     let calendar;
 
@@ -98,17 +101,18 @@ exports.handler = async (event, context) => {
       }
 
       // Create auth client with service account credentials
+      // For domain-wide delegation, we need to specify which user to impersonate
       auth = new GoogleAuth({
         credentials: credentials,
         scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
+        clientOptions: {
+          subject: calendarId, // Impersonate this user via domain-wide delegation
+        },
       });
 
       const client = await auth.getClient();
       calendar = google.calendar({ version: 'v3', auth: client });
     }
-
-    // Calendar ID
-    const calendarId = process.env.CALENDAR_ID || 'coachwill@newerahockeytraining.com';
 
     // Prepare API request parameters
     const listParams = {
