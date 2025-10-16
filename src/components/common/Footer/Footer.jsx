@@ -57,11 +57,11 @@ const Footer = () => {
             <h3 className="text-white font-semibold text-lg mb-4">Get In Touch</h3>
             <div className="space-y-3">
               <a
-                href="mailto:Nehockeytraining@outlook.com"
+                href="mailto:coachwill@newerahockeytraining.com"
                 className="flex items-center gap-2 text-neutral-text hover:text-white transition-colors text-sm"
               >
                 <HiMail className="w-5 h-5 text-teal-400" />
-                Nehockeytraining@outlook.com
+                coachwill@newerahockeytraining.com
               </a>
               <a
                 href="tel:+15712744691"
@@ -94,6 +94,10 @@ const Footer = () => {
               <span className="text-neutral-dark">|</span>
               <Link to="/privacy-policy" className="hover:text-white transition-colors">
                 Privacy Policy
+              </Link>
+              <span className="text-neutral-dark">|</span>
+              <Link to="/waiver" className="hover:text-white transition-colors">
+                Waiver
               </Link>
             </div>
           </div>

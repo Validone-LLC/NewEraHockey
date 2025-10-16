@@ -41,13 +41,13 @@ const Contact = () => {
               <Card hover={false}>
                 <h3 className="text-lg font-semibold text-white mb-4">Email:</h3>
                 <a
-                  href="mailto:Nehockeytraining@outlook.com"
+                  href="mailto:coachwill@newerahockeytraining.com"
                   className="flex items-center gap-3 text-neutral-light hover:text-white transition-colors group"
                 >
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center">
                     <Mail className="w-6 h-6 text-white" />
                   </div>
-                  <span className="text-lg">Nehockeytraining@outlook.com</span>
+                  <span className="text-lg">coachwill@newerahockeytraining.com</span>
                 </a>
               </Card>
 

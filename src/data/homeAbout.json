@@ -1,22 +1,33 @@
 {
-  "title": "About Us",
-  "paragraphs": [
-    "At New Era Hockey, we promise more than just your average private coach – we deliver an unparalleled experience where results and enjoyment go hand in hand. Our players are not only fulfilled but also brimming with motivation to persist in their hard work, all while enjoying the process while parents and players become like family.",
-    "We take immense pride in our ability to cultivate a hockey environment of learning, competitiveness, and a safe atmosphere that simultaneously creates good athletes, and better people."
-  ],
-  "cta": {
-    "text": "Learn More About Coach Will",
-    "link": "/coaches#will-pasko"
-  },
-  "experience": {
-    "title": "Coach Will's Experience",
-    "description": "Coach Will has trained and guided hockey players in the DMV for 6 years and has played hockey for 23. He is known for his commitment to the sport we all love.",
-    "certifications": [
-      "Safe Sport Certified",
-      "Fully Insured",
-      "USA Hockey Certified Coach",
-      "Currently coaching MYHA 14's"
+  "organization": {
+    "title": "About New Era Hockey",
+    "paragraphs": [
+      "At New Era Hockey, we deliver an unparalleled training experience where results and enjoyment go hand in hand. Our players are not only fulfilled but also brimming with motivation to persist in their hard work, all while enjoying the process. Parents and players become like family in our hockey community.",
+      "We take immense pride in our ability to cultivate a hockey environment of learning, competitiveness, and safety that creates good athletes and better people."
     ]
+  },
+  "coach": {
+    "sectionTitle": "Meet Your Head Coach",
+    "name": "Will Pasko",
+    "title": "Head Coach & Founder",
+    "intro": [
+      "Coach Will founded New Era Hockey with a simple mission: provide more than just your average private coaching experience. With 23 years of playing experience and 6 years of training hockey players in the DMV area, he brings a deep commitment to the sport we all love.",
+      "His coaching philosophy centers on individual player development while building character and confidence both on and off the ice. Every training session is designed to challenge, inspire, and deliver measurable results."
+    ],
+    "experience": {
+      "title": "Credentials & Experience",
+      "description": "Coach Will's dedication to excellence is reflected in his qualifications and ongoing commitment to player development.",
+      "certifications": [
+        "Safe Sport Certified",
+        "Fully Insured",
+        "USA Hockey Certified Coach",
+        "Currently coaching MYHA 14's"
+      ]
+    },
+    "cta": {
+      "text": "View Full Coach Profile",
+      "link": "/coaches#will-pasko"
+    }
   },
   "additionalContext": "This unique blend of elements allows players and parents alike to fully immerse themselves in the world of hockey training and development within the DMV area, ranging from prep-schools, all the way to the various clubs in the DMV, to complete beginners."
 }

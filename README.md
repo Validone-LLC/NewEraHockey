@@ -49,11 +49,11 @@ A modern, responsive single-page application for New Era Hockey, a premier hocke
    Update `.env.local` with your configuration:
 
    ```
-   VITE_API_BASE_URL=http://localhost:3000
-   VITE_CONTACT_EMAIL=Nehockeytraining@outlook.com
-   VITE_PHONE=(571) 274-4691
-   VITE_INSTAGRAM=@NewEraHockeyDMV
-   VITE_RECAPTCHA_SITE_KEY=your_recaptcha_key
+   VITE_API_BASE_URL=
+   VITE_CONTACT_EMAIL=
+   VITE_PHONE=
+   VITE_INSTAGRAM=
+   VITE_RECAPTCHA_SITE_KEY=
    ```
 
 3. **Run development server**:
@@ -171,7 +171,7 @@ Tailwind utility classes are used throughout. Customize the theme in `tailwind.c
 
 **New Era Hockey**
 
-- Email: Nehockeytraining@outlook.com
+- Email: coachwill@newerahockeytraining.com
 - Phone: (571) 274-4691
 - Instagram: @NewEraHockeyDMV
 

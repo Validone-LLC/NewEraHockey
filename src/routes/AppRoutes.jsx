@@ -11,6 +11,7 @@ import FAQ from '@pages/FAQ';
 import EventRegistration from '@pages/EventRegistration';
 import TermsAndConditions from '@pages/TermsAndConditions';
 import PrivacyPolicy from '@pages/PrivacyPolicy';
+import Waiver from '@pages/Waiver';
 import NotFound from '@pages/NotFound';
 
 const AppRoutes = () => {
@@ -29,6 +30,7 @@ const AppRoutes = () => {
           <Route path="/register" element={<EventRegistration />} />
           <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/waiver" element={<Waiver />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
