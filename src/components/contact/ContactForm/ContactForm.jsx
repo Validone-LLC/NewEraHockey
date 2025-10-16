@@ -1,12 +1,18 @@
 import { useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { toast } from 'react-toastify';
 import { HiPaperAirplane } from 'react-icons/hi';
 import Button from '@components/common/Button/Button';
+import Modal from '@components/common/Modal/Modal';
 
 const ContactForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [modalState, setModalState] = useState({
+    isOpen: false,
+    type: 'success',
+    title: '',
+    message: '',
+  });
 
   // Phone number formatting helper
   const formatPhoneNumber = value => {
@@ -67,13 +73,23 @@ const ContactForm = () => {
           throw new Error(data.error || 'Failed to send message');
         }
 
-        toast.success(data.message || "Message sent successfully! We'll get back to you soon.");
+        // Show success modal
+        setModalState({
+          isOpen: true,
+          type: 'success',
+          title: 'Contact Request Successfully Sent!',
+          message: "Thank you for reaching out! We'll get back to you soon.",
+        });
         resetForm();
       } catch (error) {
         console.error('Contact form error:', error);
-        toast.error(
-          error.message || 'Failed to send message. Please try again or contact us directly.'
-        );
+        // Show error modal with phone number
+        setModalState({
+          isOpen: true,
+          type: 'error',
+          title: 'Something Went Wrong',
+          message: `We're sorry, but we couldn't send your message. Please try again or contact us directly at (571) 274-4691.`,
+        });
       } finally {
         setIsSubmitting(false);
       }
@@ -198,6 +214,15 @@ const ContactForm = () => {
       >
         {isSubmitting ? 'Sending...' : 'Send Message'}
       </Button>
+
+      {/* Success/Error Modal */}
+      <Modal
+        isOpen={modalState.isOpen}
+        onClose={() => setModalState({ ...modalState, isOpen: false })}
+        type={modalState.type}
+        title={modalState.title}
+        message={modalState.message}
+      />
     </form>
   );
 };
