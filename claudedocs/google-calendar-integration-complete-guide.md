@@ -1,17 +1,40 @@
-# Google Calendar Integration - Implementation Plan
+# Google Calendar Integration - Complete Implementation Guide
 
 **Date**: 2025-01-16
 **Objective**: Integrate Google Workspace calendar (coachwill@newerahockeytraining.com) with New Era Hockey React app
+**Security**: Maximum (Workload Identity Federation - No JSON keys)
+**Timeline**: 6-8 weeks total
 
-## Architecture Decisions
+---
 
-### Authentication: Service Account ✅
-**Why**: Automated server-side access without user interaction required
+## Table of Contents
+
+1. [Architecture Overview](#architecture-overview)
+2. [Phase 1: Google Calendar API Setup & Authentication (1-2 weeks)](#phase-1-google-calendar-api-setup--authentication-1-2-weeks)
+3. [Phase 2: Event Fetching & Categorization (1-2 weeks)](#phase-2-event-fetching--categorization-1-2-weeks)
+4. [Phase 3: UI Components - List & Calendar Views (2-3 weeks)](#phase-3-ui-components---list--calendar-views-2-3-weeks)
+5. [Phase 4: Real-Time Sync with Polling (1 week)](#phase-4-real-time-sync-with-polling-1-week)
+6. [Phase 5: Testing & Deployment (1 week)](#phase-5-testing--deployment-1-week)
+7. [Phase 6: Future Enhancements (Optional)](#phase-6-future-enhancements-optional)
+
+---
+
+## Architecture Overview
+
+### Authentication: Workload Identity Federation ✅
+**Why**: Maximum security without JSON key management
+
+**Benefits**:
+- ✅ No JSON keys to manage, rotate, or secure
+- ✅ Short-lived access tokens (automatic expiration)
+- ✅ Full compliance with `iam.disableServiceAccountKeyCreation` policy
+- ✅ Reduced security attack surface
 
 **Implementation**:
-- Service Account with domain-wide delegation
-- Google Workspace admin grants access to Coach Will's calendar
-- Backend securely stores service account credentials (Netlify environment variables)
+- Workload Identity Pool for Netlify Functions
+- OIDC provider authentication
+- Service account impersonation
+- Backend securely manages authentication (Netlify environment variables only)
 - No OAuth consent flow needed for public users
 
 ### Event Categorization: Extended Properties ✅
@@ -26,7 +49,7 @@ extendedProperties: {
 ```
 
 **Fallback Methods**:
-1. Extended Properties (preferred)
+1. Extended Properties (preferred - most reliable)
 2. Color-coding (red = camps, blue = lessons)
 3. Keyword detection in event title
 
@@ -39,114 +62,261 @@ extendedProperties: {
 - Easier learning curve than FullCalendar
 
 ### Sync Strategy: Polling → Webhooks ✅
-**Phase 1**: Incremental polling (every 5-10 minutes) with sync tokens
+**Phase 1**: Incremental polling (every 5 minutes) with sync tokens
 **Phase 2** (Future): Webhook push notifications for real-time updates
 
 ---
 
-## Phased Implementation Plan
-
 ## Phase 1: Google Calendar API Setup & Authentication (1-2 weeks)
 
-### 1.1 Google Cloud Console Setup
+### 1.1 Google Cloud Console Setup (5 min)
 
 **Steps**:
 1. Navigate to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create new project: "NewEraHockey-Calendar"
+2. Create new project: **"NewEraHockey-Calendar"**
 3. Enable Google Calendar API:
    - APIs & Services → Library
    - Search "Google Calendar API"
-   - Click "Enable"
-
-### 1.2 Create Service Account & Handle Organization Policy
-
-**🔓 Step 0: Temporarily Disable Key Creation Policy (Admin Only)**
-
-Since your organization has the `iam.disableServiceAccountKeyCreation` policy enforced, you'll need to temporarily disable it:
-
-**Option A: Disable Policy at Organization Level** (Recommended for development)
-```bash
-# Get your organization ID
-gcloud organizations list
-
-# Disable the policy
-gcloud resource-manager org-policies delete \
-  iam.disableServiceAccountKeyCreation \
-  --organization=YOUR_ORG_ID
-```
-
-**Option B: Create Project-Specific Exception**
-```bash
-# Create policy file
-cat > allow-keys-policy.yaml <<EOF
-constraint: constraints/iam.disableServiceAccountKeyCreation
-listPolicy:
-  allowedValues:
-    - "projects/newerahockey-calendar"  # Your project ID
-EOF
-
-# Apply exception
-gcloud resource-manager org-policies set-policy allow-keys-policy.yaml \
-  --organization=YOUR_ORG_ID
-```
-
-⚠️ **Security Note**: After creating the JSON key in Step 4, you can **re-enable** the policy. The existing key will continue to work. Plan to migrate to Workload Identity Federation in Phase 1.8 (see below).
+   - Click **"Enable"**
 
 ---
 
-**Steps**:
-1. APIs & Services → Credentials → Create Credentials → Service Account
-2. Service account details:
-   - Name: `newerahockey-calendar-service`
-   - Description: "Service account for calendar integration"
-3. Grant permissions (skip - not needed for service accounts)
-4. **Create key** (after disabling policy above):
-   - Click on the service account you just created (from Service Accounts list)
-   - Click **"KEYS" tab** at the top of the page
-   - Click **"ADD KEY"** button → "Create new key" → JSON → Create
-   - Download JSON key file (KEEP SECURE - never commit to Git)
-5. **Re-enable policy** (optional - after key downloaded):
-   ```bash
-   # Re-enable security policy
-   gcloud resource-manager org-policies restore \
-     iam.disableServiceAccountKeyCreation \
-     --organization=YOUR_ORG_ID
-   ```
+### 1.2 Create Workload Identity Pool (10 min)
 
-### 1.3 Domain-Wide Delegation
+**Purpose**: Enable Netlify Functions to authenticate without JSON keys
 
-**Steps**:
-1. Copy service account's "Unique ID" (Client ID)
-2. Google Workspace Admin Console → Security → API Controls → Domain-wide Delegation
-3. Add new:
-   - Client ID: [paste from step 1]
-   - OAuth Scopes: `https://www.googleapis.com/auth/calendar.readonly`
-   - Authorize
-4. Share Coach Will's calendar with service account email:
-   - Google Calendar → Settings → coachwill@newerahockeytraining.com calendar settings
-   - Share with specific people → Add service account email (e.g., `newerahockey-calendar-service@project-id.iam.gserviceaccount.com`)
-   - Permissions: "See all event details"
+**Commands**:
+```bash
+# Set your project ID
+PROJECT_ID="newerahockey-calendar"
+POOL_ID="netlify-pool"
+PROVIDER_ID="netlify-provider"
 
-### 1.4 Backend API Setup (Netlify Function)
+# Set as default project
+gcloud config set project $PROJECT_ID
+
+# Create workload identity pool
+gcloud iam workload-identity-pools create $POOL_ID \
+  --location="global" \
+  --description="Netlify Functions authentication for calendar integration" \
+  --project=$PROJECT_ID
+
+# Verify creation
+gcloud iam workload-identity-pools describe $POOL_ID \
+  --location="global" \
+  --project=$PROJECT_ID
+```
+
+**Expected Output**:
+```
+Created workload identity pool [netlify-pool].
+```
+
+---
+
+### 1.3 Create OIDC Provider for Netlify (10 min)
+
+**Purpose**: Configure Netlify as trusted identity provider
+
+**Commands**:
+```bash
+# Create OIDC provider
+gcloud iam workload-identity-pools providers create-oidc $PROVIDER_ID \
+  --location="global" \
+  --workload-identity-pool=$POOL_ID \
+  --issuer-uri="https://netlify.com" \
+  --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository" \
+  --project=$PROJECT_ID
+
+# Verify creation
+gcloud iam workload-identity-pools providers describe $PROVIDER_ID \
+  --location="global" \
+  --workload-identity-pool=$POOL_ID \
+  --project=$PROJECT_ID
+```
+
+**Expected Output**:
+```
+Created workload identity pool provider [netlify-provider].
+```
+
+---
+
+### 1.4 Create Service Account (5 min)
+
+**Purpose**: Create service account that will access calendar (no keys needed)
+
+**Commands**:
+```bash
+SERVICE_ACCOUNT_NAME="newerahockey-calendar-service"
+SERVICE_ACCOUNT_EMAIL="${SERVICE_ACCOUNT_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"
+
+# Create service account
+gcloud iam service-accounts create $SERVICE_ACCOUNT_NAME \
+  --display-name="New Era Hockey Calendar Service" \
+  --description="Service account for calendar integration via Workload Identity" \
+  --project=$PROJECT_ID
+
+# Verify creation
+gcloud iam service-accounts describe $SERVICE_ACCOUNT_EMAIL \
+  --project=$PROJECT_ID
+```
+
+**Expected Output**:
+```
+Created service account [newerahockey-calendar-service].
+```
+
+---
+
+### 1.5 Grant Calendar Access to Service Account (5 min)
+
+**Purpose**: Give service account permission to read calendar data
+
+**Commands**:
+```bash
+# Grant Calendar API access at project level
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:${SERVICE_ACCOUNT_EMAIL}" \
+  --role="roles/calendar.reader" \
+  --condition=None
+
+# Verify permissions
+gcloud projects get-iam-policy $PROJECT_ID \
+  --flatten="bindings[].members" \
+  --filter="bindings.members:${SERVICE_ACCOUNT_EMAIL}"
+```
+
+---
+
+### 1.6 Bind Workload Identity to Service Account (10 min)
+
+**Purpose**: Allow Netlify Functions to impersonate service account
+
+**Commands**:
+```bash
+# Get project number (needed for workload identity binding)
+PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format="value(projectNumber)")
+
+echo "Project Number: $PROJECT_NUMBER"
+
+# Bind workload identity pool to service account
+gcloud iam service-accounts add-iam-policy-binding $SERVICE_ACCOUNT_EMAIL \
+  --role="roles/iam.workloadIdentityUser" \
+  --member="principalSet://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/${POOL_ID}/*" \
+  --project=$PROJECT_ID
+
+# Verify binding
+gcloud iam service-accounts get-iam-policy $SERVICE_ACCOUNT_EMAIL \
+  --project=$PROJECT_ID
+```
+
+**Expected Output**: Policy with `workloadIdentityUser` role bound
+
+---
+
+### 1.7 Domain-Wide Delegation (10 min)
+
+**Purpose**: Grant service account access to all Google Workspace calendars
+
+**Step A: Get Client ID**
+```bash
+# Get service account's unique ID (Client ID)
+CLIENT_ID=$(gcloud iam service-accounts describe $SERVICE_ACCOUNT_EMAIL \
+  --format="value(uniqueId)" \
+  --project=$PROJECT_ID)
+
+echo "Client ID for Domain-Wide Delegation: $CLIENT_ID"
+echo "Copy this Client ID for the next step"
+```
+
+**Step B: Configure Domain-Wide Delegation** (Manual - Google Workspace Admin Console)
+
+1. Navigate to: https://admin.google.com
+2. **Security** → **API Controls** → **Domain-wide Delegation**
+3. Click **"Add new"**
+4. Enter details:
+   - **Client ID**: Paste the `$CLIENT_ID` from Step A
+   - **OAuth Scopes**: `https://www.googleapis.com/auth/calendar.readonly`
+5. Click **"Authorize"**
+
+**Step C: Share Coach Will's Calendar**
+
+1. Open Google Calendar: https://calendar.google.com
+2. Settings → `coachwill@newerahockeytraining.com` calendar settings
+3. **Share with specific people** → Add:
+   - **Email**: `newerahockey-calendar-service@newerahockey-calendar.iam.gserviceaccount.com`
+   - **Permission**: **"See all event details"**
+4. Click **"Send"**
+
+---
+
+### 1.8 Get Workload Identity Provider Resource Name (5 min)
+
+**Purpose**: Get full provider path for Netlify environment variables
+
+**Commands**:
+```bash
+# Get full provider resource name
+PROVIDER_NAME="projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/${POOL_ID}/providers/${PROVIDER_ID}"
+
+echo "Provider Resource Name:"
+echo $PROVIDER_NAME
+echo ""
+echo "📝 SAVE THIS VALUE - You'll need it for Netlify environment variables"
+```
+
+**Example Output**:
+```
+Provider Resource Name:
+projects/123456789/locations/global/workloadIdentityPools/netlify-pool/providers/netlify-provider
+```
+
+**⚠️ IMPORTANT**: Copy this value - you'll use it in Step 1.11
+
+---
+
+### 1.9 Install Dependencies (2 min)
+
+```bash
+cd /path/to/newerahockey
+npm install googleapis google-auth-library
+```
+
+---
+
+### 1.10 Backend API Setup (Netlify Function) (15 min)
 
 **Create**: `netlify/functions/calendar-events.js`
 
 ```javascript
+const { GoogleAuth } = require('google-auth-library');
 const { google } = require('googleapis');
 
 exports.handler = async (event, context) => {
   try {
-    // Parse service account credentials from environment variable
-    const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY);
-
-    // Initialize Google Auth
-    const auth = new google.auth.GoogleAuth({
-      credentials,
+    // Initialize Google Auth with Workload Identity Federation
+    const auth = new GoogleAuth({
+      projectId: process.env.GOOGLE_PROJECT_ID,
+      // Workload Identity Federation configuration
+      credentials: {
+        type: 'external_account',
+        audience: `//iam.googleapis.com/${process.env.WORKLOAD_IDENTITY_PROVIDER}`,
+        subject_token_type: 'urn:ietf:params:oauth:token-type:jwt',
+        token_url: 'https://sts.googleapis.com/v1/token',
+        credential_source: {
+          headers: {
+            'Metadata-Flavor': 'Google',
+          },
+          url: process.env.NETLIFY_OIDC_TOKEN_URL || 'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token',
+        },
+        service_account_impersonation_url: `https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${process.env.SERVICE_ACCOUNT_EMAIL}:generateAccessToken`,
+      },
       scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
     });
 
-    // Create Calendar API client
-    const calendar = google.calendar({ version: 'v3', auth });
+    const client = await auth.getClient();
+    const calendar = google.calendar({ version: 'v3', auth: client });
 
     // Fetch events from Coach Will's calendar
     const response = await calendar.events.list({
@@ -172,146 +342,72 @@ exports.handler = async (event, context) => {
     console.error('Calendar API Error:', error);
     return {
       statusCode: 500,
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
         error: 'Failed to fetch calendar events',
         message: error.message,
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
       }),
     };
   }
 };
 ```
 
-### 1.5 Environment Variables
+---
+
+### 1.11 Environment Variables (5 min)
 
 **Netlify Dashboard**:
 1. Site settings → Environment variables → Add variable
-2. Key: `GOOGLE_SERVICE_ACCOUNT_KEY`
-3. Value: Paste entire contents of JSON key file
-4. Scope: Production + Deploy previews
+2. Add the following 3 variables:
+
+| Variable Name | Value | Example |
+|---------------|-------|---------|
+| `GOOGLE_PROJECT_ID` | Your Google Cloud project ID | `newerahockey-calendar` |
+| `WORKLOAD_IDENTITY_PROVIDER` | Provider resource name from Step 1.8 | `projects/123456789/locations/global/workloadIdentityPools/netlify-pool/providers/netlify-provider` |
+| `SERVICE_ACCOUNT_EMAIL` | Service account email | `newerahockey-calendar-service@newerahockey-calendar.iam.gserviceaccount.com` |
+
+3. **Scope**: Production + Deploy previews
 
 **Local Development** (`.env`):
 ```bash
-GOOGLE_SERVICE_ACCOUNT_KEY='{"type":"service_account","project_id":"...","private_key":"..."}'
+GOOGLE_PROJECT_ID=newerahockey-calendar
+WORKLOAD_IDENTITY_PROVIDER=projects/123456789/locations/global/workloadIdentityPools/netlify-pool/providers/netlify-provider
+SERVICE_ACCOUNT_EMAIL=newerahockey-calendar-service@newerahockey-calendar.iam.gserviceaccount.com
 ```
 
 **IMPORTANT**: Add `.env` to `.gitignore`
 
-### 1.6 Install Dependencies
+---
 
-```bash
-npm install googleapis
-```
-
-### 1.7 Test Authentication
+### 1.12 Test Authentication (10 min)
 
 **Create test script**: `scripts/test-calendar-auth.js`
 
 ```javascript
+const { GoogleAuth } = require('google-auth-library');
 const { google } = require('googleapis');
 require('dotenv').config();
 
 async function testAuth() {
-  const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY);
-  const auth = new google.auth.GoogleAuth({
-    credentials,
-    scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
-  });
-
-  const calendar = google.calendar({ version: 'v3', auth });
-
-  const response = await calendar.events.list({
-    calendarId: 'coachwill@newerahockeytraining.com',
-    timeMin: new Date().toISOString(),
-    maxResults: 10,
-    singleEvents: true,
-    orderBy: 'startTime',
-  });
-
-  console.log('✅ Authentication successful!');
-  console.log(`📅 Found ${response.data.items.length} upcoming events`);
-  console.log('\nFirst event:', response.data.items[0]?.summary);
-}
-
-testAuth().catch(console.error);
-```
-
-**Run test**:
-```bash
-node scripts/test-calendar-auth.js
-```
-
-**Expected Output**:
-```
-✅ Authentication successful!
-📅 Found 5 upcoming events
-
-First event: Youth Hockey Camp - Summer 2025
-```
-
-### 1.8 Future: Migrate to Workload Identity Federation (Optional - Production Security)
-
-**⚠️ This is an optional future enhancement for maximum security. Complete Phases 1-5 first.**
-
-Once your calendar integration is working with JSON keys, you can migrate to Workload Identity Federation to eliminate key management entirely.
-
-**Why Migrate?**
-- ✅ No JSON keys to manage, rotate, or secure
-- ✅ Short-lived access tokens (automatic expiration)
-- ✅ Meets strictest security requirements
-- ✅ Complies with `iam.disableServiceAccountKeyCreation` policy
-
-**When to Migrate?**
-- After Phase 5 deployment is successful
-- When you want to re-enable the organization security policy permanently
-- During security audit or compliance review
-
-**Implementation Guide**:
-
-**Step 1: Create Workload Identity Pool**
-```bash
-PROJECT_ID="newerahockey-calendar"  # Your Google Cloud project ID
-POOL_ID="netlify-pool"
-PROVIDER_ID="netlify-provider"
-
-# Create pool
-gcloud iam workload-identity-pools create $POOL_ID \
-  --location="global" \
-  --description="Netlify Functions authentication" \
-  --project=$PROJECT_ID
-
-# Create OIDC provider (Netlify)
-gcloud iam workload-identity-pools providers create-oidc $PROVIDER_ID \
-  --location="global" \
-  --workload-identity-pool=$POOL_ID \
-  --issuer-uri="https://netlify.com" \
-  --attribute-mapping="google.subject=assertion.sub" \
-  --project=$PROJECT_ID
-```
-
-**Step 2: Grant Workload Identity Permissions**
-```bash
-SERVICE_ACCOUNT="newerahockey-calendar-service@${PROJECT_ID}.iam.gserviceaccount.com"
-
-# Get project number (needed for binding)
-PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format="value(projectNumber)")
-
-# Bind workload identity to service account
-gcloud iam service-accounts add-iam-policy-binding $SERVICE_ACCOUNT \
-  --role="roles/iam.workloadIdentityUser" \
-  --member="principalSet://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/${POOL_ID}/*" \
-  --project=$PROJECT_ID
-```
-
-**Step 3: Update Netlify Function**
-```javascript
-const { GoogleAuth } = require('google-auth-library');
-const { google } = require('googleapis');
-
-exports.handler = async (event, context) => {
   try {
-    // NO JSON KEY NEEDED - Uses Netlify's OIDC token
+    console.log('🔐 Testing Workload Identity Federation...\n');
+
     const auth = new GoogleAuth({
       projectId: process.env.GOOGLE_PROJECT_ID,
+      credentials: {
+        type: 'external_account',
+        audience: `//iam.googleapis.com/${process.env.WORKLOAD_IDENTITY_PROVIDER}`,
+        subject_token_type: 'urn:ietf:params:oauth:token-type:jwt',
+        token_url: 'https://sts.googleapis.com/v1/token',
+        credential_source: {
+          headers: { 'Metadata-Flavor': 'Google' },
+          url: 'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token',
+        },
+        service_account_impersonation_url: `https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${process.env.SERVICE_ACCOUNT_EMAIL}:generateAccessToken`,
+      },
       scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
     });
 
@@ -321,77 +417,52 @@ exports.handler = async (event, context) => {
     const response = await calendar.events.list({
       calendarId: 'coachwill@newerahockeytraining.com',
       timeMin: new Date().toISOString(),
-      maxResults: 100,
+      maxResults: 10,
       singleEvents: true,
       orderBy: 'startTime',
     });
 
-    return {
-      statusCode: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-      body: JSON.stringify({
-        events: response.data.items,
-        total: response.data.items.length,
-      }),
-    };
+    console.log('✅ Authentication successful!');
+    console.log(`📅 Found ${response.data.items.length} upcoming events\n`);
+
+    if (response.data.items.length > 0) {
+      console.log('First event:', response.data.items[0].summary);
+      console.log('Date:', response.data.items[0].start.dateTime || response.data.items[0].start.date);
+    }
+
+    console.log('\n🎉 Workload Identity Federation is working!');
   } catch (error) {
-    console.error('Calendar API Error:', error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({
-        error: 'Failed to fetch calendar events',
-        message: error.message,
-      }),
-    };
+    console.error('❌ Authentication failed:', error.message);
+    console.error('\nFull error:', error);
   }
-};
+}
+
+testAuth();
 ```
 
-**Step 4: Update Environment Variables**
-
-In Netlify Dashboard:
-- **Remove**: `GOOGLE_SERVICE_ACCOUNT_KEY` (no longer needed)
-- **Add**: `GOOGLE_PROJECT_ID` = `newerahockey-calendar`
-
-**Step 5: Test & Deploy**
-
+**Run test**:
 ```bash
-# Test in deploy preview first
-git checkout -b workload-identity-migration
-git push origin workload-identity-migration
-
-# After successful testing, merge to main
-git checkout main
-git merge workload-identity-migration
-git push origin main
+node scripts/test-calendar-auth.js
 ```
 
-**Step 6: Re-enable Organization Policy**
-
-Once Workload Identity is working:
-```bash
-# Re-enable security policy permanently
-gcloud resource-manager org-policies restore \
-  iam.disableServiceAccountKeyCreation \
-  --organization=YOUR_ORG_ID
+**Expected Output**:
 ```
+🔐 Testing Workload Identity Federation...
 
-**Benefits After Migration**:
-- ✅ No JSON keys stored in Netlify environment variables
-- ✅ Automatic credential rotation
-- ✅ Full compliance with organization security policy
-- ✅ Reduced security attack surface
+✅ Authentication successful!
+📅 Found 5 upcoming events
 
-**Timeline**: 2-4 hours (after Phase 5 complete)
+First event: Youth Hockey Camp - Summer 2025
+Date: 2025-06-15T09:00:00-04:00
+
+🎉 Workload Identity Federation is working!
+```
 
 ---
 
 ## Phase 2: Event Fetching & Categorization (1-2 weeks)
 
-### 2.1 Event Type Detection System
+### 2.1 Event Type Detection System (30 min)
 
 **Create**: `src/utils/eventCategorization.js`
 
@@ -444,12 +515,17 @@ export const groupEventsByType = (events) => {
 };
 ```
 
-### 2.2 Enhanced Backend Function
+---
+
+### 2.2 Enhanced Backend Function (20 min)
 
 **Update**: `netlify/functions/calendar-events.js`
 
 ```javascript
+const { GoogleAuth } = require('google-auth-library');
 const { google } = require('googleapis');
+
+// Import categorization utilities
 const { categorizeEvent, filterEventsByType } = require('../../src/utils/eventCategorization');
 
 exports.handler = async (event, context) => {
@@ -458,13 +534,25 @@ exports.handler = async (event, context) => {
     const queryParams = event.queryStringParameters || {};
     const eventType = queryParams.type; // 'camp' or 'lesson'
 
-    const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY);
-    const auth = new google.auth.GoogleAuth({
-      credentials,
+    // Initialize Google Auth with Workload Identity Federation
+    const auth = new GoogleAuth({
+      projectId: process.env.GOOGLE_PROJECT_ID,
+      credentials: {
+        type: 'external_account',
+        audience: `//iam.googleapis.com/${process.env.WORKLOAD_IDENTITY_PROVIDER}`,
+        subject_token_type: 'urn:ietf:params:oauth:token-type:jwt',
+        token_url: 'https://sts.googleapis.com/v1/token',
+        credential_source: {
+          headers: { 'Metadata-Flavor': 'Google' },
+          url: process.env.NETLIFY_OIDC_TOKEN_URL || 'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token',
+        },
+        service_account_impersonation_url: `https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${process.env.SERVICE_ACCOUNT_EMAIL}:generateAccessToken`,
+      },
       scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
     });
 
-    const calendar = google.calendar({ version: 'v3', auth });
+    const client = await auth.getClient();
+    const calendar = google.calendar({ version: 'v3', auth: client });
 
     const response = await calendar.events.list({
       calendarId: 'coachwill@newerahockeytraining.com',
@@ -509,7 +597,9 @@ exports.handler = async (event, context) => {
 };
 ```
 
-### 2.3 Frontend Data Service
+---
+
+### 2.3 Frontend Data Service (15 min)
 
 **Create**: `src/services/calendarService.js`
 
@@ -542,27 +632,35 @@ export const fetchLessons = () => fetchEvents('lesson');
 export const fetchAllEvents = () => fetchEvents();
 ```
 
-### 2.4 Test Categorization
+---
+
+### 2.4 Test Categorization (20 min)
 
 **Create test events in Coach Will's calendar**:
 
 1. **Test Camp Event**:
    - Title: "Summer Hockey Camp 2025"
-   - Color: Red (#11)
-   - Extended Property: `eventType: 'camp'`
+   - Color: Red (color ID #11)
+   - Date: Future date
+   - Location: Ice rink address (optional)
 
 2. **Test Lesson Event**:
    - Title: "Private Skating Lesson - John Doe"
-   - Color: Blue (#9)
-   - Extended Property: `eventType: 'lesson'`
+   - Color: Blue (color ID #9)
+   - Date: Future date
+   - Location: Ice rink address (optional)
 
 3. **Test Uncategorized Event**:
    - Title: "Team Meeting"
-   - No color or extended property
+   - No color set
+   - Date: Future date
 
 **Validation**:
 ```bash
-# Test backend directly
+# Start local Netlify dev server
+netlify dev
+
+# Test backend directly (in another terminal)
 curl "http://localhost:8888/.netlify/functions/calendar-events?type=camp"
 
 # Expected: Only camp events returned
@@ -572,13 +670,15 @@ curl "http://localhost:8888/.netlify/functions/calendar-events?type=camp"
 
 ## Phase 3: UI Components - List & Calendar Views (2-3 weeks)
 
-### 3.1 Install Dependencies
+### 3.1 Install Dependencies (2 min)
 
 ```bash
 npm install react-big-calendar date-fns
 ```
 
-### 3.2 Create Events Schedule Page
+---
+
+### 3.2 Create Events Schedule Page (1 hour)
 
 **File**: `src/pages/EventsSchedule.jsx`
 
@@ -748,7 +848,11 @@ const EventsSchedule = () => {
 export default EventsSchedule;
 ```
 
-### 3.3 Create Event List Component
+---
+
+### 3.3 Create Event List Component (45 min)
+
+**Create directory**: `src/components/events/EventList/`
 
 **File**: `src/components/events/EventList/EventList.jsx`
 
@@ -828,7 +932,9 @@ const EventList = ({ events, viewType }) => {
 export default EventList;
 ```
 
-### 3.4 Style Calendar Component
+---
+
+### 3.4 Style Calendar Component (30 min)
 
 **Create**: `src/styles/calendar.css`
 
@@ -970,7 +1076,9 @@ export default EventList;
 }
 ```
 
-### 3.5 Add Route
+---
+
+### 3.5 Add Route (5 min)
 
 **Update**: `src/App.jsx`
 
@@ -981,7 +1089,9 @@ import EventsSchedule from './pages/EventsSchedule';
 <Route path="/schedule" element={<EventsSchedule />} />
 ```
 
-### 3.6 Add Navigation Link
+---
+
+### 3.6 Add Navigation Link (10 min)
 
 **Update**: `src/components/layout/Navbar/Navbar.jsx`
 
@@ -1001,13 +1111,14 @@ Add to navigation items:
 
 ## Phase 4: Real-Time Sync with Polling (1 week)
 
-### 4.1 Implement Incremental Sync
+### 4.1 Implement Incremental Sync (30 min)
 
 **Update**: `netlify/functions/calendar-events.js`
 
 Add sync token support for efficient polling:
 
 ```javascript
+const { GoogleAuth } = require('google-auth-library');
 const { google } = require('googleapis');
 const { categorizeEvent, filterEventsByType } = require('../../src/utils/eventCategorization');
 
@@ -1017,13 +1128,24 @@ exports.handler = async (event, context) => {
     const eventType = queryParams.type;
     const syncToken = queryParams.syncToken; // For incremental sync
 
-    const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY);
-    const auth = new google.auth.GoogleAuth({
-      credentials,
+    const auth = new GoogleAuth({
+      projectId: process.env.GOOGLE_PROJECT_ID,
+      credentials: {
+        type: 'external_account',
+        audience: `//iam.googleapis.com/${process.env.WORKLOAD_IDENTITY_PROVIDER}`,
+        subject_token_type: 'urn:ietf:params:oauth:token-type:jwt',
+        token_url: 'https://sts.googleapis.com/v1/token',
+        credential_source: {
+          headers: { 'Metadata-Flavor': 'Google' },
+          url: process.env.NETLIFY_OIDC_TOKEN_URL || 'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token',
+        },
+        service_account_impersonation_url: `https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${process.env.SERVICE_ACCOUNT_EMAIL}:generateAccessToken`,
+      },
       scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
     });
 
-    const calendar = google.calendar({ version: 'v3', auth });
+    const client = await auth.getClient();
+    const calendar = google.calendar({ version: 'v3', auth: client });
 
     const params = {
       calendarId: 'coachwill@newerahockeytraining.com',
@@ -1077,7 +1199,9 @@ exports.handler = async (event, context) => {
 };
 ```
 
-### 4.2 Frontend Polling Service
+---
+
+### 4.2 Frontend Polling Service (20 min)
 
 **Update**: `src/services/calendarService.js`
 
@@ -1140,9 +1264,13 @@ export const fetchLessons = () => fetchEvents('lesson');
 export const fetchAllEvents = () => fetchEvents();
 ```
 
-### 4.3 Integrate Polling in Component
+---
+
+### 4.3 Integrate Polling in Component (15 min)
 
 **Update**: `src/pages/EventsSchedule.jsx`
+
+Add polling functionality:
 
 ```javascript
 import { startPolling } from '@services/calendarService';
@@ -1188,15 +1316,19 @@ const EventsSchedule = () => {
     return () => stopPolling(); // Cleanup on unmount
   }, [viewType]);
 
-  // ... rest of component
+  // ... rest of component remains the same
 };
 ```
 
-### 4.4 Add Polling Indicator (Optional)
+---
+
+### 4.4 Add Polling Indicator (Optional - 10 min)
 
 **Add to EventsSchedule.jsx** for user feedback:
 
 ```javascript
+import { format } from 'date-fns';
+
 const [lastUpdated, setLastUpdated] = useState(new Date());
 
 // In polling callback
@@ -1222,7 +1354,7 @@ const stopPolling = startPolling(
 ### 5.1 Testing Checklist
 
 #### Functional Tests
-- [ ] Service account authentication works
+- [ ] Service account authentication works via Workload Identity
 - [ ] Events fetch correctly from Coach Will's calendar
 - [ ] Event categorization works (all 3 methods: extended properties, color, keyword)
 - [ ] Toggle switches between camps and lessons
@@ -1264,6 +1396,8 @@ const stopPolling = startPolling(
 - [ ] Desktop view (1025px+)
 - [ ] Toggle buttons work on touch devices
 - [ ] Calendar gestures work on mobile
+
+---
 
 ### 5.2 Documentation for Coach Will
 
@@ -1339,11 +1473,16 @@ Contact the web developer for assistance with this method.
 Contact the web developer or IT support.
 ```
 
+---
+
 ### 5.3 Environment Setup
 
 **Production Netlify Environment Variables**:
 1. Navigate to: Site settings → Environment variables
-2. Verify `GOOGLE_SERVICE_ACCOUNT_KEY` is set
+2. Verify these 3 variables are set:
+   - `GOOGLE_PROJECT_ID`
+   - `WORKLOAD_IDENTITY_PROVIDER`
+   - `SERVICE_ACCOUNT_EMAIL`
 3. Test with deploy preview first
 
 **Deploy Preview Test**:
@@ -1354,12 +1493,15 @@ git push origin test-calendar-integration
 
 Netlify will create deploy preview → Test functionality → Merge to main
 
+---
+
 ### 5.4 Deployment Steps
 
 1. **Final Code Review**:
-   - Check all console.logs removed
+   - Check all console.logs removed (except error logging)
    - Verify error handling comprehensive
-   - Test with production environment variables
+   - Confirm environment variables set correctly
+   - No JSON keys anywhere in code
 
 2. **Build Test**:
 ```bash
@@ -1376,7 +1518,7 @@ File sizes after gzip:
 3. **Deploy to Production**:
 ```bash
 git add .
-git commit -m "Add Google Calendar integration with event scheduling"
+git commit -m "Add Google Calendar integration with Workload Identity Federation"
 git push origin main
 ```
 
@@ -1392,6 +1534,8 @@ git push origin main
    - Check Netlify Function logs: Site → Functions → calendar-events
    - Look for errors or performance issues
    - Verify polling working (check Network tab after 5 minutes)
+
+---
 
 ### 5.5 Performance Monitoring
 
@@ -1409,56 +1553,17 @@ git push origin main
 
 ---
 
-## Phase 6 (Future Enhancement): Webhook Push Notifications
+## Phase 6: Future Enhancements (Optional)
 
-### Benefits Over Polling
+### Webhook Push Notifications
+
+**Benefits Over Polling**:
 - Real-time updates (no 5-minute delay)
 - Reduced API calls (more efficient, lower costs)
 - Better user experience (instant event updates)
 - Lower server load
 
-### Implementation Overview
-
-#### 6.1 Create Webhook Endpoint
-
-**Create**: `netlify/functions/calendar-webhook.js`
-
-```javascript
-exports.handler = async (event, context) => {
-  // Google sends webhook notifications here
-  // Notification contains minimal data - must fetch event details separately
-
-  const headers = event.headers;
-  const resourceState = headers['x-goog-resource-state'];
-  const channelId = headers['x-goog-channel-id'];
-
-  if (resourceState === 'sync') {
-    // Initial sync notification when channel starts
-    return { statusCode: 200, body: 'Sync acknowledged' };
-  }
-
-  if (resourceState === 'exists') {
-    // Calendar was updated - fetch new events
-    // Trigger event update for all connected clients
-    // (Requires WebSocket or Server-Sent Events setup)
-  }
-
-  return { statusCode: 200, body: 'Webhook received' };
-};
-```
-
-#### 6.2 Register Webhook Channel
-
-Requires:
-- HTTPS endpoint (verified ownership)
-- Channel expiration management (auto-renew before expiration)
-- WebSocket or SSE for client updates
-
-#### 6.3 Client Updates
-
-Use WebSocket or Server-Sent Events to push updates to connected clients in real-time.
-
-### Complexity Assessment
+**Complexity Assessment**:
 - **Effort**: 2-3 weeks additional development
 - **Technical Complexity**: High
 - **Maintenance**: Requires channel renewal logic
@@ -1470,7 +1575,7 @@ Use WebSocket or Server-Sent Events to push updates to connected clients in real
 
 | Phase | Duration | Deliverables |
 |-------|----------|-------------|
-| Phase 1: Setup & Auth | 1-2 weeks | Service account, API access, backend function |
+| Phase 1: Setup & Auth | 1-2 weeks | Workload Identity, service account, backend function |
 | Phase 2: Event Fetching | 1-2 weeks | Categorization system, filtered API |
 | Phase 3: UI Components | 2-3 weeks | Events page, list view, calendar view |
 | Phase 4: Polling | 1 week | Auto-refresh every 5 minutes |
@@ -1485,8 +1590,9 @@ Use WebSocket or Server-Sent Events to push updates to connected clients in real
 ### Backend
 - **Google Calendar API**: v3
 - **googleapis**: ^128.0.0 (npm package)
+- **google-auth-library**: ^9.0.0 (npm package)
 - **Netlify Functions**: Serverless backend
-- **Service Account**: Authentication method
+- **Workload Identity Federation**: Authentication method (no keys)
 
 ### Frontend
 - **React**: 18.x
@@ -1505,23 +1611,11 @@ Use WebSocket or Server-Sent Events to push updates to connected clients in real
 ### Page Naming
 **Recommended**: "Training Schedule"
 
-**Alternatives**:
-- "Events Schedule"
-- "Upcoming Events"
-- "Training Calendar"
-
-**Rationale**: "Training Schedule" aligns with existing navigation ("Training Programs") and clearly communicates purpose.
-
-### UX Design
-- **Toggle**: Large, obvious buttons for Camps/Lessons
-- **Visual Hierarchy**: List view first (easier to scan), calendar below
-- **Empty States**: Clear messaging when no events scheduled
-- **Loading States**: Spinner with text feedback
-- **Error Handling**: User-friendly messages with retry option
+**Rationale**: Aligns with existing navigation ("Training Programs") and clearly communicates purpose.
 
 ### Event Categorization Priority
 1. **Extended Properties** (most reliable, future-proof)
-2. **Color Coding** (easiest for Coach Will)
+2. **Color Coding** (easiest for Coach Will) ⭐ Recommended
 3. **Keyword Detection** (automatic fallback)
 
 ### Polling Interval
@@ -1531,6 +1625,21 @@ Use WebSocket or Server-Sent Events to push updates to connected clients in real
 - Balance between freshness and API quota
 - Most events scheduled hours/days in advance (5-min delay acceptable)
 - Google Calendar API quota: 1,000,000 requests/day (5-min polling well within limits)
+
+---
+
+## Security Benefits
+
+### Workload Identity Federation Advantages
+
+| Feature | Benefit |
+|---------|---------|
+| **No JSON Keys** | No credentials to steal or leak |
+| **Short-Lived Tokens** | Auto-expire in ~1 hour |
+| **Automatic Rotation** | No manual key rotation needed |
+| **Policy Compliance** | Fully complies with `iam.disableServiceAccountKeyCreation` |
+| **Audit Trail** | All access logged automatically |
+| **Least Privilege** | Only calendar read access granted |
 
 ---
 
@@ -1544,20 +1653,48 @@ Use WebSocket or Server-Sent Events to push updates to connected clients in real
 ✅ No manual website updates needed
 ✅ Error handling prevents website crashes
 ✅ Performance impact < 100KB bundle increase
+✅ **No JSON keys stored anywhere**
+✅ **Maximum security compliance**
+
+---
+
+## Troubleshooting Guide
+
+### Error: "Permission denied accessing calendar"
+**Solution**: Verify service account has domain-wide delegation configured and calendar is shared
+
+### Error: "Invalid workload identity pool"
+**Solution**: Double-check `WORKLOAD_IDENTITY_PROVIDER` environment variable matches exact provider resource name
+
+### Error: "Token exchange failed"
+**Solution**: Verify OIDC provider configuration and Netlify OIDC token URL
+
+### Events not returning
+**Solution**:
+1. Check domain-wide delegation scope is `https://www.googleapis.com/auth/calendar.readonly`
+2. Verify calendar is shared with service account email
+3. Check Netlify Function logs for detailed error messages
+
+### Polling not working
+**Solution**:
+1. Check Network tab for 5-minute polling requests
+2. Verify sync token is being stored and reused
+3. Check console for polling errors
 
 ---
 
 ## Next Steps
 
-1. **Phase 1 Start**: Set up Google Cloud project and service account
-2. **Get Approval**: Review plan with stakeholders
-3. **Timeline Commitment**: Allocate 6-8 weeks for full implementation
-4. **Developer Assignment**: Assign developer(s) to project
-5. **Kickoff Meeting**: Review technical details and requirements
+1. **Phase 1 Start**: Begin with Step 1.1 (Google Cloud Console Setup)
+2. **Follow Sequentially**: Complete each phase in order
+3. **Test Frequently**: Verify each step before moving to next
+4. **Document Issues**: Note any problems for troubleshooting
+5. **Celebrate Success**: 6-8 weeks to fully functional, secure calendar integration!
 
 ---
 
-**Document Version**: 1.0
+**Document Version**: 2.0
 **Last Updated**: 2025-01-16
 **Author**: Claude (AI Assistant)
+**Security**: Maximum (Workload Identity Federation)
 **Status**: Ready for Implementation

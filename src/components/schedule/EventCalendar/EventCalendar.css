@@ -1,0 +1,131 @@
+/* EventCalendar.css - Custom styles for react-big-calendar */
+
+/* Override react-big-calendar default styles to match New Era Hockey theme */
+
+.calendar-container {
+  @apply bg-primary rounded-lg p-4 border border-neutral-dark;
+}
+
+/* Calendar background */
+.rbc-calendar {
+  @apply text-white;
+}
+
+/* Header */
+.rbc-toolbar {
+  @apply mb-4 flex flex-wrap gap-2;
+}
+
+.rbc-toolbar button {
+  @apply bg-primary-light border border-neutral-dark text-neutral-light px-4 py-2 rounded-lg transition-colors;
+}
+
+.rbc-toolbar button:hover {
+  @apply border-teal-500 text-white;
+}
+
+.rbc-toolbar button.rbc-active {
+  @apply bg-gradient-to-r from-teal-500 to-teal-700 text-white border-transparent;
+}
+
+/* Month view */
+.rbc-month-view {
+  @apply border border-neutral-dark rounded-lg overflow-hidden;
+}
+
+.rbc-header {
+  @apply bg-primary-dark border-b border-neutral-dark py-3 text-neutral-light font-semibold;
+}
+
+.rbc-month-row {
+  @apply border-b border-neutral-dark;
+}
+
+.rbc-day-bg {
+  @apply bg-primary-light;
+}
+
+.rbc-off-range-bg {
+  @apply bg-primary opacity-50;
+}
+
+.rbc-today {
+  @apply bg-teal-900/20;
+}
+
+.rbc-date-cell {
+  @apply text-neutral-light px-2 py-1;
+}
+
+.rbc-now .rbc-date-cell {
+  @apply text-teal-500 font-bold;
+}
+
+/* Events */
+.rbc-event {
+  @apply px-2 py-1 text-sm;
+}
+
+.rbc-event:focus {
+  @apply outline-none ring-2 ring-teal-500;
+}
+
+.rbc-event.rbc-selected {
+  @apply ring-2 ring-white;
+}
+
+/* Week and Day views */
+.rbc-time-view {
+  @apply border border-neutral-dark rounded-lg overflow-hidden;
+}
+
+.rbc-time-header {
+  @apply border-b border-neutral-dark;
+}
+
+.rbc-time-content {
+  @apply border-t border-neutral-dark;
+}
+
+.rbc-time-slot {
+  @apply border-t border-neutral-dark/50;
+}
+
+.rbc-current-time-indicator {
+  @apply bg-teal-500;
+}
+
+/* Agenda view */
+.rbc-agenda-view {
+  @apply border border-neutral-dark rounded-lg overflow-hidden;
+}
+
+.rbc-agenda-table {
+  @apply bg-primary-light;
+}
+
+.rbc-agenda-date-cell {
+  @apply bg-primary-dark border-b border-neutral-dark text-neutral-light px-4 py-2;
+}
+
+.rbc-agenda-time-cell {
+  @apply border-b border-neutral-dark text-neutral-light px-4 py-2;
+}
+
+.rbc-agenda-event-cell {
+  @apply border-b border-neutral-dark text-white px-4 py-2;
+}
+
+/* Show more link */
+.rbc-show-more {
+  @apply text-teal-500 hover:text-teal-400 font-semibold;
+}
+
+/* Popup overlay */
+.rbc-overlay {
+  @apply bg-primary border border-neutral-dark rounded-lg shadow-xl;
+}
+
+.rbc-overlay-header {
+  @apply bg-primary-dark border-b border-neutral-dark px-4 py-2 text-white font-semibold;
+}
