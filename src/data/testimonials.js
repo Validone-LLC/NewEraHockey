@@ -38,33 +38,12 @@ export const testimonials = [
     featured: false,
   },
   {
-    id: 6,
-    name: 'Sergei',
-    role: 'Parent',
-    text: "William has been coaching my two 8-year-old sons for just a couple of months, but their skating and shooting skills have significantly improved since they started. He immediately found a common ground with the boys. William's coaching has enhanced their shooting and skating skills and provided additional support outside of regular practices. He accurately pinpointed areas for improvement and offered valuable practice tips for on and off-ice training. Overall, William's expertise and personalized approach have had a remarkable impact on my sons' development as hockey players. I cannot recommend him more highly.",
-    featured: false,
-  },
-  {
     id: 7,
     name: 'Ashton',
     role: 'Player',
     playerInfo: 'USPHL Bold City Battalion (15 years old)',
     text: 'I met Will about 4 years ago when rinks began to open during covid, back then when he wasn\'t even "Coach Will". We met at an Ashburn Stick n Puck and just began to pass the puck with each other and flowing on the ice. After I got off the ice I asked him if he would coach me, and here we are about 4 years later. Coach Will has seen me play at every level I have made, supporting me, counseling me, and helping me grow in every possible way. He would always be there and has made me better every time we have been on the ice, and there have been hundreds of times. I would not trade these last 4 years for anything, I know Coach Will is going to continue being there for me, and has helped me make a junior team in Florida called the Bold City Battalion as a 15 year old. I have much to improve on and I know Coach Will is going to be there for me, he has always made me strive to do my very best and he demands effort in every stride, and he has helped me beyond hockey and I am so grateful to have met him.',
     featured: true,
-  },
-  {
-    id: 8,
-    name: 'Ethan',
-    role: 'Player',
-    text: 'Coach William has turned me from a kid who could barely skate to a hockey player who is motivated to always get better in every aspect. He has turned me into a very good player and always focuses on every skill. He has been my coach on the ice and my friend off it. So I highly recommend Coach William to train anyone to play hockey.',
-    featured: false,
-  },
-  {
-    id: 9,
-    name: 'Elliot Ackerman',
-    role: 'Parent',
-    text: "William has coached my son for the better part of a year, It has been transformative for him. he had a strong desire to play, but I didn't grow up playing hockey, so I didn't know how to coach him. William filled this gap immediately, guiding my son in every aspect of the game. He offers the perfect blend of discipline and kindness, incredible resourcefulness in finding opportunities for my son to grow as an athlete, by creating both on and off-ice programs to enhance his game. William records video of their practice sessions and even attends my son's games, to meticulously deconstruct his performance to enhance his game and to better tailor his next training. William's commitment is total.\n\nUnder William's tutelage, my son has gone from a child who couldn't ice skate one year ago to a boy who identifies as an ice hockey player, is playing in rec leagues around the city, and will be playing for his school's team in the fall. Once again, I cannot over emphasize the incredibly positive influence William has had on my son.",
-    featured: false,
   },
   {
     id: 10,
