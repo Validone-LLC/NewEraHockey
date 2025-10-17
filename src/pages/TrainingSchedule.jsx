@@ -39,12 +39,15 @@ const TrainingSchedule = () => {
 
   // Set up automatic polling
   useEffect(() => {
+    // Map plural state to singular API parameter
+    const pollType = eventType === 'camps' ? 'camp' : 'lesson';
+
     const stopPollingFn = startPolling(
       updatedEvents => {
         setEvents(sortEventsByDate(updatedEvents));
         setLastUpdated(new Date());
       },
-      eventType,
+      pollType,
       300000 // 5 minutes
     );
 
