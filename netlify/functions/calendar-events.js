@@ -6,14 +6,11 @@ const { google } = require('googleapis');
  *
  * Authentication:
  * - LOCAL DEV: Uses Application Default Credentials (gcloud CLI auth)
- * - PRODUCTION: Uses Workload Identity Federation (secure, no JSON keys)
+ * - PRODUCTION: Uses Service Account JSON key
  *
- * Environment Variables Required (Production only):
+ * Environment Variables Required:
+ * - GOOGLE_SERVICE_ACCOUNT_KEY: Service account JSON key (production only)
  * - GOOGLE_PROJECT_ID: Your Google Cloud project ID
- * - GOOGLE_PROJECT_NUMBER: Your Google Cloud project number
- * - WORKLOAD_IDENTITY_POOL_ID: Workload identity pool ID (e.g., "netlify-pool")
- * - WORKLOAD_IDENTITY_PROVIDER_ID: Provider ID (e.g., "netlify-provider")
- * - SERVICE_ACCOUNT_EMAIL: Service account email for impersonation
  * - CALENDAR_ID: Calendar to fetch events from (default: coachwill@newerahockeytraining.com)
  *
  * Local Development Setup:
@@ -54,6 +51,9 @@ exports.handler = async (event, context) => {
     // Detect environment: local dev vs production Netlify
     const isLocalDev = !context.clientContext || process.env.NETLIFY_DEV === 'true';
 
+    // Calendar ID (used for both authentication subject and API calls)
+    const calendarId = process.env.CALENDAR_ID || 'coachwill@newerahockeytraining.com';
+
     let auth;
     let calendar;
 
@@ -68,60 +68,51 @@ exports.handler = async (event, context) => {
       const client = await auth.getClient();
       calendar = google.calendar({ version: 'v3', auth: client });
     } else {
-      // PRODUCTION: Use Workload Identity Federation
-      console.log('🚀 Production mode: Using Workload Identity Federation');
+      // PRODUCTION: Use Service Account JSON Key
+      console.log('🚀 Production mode: Using Service Account JSON Key');
 
-      // Environment validation for production
-      const requiredEnvVars = [
-        'GOOGLE_PROJECT_ID',
-        'GOOGLE_PROJECT_NUMBER',
-        'WORKLOAD_IDENTITY_POOL_ID',
-        'WORKLOAD_IDENTITY_PROVIDER_ID',
-        'SERVICE_ACCOUNT_EMAIL',
-      ];
-
-      const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
-      if (missingVars.length > 0) {
-        console.error('Missing environment variables:', missingVars);
+      // Check for service account key
+      if (!process.env.GOOGLE_SERVICE_ACCOUNT_KEY) {
+        console.error('Missing GOOGLE_SERVICE_ACCOUNT_KEY environment variable');
         return {
           statusCode: 500,
           headers,
           body: JSON.stringify({
             error: 'Server configuration error',
-            message: 'Missing required environment variables',
-            missing: missingVars,
+            message: 'Missing GOOGLE_SERVICE_ACCOUNT_KEY environment variable',
           }),
         };
       }
 
-      // Configure Workload Identity Federation authentication
-      const audience = `//iam.googleapis.com/projects/${process.env.GOOGLE_PROJECT_NUMBER}/locations/global/workloadIdentityPools/${process.env.WORKLOAD_IDENTITY_POOL_ID}/providers/${process.env.WORKLOAD_IDENTITY_PROVIDER_ID}`;
+      // Parse service account key from environment variable
+      let credentials;
+      try {
+        credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY);
+      } catch (error) {
+        console.error('Failed to parse GOOGLE_SERVICE_ACCOUNT_KEY:', error);
+        return {
+          statusCode: 500,
+          headers,
+          body: JSON.stringify({
+            error: 'Server configuration error',
+            message: 'Invalid GOOGLE_SERVICE_ACCOUNT_KEY format',
+          }),
+        };
+      }
 
+      // Create auth client with service account credentials
+      // For domain-wide delegation, we need to specify which user to impersonate
       auth = new GoogleAuth({
-        projectId: process.env.GOOGLE_PROJECT_ID,
-        credentials: {
-          type: 'external_account',
-          audience: audience,
-          subject_token_type: 'urn:ietf:params:oauth:token-type:jwt',
-          token_url: 'https://sts.googleapis.com/v1/token',
-          credential_source: {
-            environment_id: 'netlify',
-            format: {
-              type: 'text',
-            },
-            text: context.clientContext?.identity?.token || '',
-          },
-          service_account_impersonation_url: `https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${process.env.SERVICE_ACCOUNT_EMAIL}:generateAccessToken`,
-        },
+        credentials: credentials,
         scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
+        clientOptions: {
+          subject: calendarId, // Impersonate this user via domain-wide delegation
+        },
       });
 
       const client = await auth.getClient();
       calendar = google.calendar({ version: 'v3', auth: client });
     }
-
-    // Calendar ID
-    const calendarId = process.env.CALENDAR_ID || 'coachwill@newerahockeytraining.com';
 
     // Prepare API request parameters
     const listParams = {
