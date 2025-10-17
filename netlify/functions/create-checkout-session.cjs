@@ -44,13 +44,13 @@ exports.handler = async (event, context) => {
     const { event: calendarEvent, formData } = JSON.parse(event.body);
 
     // Validate required fields
-    if (!calendarEvent || !calendarEvent.id || !calendarEvent.price) {
+    if (!calendarEvent || !calendarEvent.id || !calendarEvent.price || !calendarEvent.eventType) {
       return {
         statusCode: 400,
         headers,
         body: JSON.stringify({
           error: 'Missing required event data',
-          message: 'Event ID and price are required',
+          message: 'Event ID, price, and event type are required',
         }),
       };
     }
@@ -109,6 +109,7 @@ exports.handler = async (event, context) => {
       metadata: {
         // Event information
         eventId: calendarEvent.id,
+        eventType: calendarEvent.eventType, // 'camp' or 'lesson' for capacity defaults
         eventSummary: calendarEvent.summary || '',
         eventPrice: calendarEvent.price.toString(),
 

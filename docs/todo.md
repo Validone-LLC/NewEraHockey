@@ -26,3 +26,41 @@ Now I need to make this possible:
  - For when the event is SOLD OUT
   - For camps, keep the event visible but have "SOLD OUT" label
   - For lessons, hide the event when sold out
+
+## ✅ Solution: Automated Registration System
+
+### What Changed:
+- ✅ **Zero-config registration** - No manual properties needed!
+- ✅ **Auto-detection** - Price in description = registration enabled automatically
+- ✅ **Default capacities** - Camps: 20, Lessons: 10 (auto-assigned)
+- ✅ **Netlify Blob Storage** - Tracks registrations without external database
+- ✅ **Stripe Webhook** - Auto-updates count after successful payment
+- ✅ **Sold-out management** - Automatic when capacity reached
+
+### Admin Workflow (Simple!):
+1. Create Google Calendar event
+2. Add to description: `Price: $350`
+3. Save event
+4. **Done!** Register button appears automatically
+
+### Technical Implementation:
+- `calendar-events.js` - Auto-detects registration eligibility
+- `registrationStore.js` - Netlify Blob database layer
+- `stripe-webhook.js` - Payment webhook handler
+- `create-checkout-session.js` - Updated with event type
+- `RegistrationForm.jsx` - Auto-detects event type from title
+
+### Documentation:
+See `claudedocs/automated-registration-system.md` for complete guide
+
+---
+
+## Previous Problem (Archive):
+- Currently the event from the calendar, you're not able to register because the properties isn't all there
+- The only property missing is isRegisterEnabled
+- The script you provided, seems like a manual script I'd have to run for each event
+- We need to somehow be able to have this process all be automated
+- So Admin creates an event with Camp or Lesson as type, and puts price here
+ - There isn't a way here we can define how many slots are available
+ - When a student registers, they should be somehow added to the event, but this shouldn't be what tracks how many users signed up for the event
+- Please come up with a solution that will work, automate everything as much as possible

@@ -1,22 +1,21 @@
 const { GoogleAuth } = require('google-auth-library');
 const { google } = require('googleapis');
+const { getEventRegistrations, DEFAULT_CAPACITY } = require('./lib/registrationStore.cjs');
 
 /**
  * Netlify Function: Fetch Google Calendar Events
  *
  * Authentication:
- * - LOCAL DEV: Uses Application Default Credentials (gcloud CLI auth)
- * - PRODUCTION: Uses Service Account JSON key
+ * - Uses Service Account JSON key for both local dev and production
+ * - Requires domain-wide delegation to access calendar
  *
  * Environment Variables Required:
- * - GOOGLE_SERVICE_ACCOUNT_KEY: Service account JSON key (production only)
- * - GOOGLE_PROJECT_ID: Your Google Cloud project ID
+ * - GOOGLE_SERVICE_ACCOUNT_KEY: Service account JSON key (required)
  * - CALENDAR_ID: Calendar to fetch events from (default: coachwill@newerahockeytraining.com)
  *
  * Local Development Setup:
- * 1. Authenticate gcloud CLI: `gcloud auth application-default login`
- * 2. Set default project: `gcloud config set project newerahockey-calendar`
- * 3. Run: `netlify dev`
+ * 1. Ensure GOOGLE_SERVICE_ACCOUNT_KEY is in .env file
+ * 2. Run: `netlify dev`
  */
 
 exports.handler = async (event, context) => {
@@ -48,71 +47,50 @@ exports.handler = async (event, context) => {
     const eventType = params.type; // 'camp', 'lesson', or null for all
     const syncToken = params.syncToken; // For incremental sync
 
-    // Detect environment: local dev vs production Netlify
-    const isLocalDev = !context.clientContext || process.env.NETLIFY_DEV === 'true';
-
     // Calendar ID (used for both authentication subject and API calls)
     const calendarId = process.env.CALENDAR_ID || 'coachwill@newerahockeytraining.com';
 
-    let auth;
-    let calendar;
-
-    if (isLocalDev) {
-      // LOCAL DEVELOPMENT: Use Application Default Credentials (gcloud CLI)
-      console.log('🔧 Local dev mode: Using Application Default Credentials');
-
-      auth = new GoogleAuth({
-        scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
-      });
-
-      const client = await auth.getClient();
-      calendar = google.calendar({ version: 'v3', auth: client });
-    } else {
-      // PRODUCTION: Use Service Account JSON Key
-      console.log('🚀 Production mode: Using Service Account JSON Key');
-
-      // Check for service account key
-      if (!process.env.GOOGLE_SERVICE_ACCOUNT_KEY) {
-        console.error('Missing GOOGLE_SERVICE_ACCOUNT_KEY environment variable');
-        return {
-          statusCode: 500,
-          headers,
-          body: JSON.stringify({
-            error: 'Server configuration error',
-            message: 'Missing GOOGLE_SERVICE_ACCOUNT_KEY environment variable',
-          }),
-        };
-      }
-
-      // Parse service account key from environment variable
-      let credentials;
-      try {
-        credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY);
-      } catch (error) {
-        console.error('Failed to parse GOOGLE_SERVICE_ACCOUNT_KEY:', error);
-        return {
-          statusCode: 500,
-          headers,
-          body: JSON.stringify({
-            error: 'Server configuration error',
-            message: 'Invalid GOOGLE_SERVICE_ACCOUNT_KEY format',
-          }),
-        };
-      }
-
-      // Create auth client with service account credentials
-      // For domain-wide delegation, we need to specify which user to impersonate
-      auth = new GoogleAuth({
-        credentials: credentials,
-        scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
-        clientOptions: {
-          subject: calendarId, // Impersonate this user via domain-wide delegation
-        },
-      });
-
-      const client = await auth.getClient();
-      calendar = google.calendar({ version: 'v3', auth: client });
+    // Check for service account key
+    if (!process.env.GOOGLE_SERVICE_ACCOUNT_KEY) {
+      console.error('Missing GOOGLE_SERVICE_ACCOUNT_KEY environment variable');
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({
+          error: 'Server configuration error',
+          message: 'Missing GOOGLE_SERVICE_ACCOUNT_KEY environment variable',
+        }),
+      };
     }
+
+    // Parse service account key from environment variable
+    let credentials;
+    try {
+      credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY);
+    } catch (error) {
+      console.error('Failed to parse GOOGLE_SERVICE_ACCOUNT_KEY:', error);
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({
+          error: 'Server configuration error',
+          message: 'Invalid GOOGLE_SERVICE_ACCOUNT_KEY format',
+        }),
+      };
+    }
+
+    // Create auth client with service account credentials
+    // For domain-wide delegation, we need to specify which user to impersonate
+    const auth = new GoogleAuth({
+      credentials: credentials,
+      scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
+      clientOptions: {
+        subject: calendarId, // Impersonate this user via domain-wide delegation
+      },
+    });
+
+    const client = await auth.getClient();
+    const calendar = google.calendar({ version: 'v3', auth: client });
 
     // Prepare API request parameters
     const listParams = {
@@ -135,8 +113,8 @@ exports.handler = async (event, context) => {
 
     let events = response.data.items || [];
 
-    // Enrich events with registration metadata
-    events = events.map(event => enrichEventWithRegistrationData(event));
+    // Enrich events with registration metadata (async)
+    events = await Promise.all(events.map(event => enrichEventWithRegistrationData(event)));
 
     // Filter by event type if specified
     if (eventType) {
@@ -241,27 +219,83 @@ function parsePriceFromDescription(description) {
 }
 
 /**
- * Enrich event with registration metadata from extended properties
- * Adds: price, maxCapacity, currentRegistrations, isSoldOut, registrationEnabled
- * @param {Object} event - Google Calendar event object
- * @returns {Object} - Enriched event object
+ * Parse custom capacity/spots from event description
+ * Looks for patterns like "Spots: 25", "spots: 2", "Capacity: 15"
+ * @param {string} description - Event description
+ * @returns {number|null} - Number of spots, or null if not found
  */
-function enrichEventWithRegistrationData(event) {
-  const extProps = event.extendedProperties?.shared || {};
+function parseSpotsFromDescription(description) {
+  if (!description) return null;
 
-  // Parse extended properties
-  const priceFromExtProps = extProps.price ? parseFloat(extProps.price) : null;
+  // Pattern: "Spots: 25" or "Capacity: 15" (case insensitive)
+  const spotsPattern = /(?:spots|capacity):\s*(\d+)/i;
+  const match = description.match(spotsPattern);
+
+  if (match) {
+    const spots = parseInt(match[1], 10);
+    // Validate reasonable capacity (1-100)
+    if (spots >= 1 && spots <= 100) {
+      return spots;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Enrich event with registration metadata
+ *
+ * AUTO-DETECTION LOGIC:
+ * - If event has price in description → registration enabled automatically
+ * - Custom capacity from "Spots: X" or "Capacity: X" in description
+ * - Falls back to default capacity based on event type (camp: 20, lesson: 10)
+ * - Fetches current registration count from Netlify Blob Storage
+ *
+ * NO MANUAL EXTENDED PROPERTIES NEEDED!
+ *
+ * @param {Object} event - Google Calendar event object
+ * @returns {Promise<Object>} - Enriched event object
+ */
+async function enrichEventWithRegistrationData(event) {
+  // Get event type for default capacity
+  const eventType = categorizeEvent(event);
+
+  // Parse price from description (auto-detection)
   const priceFromDescription = parsePriceFromDescription(event.description);
-  const price = priceFromExtProps || priceFromDescription || null;
+  const price = priceFromDescription || null;
 
-  const maxCapacity = extProps.maxCapacity ? parseInt(extProps.maxCapacity, 10) : null;
-  const currentRegistrations = extProps.currentRegistrations
-    ? parseInt(extProps.currentRegistrations, 10)
-    : 0;
-  const registrationEnabled = extProps.registrationEnabled === 'true';
+  // Parse custom capacity from description (optional)
+  const customSpotsFromDescription = parseSpotsFromDescription(event.description);
+
+  // AUTO-ENABLE registration if price exists
+  const registrationEnabled = price !== null;
+
+  // Fetch registration data from Netlify Blob Storage
+  let registrationData = null;
+  let maxCapacity = null;
+  let currentRegistrations = 0;
+
+  try {
+    registrationData = await getEventRegistrations(event.id);
+
+    // Capacity priority: stored > custom from description > default by type
+    maxCapacity = registrationData.maxCapacity ||
+                  customSpotsFromDescription ||
+                  DEFAULT_CAPACITY[eventType] ||
+                  DEFAULT_CAPACITY.other;
+
+    currentRegistrations = registrationData.currentRegistrations || 0;
+  } catch (error) {
+    console.warn(`Could not fetch registration data for ${event.id}:`, error.message);
+    // Fallback: custom from description or default
+    maxCapacity = customSpotsFromDescription ||
+                  DEFAULT_CAPACITY[eventType] ||
+                  DEFAULT_CAPACITY.other;
+    currentRegistrations = 0;
+  }
 
   // Calculate sold out status
-  const isSoldOut = maxCapacity !== null && currentRegistrations >= maxCapacity;
+  const isSoldOut = currentRegistrations >= maxCapacity;
 
   // Add registration metadata to event object
   return {
@@ -272,7 +306,7 @@ function enrichEventWithRegistrationData(event) {
       currentRegistrations,
       isSoldOut,
       registrationEnabled,
-      hasCapacityInfo: maxCapacity !== null,
+      hasCapacityInfo: true, // Always true now with defaults
     },
   };
 }

@@ -114,6 +114,14 @@ const RegistrationForm = ({ event }) => {
     setSubmitting(true);
 
     try {
+      // Determine event type from title or color
+      const eventTitle = (event.summary || '').toLowerCase();
+      const eventType = eventTitle.includes('camp')
+        ? 'camp'
+        : eventTitle.includes('lesson') || eventTitle.includes('training')
+          ? 'lesson'
+          : 'other';
+
       // Create Stripe Checkout session
       const response = await fetch('/.netlify/functions/create-checkout-session', {
         method: 'POST',
@@ -125,6 +133,7 @@ const RegistrationForm = ({ event }) => {
             id: event.id,
             summary: event.summary,
             price: event.registrationData?.price,
+            eventType, // Include event type for capacity defaults
           },
           formData,
         }),
