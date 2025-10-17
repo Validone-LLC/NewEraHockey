@@ -78,6 +78,7 @@ System detects event type from:
 │    ✓ Adds registration to Netlify Blob Storage             │
 │    ✓ Increments registration count                          │
 │    ✓ Marks sold out when capacity reached                  │
+│    ✓ Sends confirmation emails (admin + guardian)          │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -135,6 +136,11 @@ System detects event type from:
   2. Call `addRegistration()` to store in blob
   3. Auto-increment registration count
   4. Check if sold out
+  5. Send confirmation emails via AWS SES
+- **Email Integration**: Uses AWS SES (same as contact form)
+- **Email Recipients**:
+  - Admin notification to ADMIN_EMAIL with registration details
+  - User confirmation to guardian with event details and receipt
 
 ### create-checkout-session.js
 - **Updated**: Now requires `eventType` in request body
@@ -231,12 +237,18 @@ stripe listen --forward-to localhost:8888/.netlify/functions/stripe-webhook
 - [x] Install @netlify/blobs package
 - [x] Create registrationStore.js
 - [x] Update calendar-events.js with auto-detection
-- [x] Create stripe-webhook.js
+- [x] Create stripe-webhook.js with email integration
 - [x] Update create-checkout-session.js
 - [x] Update RegistrationForm.jsx
 - [ ] Set up Stripe webhook in dashboard
-- [ ] Add STRIPE_WEBHOOK_SECRET to Netlify env
+- [ ] Verify Netlify environment variables:
+  - `STRIPE_WEBHOOK_SECRET` - Webhook signing secret
+  - `NEH_AWS_ACCESS_KEY_ID` - AWS SES access key
+  - `NEH_AWS_SECRET_ACCESS_KEY` - AWS SES secret key
+  - `ADMIN_EMAIL` - Coach Will's email for notifications
+  - `SES_FROM_EMAIL` - Sender email address
 - [ ] Test end-to-end payment flow
+- [ ] Verify emails are received (admin + guardian)
 - [ ] Monitor webhook logs
 
 ## 📊 Monitoring
@@ -279,6 +291,7 @@ console.log(data);
 ✅ **No External DB** - Uses Netlify Blob Storage (included)
 ✅ **Admin Friendly** - Just add price to description
 ✅ **Scalable** - Handles unlimited events and registrations
+✅ **Email Notifications** - Automatic confirmation to admin & guardian
 
 ## 🔮 Future Enhancements
 
@@ -286,6 +299,6 @@ console.log(data);
 2. **Custom Capacities**: Override defaults per event
 3. **Waitlist**: Allow overflow registrations
 4. **Refunds**: Cancel registration workflow
-5. **Email Notifications**: Phase 4 implementation
-6. **CSV Export**: Download registration data
-7. **Analytics**: Registration trends and insights
+5. **CSV Export**: Download registration data
+6. **Analytics**: Registration trends and insights
+7. **Calendar Integration**: Automatically add event to guardian's calendar
