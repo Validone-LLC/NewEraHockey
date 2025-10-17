@@ -8,6 +8,7 @@ import {
   fetchLessons,
   startPolling,
   filterVisibleEvents,
+  refreshEvents,
 } from '@services/calendarService';
 import { sortEventsByDate } from '@utils/eventCategorization';
 
@@ -65,8 +66,28 @@ const TrainingSchedule = () => {
     return () => stopPollingFn();
   }, [eventType]);
 
-  const handleRefresh = () => {
-    loadEvents();
+  const handleRefresh = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Map plural state to singular API parameter
+      const pollType = eventType === 'camps' ? 'camp' : 'lesson';
+
+      // Force refresh - invalidates cache and fetches fresh data
+      const data = await refreshEvents(pollType);
+
+      // Filter out sold-out lessons (camps show with badge)
+      const visibleEvents = filterVisibleEvents(data.events, eventType);
+
+      setEvents(sortEventsByDate(visibleEvents));
+      setLastUpdated(new Date());
+    } catch (err) {
+      console.error('Failed to refresh events:', err);
+      setError(err.message || 'Failed to refresh training schedule');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

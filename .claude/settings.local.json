@@ -22,7 +22,8 @@
       "Bash(where:*)",
       "Bash(bash:*)",
       "Bash(rm:*)",
-      "Bash(netstat:*)"
+      "Bash(netstat:*)",
+      "mcp__playwright__browser_click"
     ],
     "deny": [],
     "ask": []

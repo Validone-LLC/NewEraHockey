@@ -31,8 +31,7 @@ const Footer = () => {
               </div>
             </div>
             <p className="text-neutral-text text-sm">
-              Premier hockey training in the DMV area. Developing athletes and better people through
-              passion, discipline, and results.
+              Private on ice & Off ice training, annual camps, and film analysis
             </p>
           </div>
 

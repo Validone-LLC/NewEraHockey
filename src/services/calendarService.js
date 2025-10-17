@@ -2,7 +2,7 @@
  * Calendar Service
  *
  * Provides API for fetching calendar events from Netlify function
- * with support for incremental sync and automatic polling
+ * with support for incremental sync, automatic polling, and 6-hour caching
  */
 
 import {
@@ -23,14 +23,93 @@ import {
 let syncToken = null;
 let pollingInterval = null;
 
+// Cache configuration
+const CACHE_TTL = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
+const CACHE_KEY_PREFIX = 'calendar_events_';
+
 /**
- * Fetch events from the calendar API
+ * Cache utilities
+ */
+const cache = {
+  get(key) {
+    try {
+      const item = localStorage.getItem(`${CACHE_KEY_PREFIX}${key}`);
+      if (!item) return null;
+
+      const { data, timestamp } = JSON.parse(item);
+      const now = Date.now();
+
+      // Check if expired
+      if (now - timestamp > CACHE_TTL) {
+        this.remove(key);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.warn('Cache read error:', error);
+      return null;
+    }
+  },
+
+  set(key, data) {
+    try {
+      const item = {
+        data,
+        timestamp: Date.now(),
+      };
+      localStorage.setItem(`${CACHE_KEY_PREFIX}${key}`, JSON.stringify(item));
+    } catch (error) {
+      console.warn('Cache write error:', error);
+    }
+  },
+
+  remove(key) {
+    try {
+      localStorage.removeItem(`${CACHE_KEY_PREFIX}${key}`);
+    } catch (error) {
+      console.warn('Cache remove error:', error);
+    }
+  },
+
+  clear() {
+    try {
+      const keys = Object.keys(localStorage);
+      keys.forEach(key => {
+        if (key.startsWith(CACHE_KEY_PREFIX)) {
+          localStorage.removeItem(key);
+        }
+      });
+    } catch (error) {
+      console.warn('Cache clear error:', error);
+    }
+  },
+};
+
+/**
+ * Fetch events from the calendar API with caching
  * @param {string|null} eventType - 'camp', 'lesson', or null for all events
  * @param {boolean} useSync - Whether to use incremental sync with sync token
- * @returns {Promise<Object>} - { events: [], total: number, nextSyncToken: string }
+ * @param {boolean} useCache - Whether to check cache before API call (default: true)
+ * @returns {Promise<Object>} - { events: [], total: number, nextSyncToken: string, cached: boolean }
  */
-export const fetchEvents = async (eventType = null, useSync = true) => {
+export const fetchEvents = async (eventType = null, useSync = true, useCache = true) => {
   try {
+    // Generate cache key based on event type
+    const cacheKey = eventType || 'all';
+
+    // Check cache first (if enabled)
+    if (useCache) {
+      const cachedData = cache.get(cacheKey);
+      if (cachedData) {
+        console.log(`📦 Cache hit: ${cacheKey}`);
+        return {
+          ...cachedData,
+          cached: true,
+        };
+      }
+    }
+
     // Build URL with query parameters
     const url = new URL('/.netlify/functions/calendar-events', window.location.origin);
 
@@ -41,6 +120,8 @@ export const fetchEvents = async (eventType = null, useSync = true) => {
     if (useSync && syncToken) {
       url.searchParams.set('syncToken', syncToken);
     }
+
+    console.log(`🌐 API call: ${cacheKey}`);
 
     // Fetch from Netlify function
     const response = await fetch(url.toString());
@@ -57,12 +138,18 @@ export const fetchEvents = async (eventType = null, useSync = true) => {
       syncToken = data.nextSyncToken;
     }
 
-    return {
+    const result = {
       events: data.events || [],
       total: data.total || 0,
       nextSyncToken: data.nextSyncToken,
       timestamp: data.timestamp,
+      cached: false,
     };
+
+    // Cache the result
+    cache.set(cacheKey, result);
+
+    return result;
   } catch (error) {
     console.error('Calendar service error:', error);
     throw error;
@@ -126,10 +213,10 @@ export const startPolling = (
       .catch(error => console.error('Initial fetch error:', error));
   }
 
-  // Set up polling
+  // Set up polling (bypass cache to get fresh data)
   pollingInterval = setInterval(async () => {
     try {
-      const data = await fetchEvents(eventType, true);
+      const data = await fetchEvents(eventType, true, false); // Skip cache for polling
       callback(data.events);
     } catch (error) {
       console.error('Polling error:', error);
@@ -190,13 +277,39 @@ export const syncEvents = async eventType => {
 
 /**
  * Force full refresh of all events
- * Clears sync token and fetches everything
+ * Clears cache, sync token, and fetches fresh data
  * @param {string|null} eventType - Type of events to fetch
  * @returns {Promise<Object>}
  */
 export const refreshEvents = async eventType => {
+  const cacheKey = eventType || 'all';
+  cache.remove(cacheKey);
   resetSync();
-  return fetchEvents(eventType, false);
+  return fetchEvents(eventType, false, false); // Skip cache check
+};
+
+/**
+ * Invalidate cache for specific event type or all
+ * @param {string|null} eventType - Type to invalidate, null for all
+ */
+export const invalidateCache = eventType => {
+  if (eventType) {
+    cache.remove(eventType);
+    console.log(`🗑️ Cache invalidated: ${eventType}`);
+  } else {
+    cache.clear();
+    console.log('🗑️ All cache invalidated');
+  }
+};
+
+/**
+ * Check if data is cached
+ * @param {string|null} eventType - Type to check
+ * @returns {boolean}
+ */
+export const isCached = eventType => {
+  const cacheKey = eventType || 'all';
+  return cache.get(cacheKey) !== null;
 };
 
 // ============================================================
