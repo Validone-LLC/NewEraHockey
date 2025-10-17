@@ -48,7 +48,8 @@ const TrainingSchedule = () => {
         setLastUpdated(new Date());
       },
       pollType,
-      300000 // 5 minutes
+      300000, // 5 minutes
+      true // Skip initial fetch - loadEvents() already fetched
     );
 
     return () => stopPollingFn();

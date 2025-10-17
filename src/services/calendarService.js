@@ -90,18 +90,26 @@ export const resetSync = () => {
  * @param {Function} callback - Function to call with new events
  * @param {string|null} eventType - Type of events to fetch ('camp', 'lesson', or null)
  * @param {number} interval - Poll interval in milliseconds (default: 5 minutes)
+ * @param {boolean} skipInitialFetch - Skip initial fetch if data already loaded (default: false)
  * @returns {Function} - Stop function to cancel polling
  */
-export const startPolling = (callback, eventType = null, interval = 300000) => {
+export const startPolling = (
+  callback,
+  eventType = null,
+  interval = 300000,
+  skipInitialFetch = false
+) => {
   // Clear any existing polling
   if (pollingInterval) {
     clearInterval(pollingInterval);
   }
 
-  // Initial fetch
-  fetchEvents(eventType, true)
-    .then(data => callback(data.events))
-    .catch(error => console.error('Initial fetch error:', error));
+  // Initial fetch (unless skipped)
+  if (!skipInitialFetch) {
+    fetchEvents(eventType, true)
+      .then(data => callback(data.events))
+      .catch(error => console.error('Initial fetch error:', error));
+  }
 
   // Set up polling
   pollingInterval = setInterval(async () => {
