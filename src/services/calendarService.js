@@ -5,6 +5,21 @@
  * with support for incremental sync and automatic polling
  */
 
+import {
+  isRegistrationEnabled,
+  isSoldOut,
+  getCurrentRegistrations,
+  getMaxCapacity,
+  getRemainingSpots,
+  hasCapacityInfo,
+  getRegistrationButtonText,
+  shouldHideEvent,
+  getPrice,
+  getFormattedPrice,
+  canRegister,
+  getRegistrationStatus,
+} from '../utils/registrationHelpers';
+
 let syncToken = null;
 let pollingInterval = null;
 
@@ -182,4 +197,88 @@ export const syncEvents = async eventType => {
 export const refreshEvents = async eventType => {
   resetSync();
   return fetchEvents(eventType, false);
+};
+
+// ============================================================
+// Registration Data Utilities
+// ============================================================
+
+/**
+ * Filter out sold out events (for lessons display)
+ * @param {Array} events - Array of calendar events
+ * @param {string} eventType - 'camps' or 'lessons'
+ * @returns {Array} - Filtered events
+ */
+export const filterVisibleEvents = (events, eventType) => {
+  return events.filter(event => !shouldHideEvent(event, eventType));
+};
+
+/**
+ * Get only events that accept registrations
+ * @param {Array} events - Array of calendar events
+ * @returns {Array} - Events that can be registered for
+ */
+export const getRegisterableEvents = events => {
+  return events.filter(event => canRegister(event));
+};
+
+/**
+ * Get only sold out events
+ * @param {Array} events - Array of calendar events
+ * @returns {Array} - Sold out events
+ */
+export const getSoldOutEvents = events => {
+  return events.filter(event => isSoldOut(event));
+};
+
+/**
+ * Sort events by remaining spots (low to high)
+ * Events with no capacity info are placed at the end
+ * @param {Array} events - Array of calendar events
+ * @returns {Array} - Sorted events
+ */
+export const sortByRemainingSpots = events => {
+  return [...events].sort((a, b) => {
+    const remainingA = getRemainingSpots(a);
+    const remainingB = getRemainingSpots(b);
+
+    // Events with no capacity info go to end
+    if (remainingA === null) return 1;
+    if (remainingB === null) return -1;
+
+    return remainingA - remainingB;
+  });
+};
+
+/**
+ * Get event statistics for a set of events
+ * @param {Array} events - Array of calendar events
+ * @returns {Object} - Statistics object
+ */
+export const getEventStatistics = events => {
+  return {
+    total: events.length,
+    registrationEnabled: events.filter(e => isRegistrationEnabled(e)).length,
+    soldOut: events.filter(e => isSoldOut(e)).length,
+    available: events.filter(e => canRegister(e)).length,
+    withCapacity: events.filter(e => hasCapacityInfo(e)).length,
+    totalCapacity: events.reduce((sum, e) => sum + (getMaxCapacity(e) || 0), 0),
+    totalRegistrations: events.reduce((sum, e) => sum + getCurrentRegistrations(e), 0),
+  };
+};
+
+// Re-export registration helpers for convenience
+export {
+  isRegistrationEnabled,
+  isSoldOut,
+  getCurrentRegistrations,
+  getMaxCapacity,
+  getRemainingSpots,
+  hasCapacityInfo,
+  getRegistrationButtonText,
+  shouldHideEvent,
+  getPrice,
+  getFormattedPrice,
+  canRegister,
+  getRegistrationStatus,
 };

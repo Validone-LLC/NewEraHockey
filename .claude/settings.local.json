@@ -21,7 +21,8 @@
       "Bash(git commit:*)",
       "Bash(where:*)",
       "Bash(bash:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(netstat:*)"
     ],
     "deny": [],
     "ask": []

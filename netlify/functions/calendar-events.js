@@ -135,6 +135,9 @@ exports.handler = async (event, context) => {
 
     let events = response.data.items || [];
 
+    // Enrich events with registration metadata
+    events = events.map(event => enrichEventWithRegistrationData(event));
+
     // Filter by event type if specified
     if (eventType) {
       events = events.filter(event => {
@@ -209,4 +212,67 @@ function categorizeEvent(event) {
   if (title.includes('lesson') || title.includes('training')) return 'lesson';
 
   return 'other';
+}
+
+/**
+ * Parse price from event description
+ * Looks for patterns like "Price: $350", "$350.00", "Price: 350"
+ * @param {string} description - Event description
+ * @returns {number|null} - Price in dollars, or null if not found
+ */
+function parsePriceFromDescription(description) {
+  if (!description) return null;
+
+  // Pattern 1: "Price: $350" or "Price: $350.00"
+  const pricePattern1 = /price:\s*\$?(\d+(?:\.\d{2})?)/i;
+  const match1 = description.match(pricePattern1);
+  if (match1) {
+    return parseFloat(match1[1]);
+  }
+
+  // Pattern 2: Standalone "$350" or "$350.00"
+  const pricePattern2 = /\$(\d+(?:\.\d{2})?)/;
+  const match2 = description.match(pricePattern2);
+  if (match2) {
+    return parseFloat(match2[1]);
+  }
+
+  return null;
+}
+
+/**
+ * Enrich event with registration metadata from extended properties
+ * Adds: price, maxCapacity, currentRegistrations, isSoldOut, registrationEnabled
+ * @param {Object} event - Google Calendar event object
+ * @returns {Object} - Enriched event object
+ */
+function enrichEventWithRegistrationData(event) {
+  const extProps = event.extendedProperties?.shared || {};
+
+  // Parse extended properties
+  const priceFromExtProps = extProps.price ? parseFloat(extProps.price) : null;
+  const priceFromDescription = parsePriceFromDescription(event.description);
+  const price = priceFromExtProps || priceFromDescription || null;
+
+  const maxCapacity = extProps.maxCapacity ? parseInt(extProps.maxCapacity, 10) : null;
+  const currentRegistrations = extProps.currentRegistrations
+    ? parseInt(extProps.currentRegistrations, 10)
+    : 0;
+  const registrationEnabled = extProps.registrationEnabled === 'true';
+
+  // Calculate sold out status
+  const isSoldOut = maxCapacity !== null && currentRegistrations >= maxCapacity;
+
+  // Add registration metadata to event object
+  return {
+    ...event,
+    registrationData: {
+      price,
+      maxCapacity,
+      currentRegistrations,
+      isSoldOut,
+      registrationEnabled,
+      hasCapacityInfo: maxCapacity !== null,
+    },
+  };
 }
