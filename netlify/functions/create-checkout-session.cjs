@@ -79,11 +79,13 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Determine environment (dev vs prod)
-    const isProduction = process.env.CONTEXT === 'production';
-    const baseUrl = isProduction
-      ? 'https://newerahockey.co'
-      : process.env.URL || 'http://localhost:8888';
+    // Determine base URL for redirects
+    // DEPLOY_URL: Specific deployment URL (works for deploy previews, branch deploys, production)
+    // URL: Primary site URL (often custom domain)
+    // Fallback: localhost for local development
+    const baseUrl = process.env.DEPLOY_URL || process.env.URL || 'http://localhost:8888';
+
+    console.log('Checkout session baseUrl:', baseUrl, '(context:', process.env.CONTEXT, ')');
 
     // Convert price to cents (Stripe uses smallest currency unit)
     const amountInCents = Math.round(calendarEvent.price * 100);
