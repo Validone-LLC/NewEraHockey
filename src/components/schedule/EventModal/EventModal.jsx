@@ -1,6 +1,8 @@
-import { HiX, HiCalendar, HiClock, HiLocationMarker, HiExternalLink } from 'react-icons/hi';
+import { HiX, HiCalendar, HiClock, HiLocationMarker, HiCurrencyDollar } from 'react-icons/hi';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { formatEventDateTime } from '@utils/eventCategorization';
+import { getFormattedPrice } from '@/services/calendarService';
 
 const EventModal = ({ isOpen, onClose, event, eventType }) => {
   if (!event) return null;
@@ -67,49 +69,27 @@ const EventModal = ({ isOpen, onClose, event, eventType }) => {
                   <div className="space-y-2">
                     <div className="flex items-center gap-3 text-neutral-light">
                       <HiCalendar className="text-teal-500 text-xl flex-shrink-0" />
-                      <span className="font-semibold">{date}</span>
+                      <span className="font-medium">{date}</span>
                     </div>
                     <div className="flex items-center gap-3 text-neutral-light">
                       <HiClock className="text-teal-500 text-xl flex-shrink-0" />
-                      <span className="font-semibold">{time}</span>
+                      <span className="font-medium">{time}</span>
                     </div>
                   </div>
 
                   {/* Location */}
                   {event.location && (
                     <div className="flex items-start gap-3 text-neutral-light">
-                      <HiLocationMarker className="text-teal-500 text-xl flex-shrink-0 mt-1" />
-                      <div>
-                        <p className="font-semibold mb-1">Location</p>
-                        <p>{event.location}</p>
-                      </div>
+                      <HiLocationMarker className="text-teal-500 text-xl flex-shrink-0" />
+                      <span className="font-medium">{event.location}</span>
                     </div>
                   )}
 
-                  {/* Description */}
-                  {event.description && (
-                    <div className="text-neutral-light">
-                      <p className="font-semibold mb-2">Details</p>
-                      <p className="whitespace-pre-wrap">{event.description}</p>
-                    </div>
-                  )}
-
-                  {/* Attendees (if any) */}
-                  {event.attendees && event.attendees.length > 0 && (
-                    <div className="text-neutral-light">
-                      <p className="font-semibold mb-2">Attendees ({event.attendees.length})</p>
-                      <div className="flex flex-wrap gap-2">
-                        {event.attendees.slice(0, 5).map((attendee, index) => (
-                          <span key={index} className="px-3 py-1 bg-primary rounded-full text-sm">
-                            {attendee.email}
-                          </span>
-                        ))}
-                        {event.attendees.length > 5 && (
-                          <span className="px-3 py-1 bg-primary rounded-full text-sm">
-                            +{event.attendees.length - 5} more
-                          </span>
-                        )}
-                      </div>
+                  {/* Price */}
+                  {event.registrationData?.price && (
+                    <div className="flex items-center gap-3 text-neutral-light">
+                      <HiCurrencyDollar className="text-teal-500 text-xl flex-shrink-0" />
+                      <span className="font-medium">{getFormattedPrice(event)}</span>
                     </div>
                   )}
                 </div>
@@ -122,17 +102,12 @@ const EventModal = ({ isOpen, onClose, event, eventType }) => {
                   >
                     Close
                   </button>
-                  {event.htmlLink && (
-                    <a
-                      href={event.htmlLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-teal-500 to-teal-700 text-white font-semibold rounded-lg hover:from-teal-600 hover:to-teal-800 transition-all duration-300"
-                    >
-                      <span>View in Google Calendar</span>
-                      <HiExternalLink />
-                    </a>
-                  )}
+                  <Link
+                    to={`/register/${event.id}`}
+                    className="px-6 py-2 bg-gradient-to-r from-teal-500 to-teal-700 text-white font-semibold rounded-lg hover:from-teal-600 hover:to-teal-800 transition-all duration-300"
+                  >
+                    Register
+                  </Link>
                 </div>
               </motion.div>
             </div>

@@ -3,7 +3,13 @@ import { motion } from 'framer-motion';
 import { HiCalendar, HiViewList, HiRefresh } from 'react-icons/hi';
 import EventList from '@components/schedule/EventList/EventList';
 import EventCalendar from '@components/schedule/EventCalendar/EventCalendar';
-import { fetchCamps, fetchLessons, startPolling } from '@services/calendarService';
+import {
+  fetchCamps,
+  fetchLessons,
+  startPolling,
+  filterVisibleEvents,
+  refreshEvents,
+} from '@services/calendarService';
 import { sortEventsByDate } from '@utils/eventCategorization';
 
 const TrainingSchedule = () => {
@@ -22,7 +28,10 @@ const TrainingSchedule = () => {
       const fetchFn = eventType === 'camps' ? fetchCamps : fetchLessons;
       const data = await fetchFn();
 
-      setEvents(sortEventsByDate(data.events));
+      // Filter out sold-out lessons (camps show with badge)
+      const visibleEvents = filterVisibleEvents(data.events, eventType);
+
+      setEvents(sortEventsByDate(visibleEvents));
       setLastUpdated(new Date());
     } catch (err) {
       console.error('Failed to load events:', err);
@@ -44,7 +53,9 @@ const TrainingSchedule = () => {
 
     const stopPollingFn = startPolling(
       updatedEvents => {
-        setEvents(sortEventsByDate(updatedEvents));
+        // Filter out sold-out lessons (camps show with badge)
+        const visibleEvents = filterVisibleEvents(updatedEvents, eventType);
+        setEvents(sortEventsByDate(visibleEvents));
         setLastUpdated(new Date());
       },
       pollType,
@@ -55,8 +66,28 @@ const TrainingSchedule = () => {
     return () => stopPollingFn();
   }, [eventType]);
 
-  const handleRefresh = () => {
-    loadEvents();
+  const handleRefresh = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Map plural state to singular API parameter
+      const pollType = eventType === 'camps' ? 'camp' : 'lesson';
+
+      // Force refresh - invalidates cache and fetches fresh data
+      const data = await refreshEvents(pollType);
+
+      // Filter out sold-out lessons (camps show with badge)
+      const visibleEvents = filterVisibleEvents(data.events, eventType);
+
+      setEvents(sortEventsByDate(visibleEvents));
+      setLastUpdated(new Date());
+    } catch (err) {
+      console.error('Failed to refresh events:', err);
+      setError(err.message || 'Failed to refresh training schedule');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

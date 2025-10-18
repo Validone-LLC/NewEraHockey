@@ -12,6 +12,7 @@
 # Development settings for Netlify CLI
 [dev]
   command = "npm run dev"
+  framework = "#custom"
   targetPort = 5173
   port = 8888
   autoLaunch = false

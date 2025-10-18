@@ -19,6 +19,12 @@
   h6 {
     @apply font-display font-bold;
   }
+
+  /* Fix date input calendar icon color for dark theme */
+  input[type='date']::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+  }
 }
 
 @layer components {

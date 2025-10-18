@@ -1,3 +1,4 @@
+[![Netlify Status](https://api.netlify.com/api/v1/badges/1e9ad73a-109b-4935-b8cf-b700f6a6877d/deploy-status)](https://app.netlify.com/projects/super-fenglisu-968777/deploys)
 # New Era Hockey - React SPA
 
 A modern, responsive single-page application for New Era Hockey, a premier hockey training program in the DMV area led by Coach Will Pasko.

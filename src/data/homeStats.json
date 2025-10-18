@@ -14,7 +14,7 @@
     },
     {
       "id": 3,
-      "number": "100+",
+      "number": "300+",
       "label": "Players Trained",
       "gradient": "from-teal-300 to-teal-500"
     },
@@ -22,7 +22,7 @@
       "id": 4,
       "number": "DMV",
       "label": "Service Area",
-      "gradient": "from-teal-600 to-teal-800"
+      "gradient": "from-teal-300 to-teal-600"
     }
   ]
 }

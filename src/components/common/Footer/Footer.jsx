@@ -5,7 +5,7 @@ import { FaInstagram } from 'react-icons/fa';
 const Footer = () => {
   const navLinks = [
     { path: '/', label: 'Home' },
-    { path: '/coach-will', label: 'Coach Will' },
+    { path: '/coaches', label: 'Coaches' },
     { path: '/testimonials', label: 'Testimonials' },
     { path: '/gallery', label: 'Gallery' },
     { path: '/faq', label: 'FAQ' },
@@ -31,8 +31,7 @@ const Footer = () => {
               </div>
             </div>
             <p className="text-neutral-text text-sm">
-              Premier hockey training in the DMV area. Developing athletes and better people through
-              passion, discipline, and results.
+              Private on ice & Off ice training, annual camps, and film analysis
             </p>
           </div>
 

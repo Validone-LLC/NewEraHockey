@@ -2,19 +2,19 @@
   "title": "Welcome to",
   "brandName": "New Era Hockey",
   "tagline": {
-    "text": "Premier hockey training in the DMV area. Transforming players through",
+    "text": "Private on & off ice",
     "highlights": [
       {
-        "word": "passion",
-        "color": "text-teal-300"
-      },
-      {
-        "word": "discipline",
+        "word": "training",
         "color": "text-teal-400"
       },
       {
-        "word": "results",
+        "word": "annual camps",
         "color": "text-teal-500"
+      },
+      {
+        "word": "film analysis",
+        "color": "text-teal-600"
       }
     ]
   },
