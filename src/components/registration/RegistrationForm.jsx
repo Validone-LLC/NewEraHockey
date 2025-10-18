@@ -30,7 +30,23 @@ const RegistrationForm = ({ event }) => {
   });
 
   const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
   const [submitting, setSubmitting] = useState(false);
+
+  // Phone number formatting helper
+  const formatPhoneNumber = value => {
+    if (!value) return value;
+
+    // Remove all non-numeric characters
+    const phoneNumber = value.replace(/[^\d]/g, '');
+
+    // Format as (XXX) XXX-XXXX
+    if (phoneNumber.length < 4) return phoneNumber;
+    if (phoneNumber.length < 7) {
+      return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3)}`;
+    }
+    return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`;
+  };
 
   const handleChange = e => {
     const { name, value, type, checked } = e.target;
@@ -39,10 +55,81 @@ const RegistrationForm = ({ event }) => {
       [name]: type === 'checkbox' ? checked : value,
     }));
 
-    // Clear error for this field when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+    // Mark field as touched
+    setTouched(prev => ({ ...prev, [name]: true }));
+
+    // Validate field in real-time
+    validateField(name, type === 'checkbox' ? checked : value);
+  };
+
+  const handleBlur = e => {
+    const { name } = e.target;
+    // Mark field as touched on blur
+    setTouched(prev => ({ ...prev, [name]: true }));
+    // Validate field on blur
+    validateField(name, formData[name]);
+  };
+
+  const validateField = (fieldName, value) => {
+    let error = '';
+
+    switch (fieldName) {
+      case 'playerFirstName':
+        if (!value.trim()) error = 'Player first name is required';
+        break;
+      case 'playerLastName':
+        if (!value.trim()) error = 'Player last name is required';
+        break;
+      case 'playerDateOfBirth':
+        if (!value) error = 'Date of birth is required';
+        break;
+      case 'guardianFirstName':
+        if (!value.trim()) error = 'Guardian first name is required';
+        break;
+      case 'guardianLastName':
+        if (!value.trim()) error = 'Guardian last name is required';
+        break;
+      case 'guardianEmail':
+        if (!value.trim()) {
+          error = 'Email is required';
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          error = 'Invalid email format';
+        }
+        break;
+      case 'guardianPhone':
+        if (!value.trim()) {
+          error = 'Phone number is required';
+        } else {
+          const phoneDigits = value.replace(/[^\d]/g, '');
+          if (phoneDigits.length !== 10) {
+            error = 'Invalid phone format (e.g., (555) 555-5555)';
+          }
+        }
+        break;
+      case 'emergencyName':
+        if (!value.trim()) error = 'Emergency contact name is required';
+        break;
+      case 'emergencyPhone':
+        if (!value.trim()) {
+          error = 'Emergency contact phone is required';
+        } else {
+          const phoneDigits = value.replace(/[^\d]/g, '');
+          if (phoneDigits.length !== 10) {
+            error = 'Invalid phone format (e.g., (555) 555-5555)';
+          }
+        }
+        break;
+      case 'emergencyRelationship':
+        if (!value.trim()) error = 'Emergency contact relationship is required';
+        break;
+      case 'waiverAccepted':
+        if (!value) error = 'You must accept the waiver to continue';
+        break;
+      default:
+        break;
     }
+
+    setErrors(prev => ({ ...prev, [fieldName]: error }));
   };
 
   const validateForm = () => {
@@ -73,8 +160,11 @@ const RegistrationForm = ({ event }) => {
     }
     if (!formData.guardianPhone.trim()) {
       newErrors.guardianPhone = 'Phone number is required';
-    } else if (!/^\(?(\d{3})\)?[- ]?(\d{3})[- ]?(\d{4})$/.test(formData.guardianPhone)) {
-      newErrors.guardianPhone = 'Invalid phone format (e.g., 555-123-4567)';
+    } else {
+      const phoneDigits = formData.guardianPhone.replace(/[^\d]/g, '');
+      if (phoneDigits.length !== 10) {
+        newErrors.guardianPhone = 'Invalid phone format (e.g., (555) 555-5555)';
+      }
     }
 
     // Emergency contact validation
@@ -83,8 +173,11 @@ const RegistrationForm = ({ event }) => {
     }
     if (!formData.emergencyPhone.trim()) {
       newErrors.emergencyPhone = 'Emergency contact phone is required';
-    } else if (!/^\(?(\d{3})\)?[- ]?(\d{3})[- ]?(\d{4})$/.test(formData.emergencyPhone)) {
-      newErrors.emergencyPhone = 'Invalid phone format (e.g., 555-123-4567)';
+    } else {
+      const phoneDigits = formData.emergencyPhone.replace(/[^\d]/g, '');
+      if (phoneDigits.length !== 10) {
+        newErrors.emergencyPhone = 'Invalid phone format (e.g., (555) 555-5555)';
+      }
     }
     if (!formData.emergencyRelationship.trim()) {
       newErrors.emergencyRelationship = 'Emergency contact relationship is required';
@@ -101,6 +194,21 @@ const RegistrationForm = ({ event }) => {
 
   const handleSubmit = async e => {
     e.preventDefault();
+
+    // Mark all fields as touched on submit
+    setTouched({
+      playerFirstName: true,
+      playerLastName: true,
+      playerDateOfBirth: true,
+      guardianFirstName: true,
+      guardianLastName: true,
+      guardianEmail: true,
+      guardianPhone: true,
+      emergencyName: true,
+      emergencyPhone: true,
+      emergencyRelationship: true,
+      waiverAccepted: true,
+    });
 
     if (!validateForm()) {
       // Scroll to first error
@@ -177,12 +285,15 @@ const RegistrationForm = ({ event }) => {
                 name="playerFirstName"
                 value={formData.playerFirstName}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 className={`w-full px-4 py-2 bg-neutral-bg border ${
-                  errors.playerFirstName ? 'border-red-500' : 'border-neutral-dark'
+                  touched.playerFirstName && errors.playerFirstName
+                    ? 'border-red-500'
+                    : 'border-neutral-dark'
                 } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors`}
                 placeholder="John"
               />
-              {errors.playerFirstName && (
+              {touched.playerFirstName && errors.playerFirstName && (
                 <p className="text-red-400 text-sm mt-1">{errors.playerFirstName}</p>
               )}
             </div>
@@ -200,12 +311,15 @@ const RegistrationForm = ({ event }) => {
                 name="playerLastName"
                 value={formData.playerLastName}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 className={`w-full px-4 py-2 bg-neutral-bg border ${
-                  errors.playerLastName ? 'border-red-500' : 'border-neutral-dark'
+                  touched.playerLastName && errors.playerLastName
+                    ? 'border-red-500'
+                    : 'border-neutral-dark'
                 } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors`}
                 placeholder="Doe"
               />
-              {errors.playerLastName && (
+              {touched.playerLastName && errors.playerLastName && (
                 <p className="text-red-400 text-sm mt-1">{errors.playerLastName}</p>
               )}
             </div>
@@ -223,11 +337,14 @@ const RegistrationForm = ({ event }) => {
                 name="playerDateOfBirth"
                 value={formData.playerDateOfBirth}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 className={`w-full px-4 py-2 bg-neutral-bg border ${
-                  errors.playerDateOfBirth ? 'border-red-500' : 'border-neutral-dark'
+                  touched.playerDateOfBirth && errors.playerDateOfBirth
+                    ? 'border-red-500'
+                    : 'border-neutral-dark'
                 } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors`}
               />
-              {errors.playerDateOfBirth && (
+              {touched.playerDateOfBirth && errors.playerDateOfBirth && (
                 <p className="text-red-400 text-sm mt-1">{errors.playerDateOfBirth}</p>
               )}
             </div>
@@ -254,12 +371,15 @@ const RegistrationForm = ({ event }) => {
                 name="guardianFirstName"
                 value={formData.guardianFirstName}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 className={`w-full px-4 py-2 bg-neutral-bg border ${
-                  errors.guardianFirstName ? 'border-red-500' : 'border-neutral-dark'
+                  touched.guardianFirstName && errors.guardianFirstName
+                    ? 'border-red-500'
+                    : 'border-neutral-dark'
                 } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors`}
                 placeholder="Jane"
               />
-              {errors.guardianFirstName && (
+              {touched.guardianFirstName && errors.guardianFirstName && (
                 <p className="text-red-400 text-sm mt-1">{errors.guardianFirstName}</p>
               )}
             </div>
@@ -277,12 +397,15 @@ const RegistrationForm = ({ event }) => {
                 name="guardianLastName"
                 value={formData.guardianLastName}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 className={`w-full px-4 py-2 bg-neutral-bg border ${
-                  errors.guardianLastName ? 'border-red-500' : 'border-neutral-dark'
+                  touched.guardianLastName && errors.guardianLastName
+                    ? 'border-red-500'
+                    : 'border-neutral-dark'
                 } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors`}
                 placeholder="Doe"
               />
-              {errors.guardianLastName && (
+              {touched.guardianLastName && errors.guardianLastName && (
                 <p className="text-red-400 text-sm mt-1">{errors.guardianLastName}</p>
               )}
             </div>
@@ -302,13 +425,16 @@ const RegistrationForm = ({ event }) => {
                   name="guardianEmail"
                   value={formData.guardianEmail}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   className={`w-full pl-10 pr-4 py-2 bg-neutral-bg border ${
-                    errors.guardianEmail ? 'border-red-500' : 'border-neutral-dark'
+                    touched.guardianEmail && errors.guardianEmail
+                      ? 'border-red-500'
+                      : 'border-neutral-dark'
                   } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors`}
                   placeholder="jane@example.com"
                 />
               </div>
-              {errors.guardianEmail && (
+              {touched.guardianEmail && errors.guardianEmail && (
                 <p className="text-red-400 text-sm mt-1">{errors.guardianEmail}</p>
               )}
             </div>
@@ -327,14 +453,25 @@ const RegistrationForm = ({ event }) => {
                   id="guardianPhone"
                   name="guardianPhone"
                   value={formData.guardianPhone}
-                  onChange={handleChange}
+                  onChange={e => {
+                    const formatted = formatPhoneNumber(e.target.value);
+                    setFormData(prev => ({ ...prev, guardianPhone: formatted }));
+                    setTouched(prev => ({ ...prev, guardianPhone: true }));
+                    validateField('guardianPhone', formatted);
+                  }}
+                  onBlur={e => {
+                    setTouched(prev => ({ ...prev, guardianPhone: true }));
+                    validateField('guardianPhone', e.target.value);
+                  }}
                   className={`w-full pl-10 pr-4 py-2 bg-neutral-bg border ${
-                    errors.guardianPhone ? 'border-red-500' : 'border-neutral-dark'
+                    touched.guardianPhone && errors.guardianPhone
+                      ? 'border-red-500'
+                      : 'border-neutral-dark'
                   } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors`}
-                  placeholder="555-123-4567"
+                  placeholder="(555) 555-5555"
                 />
               </div>
-              {errors.guardianPhone && (
+              {touched.guardianPhone && errors.guardianPhone && (
                 <p className="text-red-400 text-sm mt-1">{errors.guardianPhone}</p>
               )}
             </div>
@@ -381,12 +518,15 @@ const RegistrationForm = ({ event }) => {
                 name="emergencyName"
                 value={formData.emergencyName}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 className={`w-full px-4 py-2 bg-neutral-bg border ${
-                  errors.emergencyName ? 'border-red-500' : 'border-neutral-dark'
+                  touched.emergencyName && errors.emergencyName
+                    ? 'border-red-500'
+                    : 'border-neutral-dark'
                 } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors`}
                 placeholder="Emergency Contact Name"
               />
-              {errors.emergencyName && (
+              {touched.emergencyName && errors.emergencyName && (
                 <p className="text-red-400 text-sm mt-1">{errors.emergencyName}</p>
               )}
             </div>
@@ -398,18 +538,32 @@ const RegistrationForm = ({ event }) => {
               >
                 Phone Number *
               </label>
-              <input
-                type="tel"
-                id="emergencyPhone"
-                name="emergencyPhone"
-                value={formData.emergencyPhone}
-                onChange={handleChange}
-                className={`w-full px-4 py-2 bg-neutral-bg border ${
-                  errors.emergencyPhone ? 'border-red-500' : 'border-neutral-dark'
-                } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors`}
-                placeholder="555-123-4567"
-              />
-              {errors.emergencyPhone && (
+              <div className="relative">
+                <HiPhone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-light" />
+                <input
+                  type="tel"
+                  id="emergencyPhone"
+                  name="emergencyPhone"
+                  value={formData.emergencyPhone}
+                  onChange={e => {
+                    const formatted = formatPhoneNumber(e.target.value);
+                    setFormData(prev => ({ ...prev, emergencyPhone: formatted }));
+                    setTouched(prev => ({ ...prev, emergencyPhone: true }));
+                    validateField('emergencyPhone', formatted);
+                  }}
+                  onBlur={e => {
+                    setTouched(prev => ({ ...prev, emergencyPhone: true }));
+                    validateField('emergencyPhone', e.target.value);
+                  }}
+                  className={`w-full pl-10 pr-4 py-2 bg-neutral-bg border ${
+                    touched.emergencyPhone && errors.emergencyPhone
+                      ? 'border-red-500'
+                      : 'border-neutral-dark'
+                  } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors`}
+                  placeholder="(555) 555-5555"
+                />
+              </div>
+              {touched.emergencyPhone && errors.emergencyPhone && (
                 <p className="text-red-400 text-sm mt-1">{errors.emergencyPhone}</p>
               )}
             </div>
@@ -427,12 +581,15 @@ const RegistrationForm = ({ event }) => {
                 name="emergencyRelationship"
                 value={formData.emergencyRelationship}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 className={`w-full px-4 py-2 bg-neutral-bg border ${
-                  errors.emergencyRelationship ? 'border-red-500' : 'border-neutral-dark'
+                  touched.emergencyRelationship && errors.emergencyRelationship
+                    ? 'border-red-500'
+                    : 'border-neutral-dark'
                 } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors`}
                 placeholder="e.g., Aunt, Uncle, Family Friend"
               />
-              {errors.emergencyRelationship && (
+              {touched.emergencyRelationship && errors.emergencyRelationship && (
                 <p className="text-red-400 text-sm mt-1">{errors.emergencyRelationship}</p>
               )}
             </div>
@@ -467,6 +624,7 @@ const RegistrationForm = ({ event }) => {
               name="waiverAccepted"
               checked={formData.waiverAccepted}
               onChange={handleChange}
+              onBlur={handleBlur}
               className="mt-1 w-5 h-5 rounded border-neutral-dark bg-neutral-bg text-teal-500 focus:ring-teal-500 focus:ring-offset-0"
             />
             <label htmlFor="waiverAccepted" className="text-sm text-neutral-light">
@@ -482,7 +640,7 @@ const RegistrationForm = ({ event }) => {
               . I understand that hockey is a contact sport with inherent risks. *
             </label>
           </div>
-          {errors.waiverAccepted && (
+          {touched.waiverAccepted && errors.waiverAccepted && (
             <p className="text-red-400 text-sm mt-2">{errors.waiverAccepted}</p>
           )}
         </div>
