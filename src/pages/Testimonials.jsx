@@ -134,7 +134,7 @@ const Testimonials = () => {
           <h2 className="text-3xl font-display font-bold text-white mb-6">
             Have something to add? Leave a review of your own!
           </h2>
-          <Button to="/contact" variant="primary">
+          <Button to="/testimonials/submit-review" variant="primary">
             Submit Review
           </Button>
           <p className="text-neutral-light mt-8 text-lg">Your feedback is appreciated</p>
