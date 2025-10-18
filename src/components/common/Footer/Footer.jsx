@@ -5,7 +5,7 @@ import { FaInstagram } from 'react-icons/fa';
 const Footer = () => {
   const navLinks = [
     { path: '/', label: 'Home' },
-    { path: '/coach-will', label: 'Coach Will' },
+    { path: '/coaches', label: 'Coaches' },
     { path: '/testimonials', label: 'Testimonials' },
     { path: '/gallery', label: 'Gallery' },
     { path: '/faq', label: 'FAQ' },

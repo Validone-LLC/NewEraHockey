@@ -67,11 +67,18 @@ exports.handler = async (event, context) => {
           guardianEmail,
           guardianPhone,
           guardianRelationship,
-          emergencyContactName,
-          emergencyContactPhone,
-          emergencyContactRelationship,
+          emergencyName,
+          emergencyPhone,
+          emergencyRelationship,
           medicalNotes,
-        } = session.metadata;
+        } = session.metadata || {};
+
+        // Validate required metadata
+        if (!eventId || !eventType) {
+          console.warn('⚠️  Skipping registration: missing eventId or eventType in metadata');
+          console.log('Session metadata:', session.metadata);
+          break;
+        }
 
         // Add registration to blob storage
         const registrationData = await addRegistration(
@@ -88,9 +95,9 @@ exports.handler = async (event, context) => {
             guardianEmail,
             guardianPhone,
             guardianRelationship,
-            emergencyContactName,
-            emergencyContactPhone,
-            emergencyContactRelationship,
+            emergencyContactName: emergencyName,
+            emergencyContactPhone: emergencyPhone,
+            emergencyContactRelationship: emergencyRelationship,
             medicalNotes,
           }
         );
@@ -113,8 +120,9 @@ exports.handler = async (event, context) => {
             playerFirstName,
             playerLastName,
             playerAge,
-            emergencyContactName,
-            emergencyContactPhone,
+            playerDateOfBirth,
+            emergencyContactName: emergencyName,
+            emergencyContactPhone: emergencyPhone,
             medicalNotes,
             amountPaid: session.amount_total / 100, // Convert from cents
           });
@@ -150,6 +158,23 @@ exports.handler = async (event, context) => {
 };
 
 /**
+ * Calculate age from date of birth
+ * @param {string} dateOfBirth - Date in YYYY-MM-DD format
+ * @returns {number} Age in years
+ */
+function calculateAge(dateOfBirth) {
+  if (!dateOfBirth) return null;
+  const today = new Date();
+  const birthDate = new Date(dateOfBirth);
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age;
+}
+
+/**
  * Send registration confirmation emails to both admin and guardian
  */
 async function sendRegistrationEmails(data) {
@@ -162,11 +187,16 @@ async function sendRegistrationEmails(data) {
     playerFirstName,
     playerLastName,
     playerAge,
+    playerDateOfBirth,
     emergencyContactName,
     emergencyContactPhone,
     medicalNotes,
     amountPaid,
   } = data;
+
+  // Calculate age from DOB if available, otherwise use provided age
+  const calculatedAge = calculateAge(playerDateOfBirth);
+  const displayAge = calculatedAge !== null ? calculatedAge : (playerAge || 'N/A');
 
   const adminEmail = process.env.ADMIN_EMAIL;
   const fromEmail = process.env.SES_FROM_EMAIL || 'noreply@newerahockeytraining.com';
@@ -201,7 +231,8 @@ async function sendRegistrationEmails(data) {
               <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
                 <h3 style="color: #333; margin-top: 0;">Player Information</h3>
                 <p><strong>Name:</strong> ${playerFirstName} ${playerLastName}</p>
-                <p><strong>Age:</strong> ${playerAge}</p>
+                <p><strong>Date of Birth:</strong> ${playerDateOfBirth || 'N/A'}</p>
+                <p><strong>Age:</strong> ${displayAge}</p>
               </div>
 
               <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
@@ -263,7 +294,7 @@ async function sendRegistrationEmails(data) {
               <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
                 <h3 style="color: #333; margin-top: 0;">Registration Summary</h3>
                 <p><strong>Player:</strong> ${playerFirstName} ${playerLastName}</p>
-                <p><strong>Age:</strong> ${playerAge}</p>
+                <p><strong>Age:</strong> ${displayAge}</p>
                 <p><strong>Event:</strong> ${eventSummary}</p>
                 <p><strong>Amount Paid:</strong> $${amountPaid.toFixed(2)}</p>
               </div>
@@ -271,10 +302,8 @@ async function sendRegistrationEmails(data) {
               <div style="background-color: #e0f2f1; padding: 20px; border-radius: 8px; margin: 20px 0;">
                 <h3 style="color: #00695c; margin-top: 0;">What's Next?</h3>
                 <ul style="color: #00695c; line-height: 1.8;">
-                  <li>You'll receive event details and timing closer to the date</li>
-                  <li>Please arrive 15 minutes early for check-in</li>
+                  <li>Please arrive 15 minutes early before ice-time</li>
                   <li>Bring all necessary hockey equipment</li>
-                  <li>A waiver must be signed before participation</li>
                 </ul>
               </div>
 

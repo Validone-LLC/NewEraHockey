@@ -87,6 +87,39 @@ const cache = {
 };
 
 /**
+ * Fetch a single event by ID (no caching, always fresh)
+ * @param {string} eventId - Google Calendar event ID
+ * @returns {Promise<Object>} - { event: Object, timestamp: string }
+ */
+export const fetchEventById = async eventId => {
+  try {
+    // Build URL with eventId parameter
+    const url = new URL('/.netlify/functions/calendar-event', window.location.origin);
+    url.searchParams.set('eventId', eventId);
+
+    console.log(`🌐 Fetching single event: ${eventId}`);
+
+    // Fetch from Netlify function
+    const response = await fetch(url.toString());
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || errorData.error || 'Failed to fetch event');
+    }
+
+    const data = await response.json();
+
+    return {
+      event: data.event,
+      timestamp: data.timestamp,
+    };
+  } catch (error) {
+    console.error('Calendar service error (single event):', error);
+    throw error;
+  }
+};
+
+/**
  * Fetch events from the calendar API with caching
  * @param {string|null} eventType - 'camp', 'lesson', or null for all events
  * @param {boolean} useSync - Whether to use incremental sync with sync token

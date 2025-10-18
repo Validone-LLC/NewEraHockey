@@ -10,11 +10,10 @@ import {
   HiArrowLeft,
   HiCheckCircle,
 } from 'react-icons/hi';
-import { fetchEvents } from '@/services/calendarService';
+import { fetchEventById } from '@/services/calendarService';
 import {
   canRegister,
   getFormattedPrice,
-  getRemainingSpots,
   isSoldOut,
   getRegistrationStatus,
 } from '@/services/calendarService';
@@ -38,16 +37,15 @@ const EventRegistration = () => {
         setLoading(true);
         setError(null);
 
-        // Fetch all events (we'll filter by ID)
-        const data = await fetchEvents(null, false);
-        const targetEvent = data.events.find(e => e.id === eventId);
+        // Fetch single event by ID (always fresh, no cache)
+        const data = await fetchEventById(eventId);
 
-        if (!targetEvent) {
+        if (!data.event) {
           setError('Event not found');
           return;
         }
 
-        setEvent(targetEvent);
+        setEvent(data.event);
       } catch (err) {
         console.error('Failed to load event:', err);
         setError('Failed to load event details');
@@ -95,7 +93,6 @@ const EventRegistration = () => {
   const { date, time } = formatEventDateTime(event);
   const soldOut = isSoldOut(event);
   const eligible = canRegister(event);
-  const remaining = getRemainingSpots(event);
   const status = getRegistrationStatus(event);
 
   return (
@@ -140,12 +137,6 @@ const EventRegistration = () => {
                   <h3 className="text-lg font-semibold text-white mb-2">
                     {event.summary || 'Untitled Event'}
                   </h3>
-                  {soldOut && <SoldOutBadge />}
-                  {!soldOut && remaining !== null && remaining <= 5 && (
-                    <div className="mt-2 px-3 py-1 bg-amber-500/20 text-amber-400 text-sm rounded-lg inline-block">
-                      {remaining} spot{remaining === 1 ? '' : 's'} left!
-                    </div>
-                  )}
                 </div>
 
                 {/* Date & Time */}
@@ -183,7 +174,7 @@ const EventRegistration = () => {
                     <HiCurrencyDollar className="text-teal-500 w-5 h-5" />
                     <div>
                       <p className="text-sm text-neutral-light">Price</p>
-                      <p className="text-white font-bold text-xl">{getFormattedPrice(event)}</p>
+                      <p className="text-white font-medium">{getFormattedPrice(event)}</p>
                     </div>
                   </div>
 
@@ -193,23 +184,12 @@ const EventRegistration = () => {
                       <div>
                         <p className="text-sm text-neutral-light">Capacity</p>
                         <p className="text-white font-medium">
-                          {event.registrationData.currentRegistrations} /{' '}
-                          {event.registrationData.maxCapacity} registered
+                          {event.registrationData.maxCapacity} spots
                         </p>
                       </div>
                     </div>
                   )}
                 </div>
-
-                {/* Description */}
-                {event.description && (
-                  <div className="border-t border-neutral-dark pt-4 mt-4">
-                    <p className="text-sm text-neutral-light mb-2">Description</p>
-                    <p className="text-white text-sm leading-relaxed whitespace-pre-wrap">
-                      {event.description}
-                    </p>
-                  </div>
-                )}
 
                 {/* Status */}
                 <div className="border-t border-neutral-dark pt-4 mt-4">
@@ -229,7 +209,6 @@ const EventRegistration = () => {
                 <ul className="text-sm text-neutral-light space-y-2">
                   <li>• Payment processed securely via Stripe</li>
                   <li>• Confirmation email sent after registration</li>
-                  <li>• Waiver must be signed before participation</li>
                   <li>• Cancellation policy applies</li>
                 </ul>
               </Card>

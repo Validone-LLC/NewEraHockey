@@ -210,7 +210,7 @@ const RegistrationForm = ({ event }) => {
               )}
             </div>
 
-            <div>
+            <div className="md:col-span-2">
               <label
                 htmlFor="playerDateOfBirth"
                 className="block text-sm font-medium text-neutral-light mb-2"
@@ -230,26 +230,6 @@ const RegistrationForm = ({ event }) => {
               {errors.playerDateOfBirth && (
                 <p className="text-red-400 text-sm mt-1">{errors.playerDateOfBirth}</p>
               )}
-            </div>
-
-            <div>
-              <label
-                htmlFor="playerAge"
-                className="block text-sm font-medium text-neutral-light mb-2"
-              >
-                Current Age (Optional)
-              </label>
-              <input
-                type="number"
-                id="playerAge"
-                name="playerAge"
-                value={formData.playerAge}
-                onChange={handleChange}
-                className="w-full px-4 py-2 bg-neutral-bg border border-neutral-dark rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors"
-                placeholder="12"
-                min="1"
-                max="99"
-              />
             </div>
           </div>
         </div>

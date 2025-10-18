@@ -21,12 +21,30 @@ const DEFAULT_CAPACITY = {
 };
 
 /**
+ * Get configured Netlify Blobs store
+ * Handles both local development (requires explicit config) and production (auto-configured)
+ */
+function getRegistrationStore() {
+  // For local development, explicitly pass credentials in options object
+  if (process.env.NETLIFY_SITE_ID && process.env.NETLIFY_AUTH_TOKEN) {
+    return getStore({
+      name: 'registrations',
+      siteID: process.env.NETLIFY_SITE_ID,
+      token: process.env.NETLIFY_AUTH_TOKEN,
+    });
+  }
+
+  // Production: auto-configured by Netlify
+  return getStore('registrations');
+}
+
+/**
  * Get registration data for an event
  * @param {string} eventId - Google Calendar event ID
  * @returns {Promise<Object>} Registration data
  */
 async function getEventRegistrations(eventId) {
-  const store = getStore('registrations');
+  const store = getRegistrationStore();
 
   try {
     const data = await store.get(eventId, { type: 'json' });
@@ -65,7 +83,7 @@ async function getEventRegistrations(eventId) {
  * @returns {Promise<Object>} Initialized registration data
  */
 async function initializeEventRegistrations(eventId, eventType, customCapacity = null) {
-  const store = getStore('registrations');
+  const store = getRegistrationStore();
 
   const maxCapacity = customCapacity || DEFAULT_CAPACITY[eventType] || DEFAULT_CAPACITY.other;
 
@@ -96,7 +114,7 @@ async function initializeEventRegistrations(eventId, eventType, customCapacity =
  * @returns {Promise<Object>} Updated registration data
  */
 async function addRegistration(eventId, eventType, registrationData) {
-  const store = getStore('registrations');
+  const store = getRegistrationStore();
 
   // Get current registration data
   let data = await getEventRegistrations(eventId);
@@ -146,7 +164,7 @@ async function addRegistration(eventId, eventType, registrationData) {
  * @returns {Promise<Array>} All event registration data
  */
 async function getAllRegistrations() {
-  const store = getStore('registrations');
+  const store = getRegistrationStore();
 
   try {
     const list = await store.list();
@@ -173,7 +191,7 @@ async function getAllRegistrations() {
  * @returns {Promise<Object>} Updated registration data
  */
 async function updateEventCapacity(eventId, newCapacity) {
-  const store = getStore('registrations');
+  const store = getRegistrationStore();
 
   let data = await getEventRegistrations(eventId);
 

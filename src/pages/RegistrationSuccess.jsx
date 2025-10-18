@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Confetti from 'react-confetti';
-import { HiCheckCircle, HiMail, HiCalendar } from 'react-icons/hi';
+import { HiCheckCircle, HiMail } from 'react-icons/hi';
 import Card from '@components/common/Card/Card';
 import Button from '@components/common/Button/Button';
 
@@ -125,36 +125,6 @@ const RegistrationSuccess = () => {
                     <p className="text-sm text-neutral-light">
                       You'll receive a confirmation email with event details and payment receipt
                       shortly.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0">
-                    <div className="w-10 h-10 rounded-full bg-teal-500/20 flex items-center justify-center">
-                      <HiCalendar className="w-5 h-5 text-teal-400" />
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-white font-semibold mb-1">Event Preparation</h3>
-                    <p className="text-sm text-neutral-light">
-                      Coach Will will send additional event information and preparation details
-                      closer to the event date.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0">
-                    <div className="w-10 h-10 rounded-full bg-teal-500/20 flex items-center justify-center">
-                      <HiCheckCircle className="w-5 h-5 text-teal-400" />
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-white font-semibold mb-1">Waiver Requirement</h3>
-                    <p className="text-sm text-neutral-light">
-                      A signed waiver must be on file before participation. You can complete this
-                      online or on-site.
                     </p>
                   </div>
                 </div>

@@ -3,19 +3,17 @@ const { google } = require('googleapis');
 const { getEventRegistrations, DEFAULT_CAPACITY } = require('./lib/registrationStore.cjs');
 
 /**
- * Netlify Function: Fetch Google Calendar Events
+ * Netlify Function: Fetch Single Google Calendar Event by ID
  *
- * Authentication:
- * - Uses Service Account JSON key for both local dev and production
- * - Requires domain-wide delegation to access calendar
+ * Optimized endpoint for fetching a single event instead of listing all events.
+ * Uses calendar.events.get() for direct lookup by event ID.
  *
  * Environment Variables Required:
  * - GOOGLE_SERVICE_ACCOUNT_KEY: Service account JSON key (required)
  * - CALENDAR_ID: Calendar to fetch events from (default: coachwill@newerahockeytraining.com)
  *
- * Local Development Setup:
- * 1. Ensure GOOGLE_SERVICE_ACCOUNT_KEY is in .env file
- * 2. Run: `netlify dev`
+ * Query Parameters:
+ * - eventId: Google Calendar event ID (required)
  */
 
 exports.handler = async (event, context) => {
@@ -44,10 +42,21 @@ exports.handler = async (event, context) => {
   try {
     // Parse query parameters
     const params = event.queryStringParameters || {};
-    const eventType = params.type; // 'camp', 'lesson', or null for all
-    const syncToken = params.syncToken; // For incremental sync
+    const eventId = params.eventId;
 
-    // Calendar ID (used for both authentication subject and API calls)
+    // Validate eventId parameter
+    if (!eventId) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({
+          error: 'Bad request',
+          message: 'eventId query parameter is required',
+        }),
+      };
+    }
+
+    // Calendar ID
     const calendarId = process.env.CALENDAR_ID || 'coachwill@newerahockeytraining.com';
 
     // Check for service account key
@@ -80,7 +89,6 @@ exports.handler = async (event, context) => {
     }
 
     // Create auth client with service account credentials
-    // For domain-wide delegation, we need to specify which user to impersonate
     const auth = new GoogleAuth({
       credentials: credentials,
       scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
@@ -92,46 +100,23 @@ exports.handler = async (event, context) => {
     const client = await auth.getClient();
     const calendar = google.calendar({ version: 'v3', auth: client });
 
-    // Prepare API request parameters
-    const listParams = {
+    // Fetch single event by ID
+    const response = await calendar.events.get({
       calendarId: calendarId,
-      singleEvents: true,
-      orderBy: 'startTime',
-      maxResults: 250,
-    };
+      eventId: eventId,
+    });
 
-    // Use sync token for incremental updates if provided
-    if (syncToken) {
-      listParams.syncToken = syncToken;
-    } else {
-      // Initial fetch: get events from now onwards
-      listParams.timeMin = new Date().toISOString();
-    }
+    const calendarEvent = response.data;
 
-    // Fetch events from Google Calendar
-    const response = await calendar.events.list(listParams);
-
-    let events = response.data.items || [];
-
-    // Enrich events with registration metadata (async)
-    events = await Promise.all(events.map(event => enrichEventWithRegistrationData(event)));
-
-    // Filter by event type if specified
-    if (eventType) {
-      events = events.filter(event => {
-        const category = categorizeEvent(event);
-        return category === eventType.toLowerCase();
-      });
-    }
+    // Enrich event with registration metadata
+    const enrichedEvent = await enrichEventWithRegistrationData(calendarEvent);
 
     // Return response
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({
-        events: events,
-        total: events.length,
-        nextSyncToken: response.data.nextSyncToken,
+        event: enrichedEvent,
         timestamp: new Date().toISOString(),
       }),
     };
@@ -140,14 +125,14 @@ exports.handler = async (event, context) => {
 
     // Handle specific error types
     let statusCode = 500;
-    let errorMessage = 'Failed to fetch calendar events';
+    let errorMessage = 'Failed to fetch calendar event';
 
     if (error.code === 401 || error.code === 403) {
       statusCode = 401;
       errorMessage = 'Authentication failed - check service account permissions';
     } else if (error.code === 404) {
       statusCode = 404;
-      errorMessage = 'Calendar not found';
+      errorMessage = 'Event not found';
     }
 
     return {
@@ -250,8 +235,6 @@ function parseSpotsFromDescription(description) {
  * - Custom capacity from "Spots: X" or "Capacity: X" in description
  * - Falls back to default capacity based on event type (camp: 20, lesson: 10)
  * - Fetches current registration count from Netlify Blob Storage
- *
- * NO MANUAL EXTENDED PROPERTIES NEEDED!
  *
  * @param {Object} event - Google Calendar event object
  * @returns {Promise<Object>} - Enriched event object

@@ -19,13 +19,13 @@ const EventList = ({ events, eventType }) => {
   return (
     <div className="space-y-4">
       {events.map((event, index) => (
-        <EventCard key={event.id || index} event={event} eventType={eventType} index={index} />
+        <EventCard key={event.id || index} event={event} eventType={eventType} />
       ))}
     </div>
   );
 };
 
-const EventCard = ({ event, eventType, index }) => {
+const EventCard = ({ event, eventType }) => {
   const { date, time } = formatEventDateTime(event);
   const upcoming = isUpcoming(event);
   const soldOut = isSoldOut(event);
@@ -39,10 +39,6 @@ const EventCard = ({ event, eventType, index }) => {
       className={`card hover:border-teal-500 transition-all duration-300 ${
         !upcoming ? 'opacity-60' : ''
       }`}
-      initial={{ opacity: 0, x: -20 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay: index * 0.05 }}
     >
       <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
         {/* Event Type Badge */}
@@ -71,17 +67,17 @@ const EventCard = ({ event, eventType, index }) => {
           {/* Date & Time */}
           <div className="flex flex-wrap gap-4 text-neutral-light mb-2">
             <div className="flex items-center gap-2">
-              <HiCalendar className="text-teal-500" />
+              <HiCalendar className="text-teal-500 mb-0.5" />
               <span>{date}</span>
             </div>
             <div className="flex items-center gap-2">
-              <HiClock className="text-teal-500" />
+              <HiClock className="text-teal-500 mb-0.5" />
               <span>{time}</span>
             </div>
             {event.registrationData?.price && (
               <div className="flex items-center gap-2">
-                <HiCurrencyDollar className="text-teal-500" />
-                <span className="font-semibold text-white">{price}</span>
+                <HiCurrencyDollar className="text-teal-500 mb-0.5" />
+                <span className="text-white">{price}</span>
               </div>
             )}
           </div>
@@ -89,7 +85,7 @@ const EventCard = ({ event, eventType, index }) => {
           {/* Location */}
           {event.location && (
             <div className="flex items-start gap-2 text-neutral-light mb-3">
-              <HiLocationMarker className="text-teal-500 mt-1 flex-shrink-0" />
+              <HiLocationMarker className="text-teal-500 mt-1 flex-shrink-0 mb-0.5" />
               <span>{event.location}</span>
             </div>
           )}
@@ -104,9 +100,9 @@ const EventCard = ({ event, eventType, index }) => {
           )}
 
           {/* Description */}
-          {event.description && (
+          {/* {event.description && (
             <p className="text-neutral-light text-sm line-clamp-2">{event.description}</p>
-          )}
+          )} */}
 
           {/* Status Badge */}
           {!upcoming && (
