@@ -80,7 +80,7 @@ exports.handler = async (event, context) => {
     }
 
     // Determine base URL for redirects
-    // DEPLOY_URL: Specific deployment URL (works for deploy previews, branch deploys, production)
+    // DEPLOY_URL: Specific deployment URL (works for deploy previews, branch deploys)
     // URL: Primary site URL (often custom domain)
     // Fallback: localhost for local development
     const baseUrl = process.env.DEPLOY_URL || process.env.URL || 'http://localhost:8888';
