@@ -80,10 +80,11 @@ exports.handler = async (event, context) => {
     }
 
     // Determine base URL for redirects
-    // DEPLOY_URL: Specific deployment URL (works for deploy previews, branch deploys, production)
+    // SITE_URL: Custom domain (production override)
+    // DEPLOY_URL: Specific deployment URL (works for deploy previews, branch deploys)
     // URL: Primary site URL (often custom domain)
     // Fallback: localhost for local development
-    const baseUrl = process.env.DEPLOY_URL || process.env.URL || 'http://localhost:8888';
+    const baseUrl = process.env.SITE_URL || process.env.DEPLOY_URL || process.env.URL || 'http://localhost:8888';
 
     console.log('Checkout session baseUrl:', baseUrl, '(context:', process.env.CONTEXT, ')');
 
