@@ -117,12 +117,15 @@ exports.handler = async (event, context) => {
             guardianEmail,
             guardianFirstName,
             guardianLastName,
+            guardianPhone,
+            guardianRelationship,
             playerFirstName,
             playerLastName,
             playerAge,
             playerDateOfBirth,
             emergencyContactName: emergencyName,
             emergencyContactPhone: emergencyPhone,
+            emergencyContactRelationship: emergencyRelationship,
             medicalNotes,
             amountPaid: session.amount_total / 100, // Convert from cents
           });
@@ -175,6 +178,21 @@ function calculateAge(dateOfBirth) {
 }
 
 /**
+ * Format date from YYYY-MM-DD to MM/DD/YYYY
+ * @param {string} dateString - Date in YYYY-MM-DD format
+ * @returns {string} Date in MM/DD/YYYY format or original string if invalid
+ */
+function formatDate(dateString) {
+  if (!dateString) return 'N/A';
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return dateString; // Return original if invalid
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${month}/${day}/${year}`;
+}
+
+/**
  * Send registration confirmation emails to both admin and guardian
  */
 async function sendRegistrationEmails(data) {
@@ -184,12 +202,15 @@ async function sendRegistrationEmails(data) {
     guardianEmail,
     guardianFirstName,
     guardianLastName,
+    guardianPhone,
+    guardianRelationship,
     playerFirstName,
     playerLastName,
     playerAge,
     playerDateOfBirth,
     emergencyContactName,
     emergencyContactPhone,
+    emergencyContactRelationship,
     medicalNotes,
     amountPaid,
   } = data;
@@ -197,6 +218,9 @@ async function sendRegistrationEmails(data) {
   // Calculate age from DOB if available, otherwise use provided age
   const calculatedAge = calculateAge(playerDateOfBirth);
   const displayAge = calculatedAge !== null ? calculatedAge : (playerAge || 'N/A');
+
+  // Format date for display
+  const formattedDOB = formatDate(playerDateOfBirth);
 
   const adminEmail = process.env.ADMIN_EMAIL;
   const fromEmail = process.env.SES_FROM_EMAIL || 'noreply@newerahockeytraining.com';
@@ -231,7 +255,7 @@ async function sendRegistrationEmails(data) {
               <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
                 <h3 style="color: #333; margin-top: 0;">Player Information</h3>
                 <p><strong>Name:</strong> ${playerFirstName} ${playerLastName}</p>
-                <p><strong>Date of Birth:</strong> ${playerDateOfBirth || 'N/A'}</p>
+                <p><strong>Date of Birth:</strong> ${formattedDOB}</p>
                 <p><strong>Age:</strong> ${displayAge}</p>
               </div>
 
@@ -239,12 +263,15 @@ async function sendRegistrationEmails(data) {
                 <h3 style="color: #333; margin-top: 0;">Guardian Information</h3>
                 <p><strong>Name:</strong> ${guardianFirstName} ${guardianLastName}</p>
                 <p><strong>Email:</strong> <a href="mailto:${guardianEmail}">${guardianEmail}</a></p>
+                <p><strong>Phone:</strong> ${guardianPhone || 'N/A'}</p>
+                <p><strong>Relationship to Player:</strong> ${guardianRelationship || 'N/A'}</p>
               </div>
 
               <div style="background-color: #fff; padding: 15px; border-left: 4px solid #14b8a6; margin: 20px 0;">
                 <h3 style="color: #333; margin-top: 0;">Emergency Contact</h3>
-                <p><strong>Name:</strong> ${emergencyContactName}</p>
-                <p><strong>Phone:</strong> ${emergencyContactPhone}</p>
+                <p><strong>Name:</strong> ${emergencyContactName || 'N/A'}</p>
+                <p><strong>Phone:</strong> ${emergencyContactPhone || 'N/A'}</p>
+                <p><strong>Relationship to Player:</strong> ${emergencyContactRelationship || 'N/A'}</p>
               </div>
 
               ${medicalNotes ? `
