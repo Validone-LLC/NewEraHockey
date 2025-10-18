@@ -59,32 +59,13 @@ export const galleryImages = [
   camp7,
 ];
 
-// Import all camp photos JSON files
-import campPhoto1 from './camp-photos/camp-photo-1.json';
-import campPhoto2 from './camp-photos/camp-photo-2.json';
-import campPhoto3 from './camp-photos/camp-photo-3.json';
-import campPhoto4 from './camp-photos/camp-photo-4.json';
-import campPhoto5 from './camp-photos/camp-photo-5.json';
-import campPhoto6 from './camp-photos/camp-photo-6.json';
-import campPhoto7 from './camp-photos/camp-photo-7.json';
-import campPhoto8 from './camp-photos/camp-photo-8.json';
-import campPhoto9 from './camp-photos/camp-photo-9.json';
-import campPhoto10 from './camp-photos/camp-photo-10.json';
-import campPhoto11 from './camp-photos/camp-photo-11.json';
+// Dynamically import all camp photos JSON files using Vite's import.meta.glob
+// This automatically picks up new photos added via CMS without requiring code changes
+const campPhotoModules = import.meta.glob('./camp-photos/*.json', { eager: true });
 
-// Camp photos for home page carousel - sorted by order field
-export const campPhotos = [
-  campPhoto1,
-  campPhoto2,
-  campPhoto3,
-  campPhoto4,
-  campPhoto5,
-  campPhoto6,
-  campPhoto7,
-  campPhoto8,
-  campPhoto9,
-  campPhoto10,
-  campPhoto11,
-]
-  .sort((a, b) => a.order - b.order)
+// Extract photo data, sort by order, and map to src URLs
+export const campPhotos = Object.values(campPhotoModules)
+  .map(module => module.default)
+  .filter(photo => photo && photo.src) // Filter out invalid entries
+  .sort((a, b) => (a.order || 0) - (b.order || 0)) // Sort by order field
   .map(photo => photo.src);

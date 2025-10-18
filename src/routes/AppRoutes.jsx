@@ -5,6 +5,7 @@ import SkipLink from '@components/common/SkipLink/SkipLink';
 import Home from '@pages/Home';
 import CoachTeam from '@pages/CoachTeam';
 import Testimonials from '@pages/Testimonials';
+import SubmitReview from '@pages/SubmitReview';
 import Gallery from '@pages/Gallery';
 import Contact from '@pages/Contact';
 import FAQ from '@pages/FAQ';
@@ -27,6 +28,7 @@ const AppRoutes = () => {
           <Route path="/" element={<Home />} />
           <Route path="/coaches" element={<CoachTeam />} />
           <Route path="/testimonials" element={<Testimonials />} />
+          <Route path="/testimonials/submit-review" element={<SubmitReview />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/faq" element={<FAQ />} />
