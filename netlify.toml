@@ -9,6 +9,14 @@
 [build.environment]
   NODE_ENV = "development"
 
+# Branch deploy settings
+[context.branch-deploy]
+  command = "npm ci && npm run build"
+
+# Staging branch specific settings
+[context.staging]
+  command = "npm ci && npm run build"
+
 # Development settings for Netlify CLI
 [dev]
   command = "npm run dev"
