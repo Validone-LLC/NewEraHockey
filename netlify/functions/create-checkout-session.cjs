@@ -90,54 +90,6 @@ exports.handler = async (event, context) => {
     // Convert price to cents (Stripe uses smallest currency unit)
     const amountInCents = Math.round(calendarEvent.price * 100);
 
-    // Format event date/time for display
-    const formatEventDetails = () => {
-      if (!calendarEvent.start) return '';
-
-      const start = calendarEvent.start.dateTime || calendarEvent.start.date;
-      const end = calendarEvent.end?.dateTime || calendarEvent.end?.date;
-      if (!start) return '';
-
-      const isAllDay = !calendarEvent.start.dateTime;
-      const startDate = new Date(start);
-      const endDate = end ? new Date(end) : null;
-
-      // Format date
-      const date = startDate.toLocaleDateString('en-US', {
-        weekday: 'long',
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric',
-      });
-
-      // Format time
-      let time = '';
-      if (!isAllDay && endDate) {
-        const startTime = startDate.toLocaleTimeString('en-US', {
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true,
-        });
-        const endTime = endDate.toLocaleTimeString('en-US', {
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true,
-        });
-        time = `${startTime} - ${endTime}`;
-      }
-
-      // Build description with clear field labels (no emojis)
-      const fields = [];
-      fields.push(`Registration for Event: ${calendarEvent.summary || 'Event'}`);
-      fields.push(`Date: ${date}`);
-      if (time) fields.push(`Time: ${time}`);
-      if (calendarEvent.location) fields.push(`Location: ${calendarEvent.location}`);
-
-      return fields.join('\n');
-    };
-
-    const description = formatEventDetails();
-
     // Logo URL - using the deployed site's logo
     const logoUrl = `${baseUrl}/assets/images/logo/neh-logo.png`;
 
@@ -145,13 +97,13 @@ exports.handler = async (event, context) => {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'payment',
+      automatic_tax: { enabled: true },
       line_items: [
         {
           price_data: {
             currency: 'usd',
             product_data: {
               name: calendarEvent.summary || 'Event Registration',
-              description: description,
               images: [logoUrl],
             },
             unit_amount: amountInCents,
