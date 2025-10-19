@@ -90,6 +90,57 @@ exports.handler = async (event, context) => {
     // Convert price to cents (Stripe uses smallest currency unit)
     const amountInCents = Math.round(calendarEvent.price * 100);
 
+    // Format event date/time for display
+    const formatEventDetails = () => {
+      if (!calendarEvent.start) return '';
+
+      const start = calendarEvent.start.dateTime || calendarEvent.start.date;
+      const end = calendarEvent.end?.dateTime || calendarEvent.end?.date;
+      if (!start) return '';
+
+      const isAllDay = !calendarEvent.start.dateTime;
+      const startDate = new Date(start);
+      const endDate = end ? new Date(end) : null;
+
+      // Format date
+      const date = startDate.toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      });
+
+      // Format time
+      let time = '';
+      if (!isAllDay && endDate) {
+        const startTime = startDate.toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true,
+        });
+        const endTime = endDate.toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true,
+        });
+        time = `${startTime} - ${endTime}`;
+      }
+
+      let details = `📅 ${date}`;
+      if (time) details += `\n🕐 ${time}`;
+      if (calendarEvent.location) details += `\n📍 ${calendarEvent.location}`;
+
+      return details;
+    };
+
+    const eventDetails = formatEventDetails();
+    const description = eventDetails
+      ? `Registration for ${calendarEvent.summary || 'event'}\n\n${eventDetails}`
+      : `Registration for ${calendarEvent.summary || 'event'}`;
+
+    // Logo URL - using the deployed site's logo
+    const logoUrl = `${baseUrl}/assets/images/logo/neh-logo.png`;
+
     // Create Stripe Checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -100,7 +151,8 @@ exports.handler = async (event, context) => {
             currency: 'usd',
             product_data: {
               name: calendarEvent.summary || 'Event Registration',
-              description: `Registration for ${calendarEvent.summary || 'event'}`,
+              description: description,
+              images: [logoUrl],
             },
             unit_amount: amountInCents,
           },
@@ -108,6 +160,11 @@ exports.handler = async (event, context) => {
         },
       ],
       customer_email: formData.guardianEmail,
+      custom_text: {
+        submit: {
+          message: 'Secure payment processed by Stripe. You will receive a confirmation email after payment.',
+        },
+      },
       metadata: {
         // Event information
         eventId: calendarEvent.id,

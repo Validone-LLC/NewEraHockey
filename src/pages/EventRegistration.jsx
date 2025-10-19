@@ -128,62 +128,85 @@ const EventRegistration = () => {
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Event Details - Left Sidebar */}
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-1 space-y-6">
+              {/* Event Details Card */}
               <Card>
-                <h2 className="text-2xl font-display font-bold text-white mb-6">Event Details</h2>
+                <h2 className="text-xl font-display font-bold text-white mb-6 pb-4 border-b border-neutral-dark">
+                  Event Details
+                </h2>
 
                 {/* Event Name */}
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-white mb-2">
+                <div className="mb-6 bg-gradient-to-r from-teal-500/10 to-transparent p-4 rounded-lg border-l-4 border-teal-500">
+                  <h3 className="text-xl font-display font-bold text-white leading-tight">
                     {event.summary || 'Untitled Event'}
                   </h3>
                 </div>
 
                 {/* Date & Time */}
-                <div className="space-y-3 mb-6">
-                  <div className="flex items-start gap-3">
-                    <HiCalendar className="text-teal-500 w-5 h-5 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="text-sm text-neutral-light">Date</p>
-                      <p className="text-white font-medium">{date}</p>
+                <div className="space-y-4 mb-6">
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-neutral-bg/50 hover:bg-neutral-bg transition-colors">
+                    <div className="p-2 bg-teal-500/20 rounded-lg">
+                      <HiCalendar className="text-teal-400 w-5 h-5" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs uppercase tracking-wide text-neutral-light mb-1">
+                        Date
+                      </p>
+                      <p className="text-white font-semibold">{date}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-3">
-                    <HiClock className="text-teal-500 w-5 h-5 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="text-sm text-neutral-light">Time</p>
-                      <p className="text-white font-medium">{time}</p>
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-neutral-bg/50 hover:bg-neutral-bg transition-colors">
+                    <div className="p-2 bg-teal-500/20 rounded-lg">
+                      <HiClock className="text-teal-400 w-5 h-5" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs uppercase tracking-wide text-neutral-light mb-1">
+                        Time
+                      </p>
+                      <p className="text-white font-semibold">{time}</p>
                     </div>
                   </div>
 
                   {event.location && (
-                    <div className="flex items-start gap-3">
-                      <HiLocationMarker className="text-teal-500 w-5 h-5 mt-0.5 flex-shrink-0" />
-                      <div>
-                        <p className="text-sm text-neutral-light">Location</p>
-                        <p className="text-white font-medium">{event.location}</p>
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-neutral-bg/50 hover:bg-neutral-bg transition-colors">
+                      <div className="p-2 bg-teal-500/20 rounded-lg">
+                        <HiLocationMarker className="text-teal-400 w-5 h-5" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs uppercase tracking-wide text-neutral-light mb-1">
+                          Location
+                        </p>
+                        <p className="text-white font-semibold">{event.location}</p>
                       </div>
                     </div>
                   )}
                 </div>
 
                 {/* Price & Capacity */}
-                <div className="border-t border-neutral-dark pt-4 space-y-3">
-                  <div className="flex items-center gap-3">
-                    <HiCurrencyDollar className="text-teal-500 w-5 h-5" />
-                    <div>
-                      <p className="text-sm text-neutral-light">Price</p>
-                      <p className="text-white font-medium">{getFormattedPrice(event)}</p>
+                <div className="border-t border-neutral-dark pt-6 space-y-4">
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-teal-500/10 to-transparent">
+                    <div className="p-2 bg-teal-500/20 rounded-lg">
+                      <HiCurrencyDollar className="text-teal-400 w-5 h-5" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs uppercase tracking-wide text-neutral-light mb-1">
+                        Price
+                      </p>
+                      <p className="text-2xl font-bold text-teal-400">{getFormattedPrice(event)}</p>
                     </div>
                   </div>
 
                   {event.registrationData?.hasCapacityInfo && (
-                    <div className="flex items-center gap-3">
-                      <HiUserGroup className="text-teal-500 w-5 h-5" />
-                      <div>
-                        <p className="text-sm text-neutral-light">Capacity</p>
-                        <p className="text-white font-medium">
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-neutral-bg/50">
+                      <div className="p-2 bg-teal-500/20 rounded-lg">
+                        <HiUserGroup className="text-teal-400 w-5 h-5" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs uppercase tracking-wide text-neutral-light mb-1">
+                          Capacity
+                        </p>
+                        <p className="text-white font-semibold">
                           {event.registrationData.maxCapacity} spots
                         </p>
                       </div>
@@ -192,24 +215,49 @@ const EventRegistration = () => {
                 </div>
 
                 {/* Status */}
-                <div className="border-t border-neutral-dark pt-4 mt-4">
-                  <p className="text-sm text-neutral-light mb-2">Status</p>
-                  <p className={`font-semibold ${soldOut ? 'text-red-400' : 'text-teal-400'}`}>
-                    {status}
-                  </p>
+                <div className="border-t border-neutral-dark pt-6 mt-6">
+                  <div
+                    className={`p-4 rounded-lg text-center ${
+                      soldOut
+                        ? 'bg-red-500/10 border border-red-500/30'
+                        : 'bg-teal-500/10 border border-teal-500/30'
+                    }`}
+                  >
+                    <p className="text-xs uppercase tracking-wide text-neutral-light mb-2">
+                      Status
+                    </p>
+                    <p
+                      className={`text-lg font-bold ${soldOut ? 'text-red-400' : 'text-teal-400'}`}
+                    >
+                      {status}
+                    </p>
+                  </div>
                 </div>
               </Card>
 
               {/* Important Info */}
-              <Card className="mt-6">
-                <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                  <HiCheckCircle className="text-teal-500" />
-                  Important Information
-                </h3>
-                <ul className="text-sm text-neutral-light space-y-2">
-                  <li>• Payment processed securely via Stripe</li>
-                  <li>• Confirmation email sent after registration</li>
-                  <li>• Cancellation policy applies</li>
+              <Card>
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="p-2 bg-teal-500/20 rounded-lg">
+                    <HiCheckCircle className="text-teal-400 w-6 h-6" />
+                  </div>
+                  <h3 className="text-lg font-display font-bold text-white">
+                    Important Information
+                  </h3>
+                </div>
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-3 text-sm text-neutral-light p-2 rounded hover:bg-neutral-bg/30 transition-colors">
+                    <span className="text-teal-400 mt-0.5">•</span>
+                    <span>Payment processed securely via Stripe</span>
+                  </li>
+                  <li className="flex items-start gap-3 text-sm text-neutral-light p-2 rounded hover:bg-neutral-bg/30 transition-colors">
+                    <span className="text-teal-400 mt-0.5">•</span>
+                    <span>Confirmation email sent after registration</span>
+                  </li>
+                  <li className="flex items-start gap-3 text-sm text-neutral-light p-2 rounded hover:bg-neutral-bg/30 transition-colors">
+                    <span className="text-teal-400 mt-0.5">•</span>
+                    <span>Cancellation policy applies</span>
+                  </li>
                 </ul>
               </Card>
             </div>
