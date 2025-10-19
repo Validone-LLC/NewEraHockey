@@ -242,6 +242,9 @@ const RegistrationForm = ({ event }) => {
             summary: event.summary,
             price: event.registrationData?.price,
             eventType, // Include event type for capacity defaults
+            start: event.start,
+            end: event.end,
+            location: event.location,
           },
           formData,
         }),
