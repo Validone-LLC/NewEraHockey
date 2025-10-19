@@ -126,17 +126,17 @@ exports.handler = async (event, context) => {
         time = `${startTime} - ${endTime}`;
       }
 
-      let details = `📅 ${date}`;
-      if (time) details += `\n🕐 ${time}`;
-      if (calendarEvent.location) details += `\n📍 ${calendarEvent.location}`;
+      // Build description with clear field labels (no emojis)
+      const fields = [];
+      fields.push(`Registration for Event: ${calendarEvent.summary || 'Event'}`);
+      fields.push(`Date: ${date}`);
+      if (time) fields.push(`Time: ${time}`);
+      if (calendarEvent.location) fields.push(`Location: ${calendarEvent.location}`);
 
-      return details;
+      return fields.join('\n');
     };
 
-    const eventDetails = formatEventDetails();
-    const description = eventDetails
-      ? `Registration for ${calendarEvent.summary || 'event'}\n\n${eventDetails}`
-      : `Registration for ${calendarEvent.summary || 'event'}`;
+    const description = formatEventDetails();
 
     // Logo URL - using the deployed site's logo
     const logoUrl = `${baseUrl}/assets/images/logo/neh-logo.png`;
