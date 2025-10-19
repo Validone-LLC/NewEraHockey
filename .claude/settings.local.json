@@ -23,7 +23,8 @@
       "Bash(bash:*)",
       "Bash(rm:*)",
       "Bash(netstat:*)",
-      "mcp__playwright__browser_click"
+      "mcp__playwright__browser_click",
+      "mcp__context7__get-library-docs"
     ],
     "deny": [],
     "ask": []
