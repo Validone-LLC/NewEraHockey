@@ -124,10 +124,13 @@ exports.handler = async (event, context) => {
       });
     }
 
-    // Return response
+    // Return response with short cache TTL
     return {
       statusCode: 200,
-      headers,
+      headers: {
+        ...headers,
+        'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=30',
+      },
       body: JSON.stringify({
         events: events,
         total: events.length,

@@ -5,6 +5,7 @@ import Confetti from 'react-confetti';
 import { HiCheckCircle, HiMail } from 'react-icons/hi';
 import Card from '@components/common/Card/Card';
 import Button from '@components/common/Button/Button';
+import { invalidateCache } from '../services/calendarService';
 
 const RegistrationSuccess = () => {
   const [searchParams] = useSearchParams();
@@ -14,6 +15,11 @@ const RegistrationSuccess = () => {
     width: window.innerWidth,
     height: window.innerHeight,
   });
+
+  // Invalidate cache immediately on mount to ensure fresh data
+  useEffect(() => {
+    invalidateCache(); // Clear all cached events to show updated capacity
+  }, []);
 
   // Stop confetti after 5 seconds
   useEffect(() => {
