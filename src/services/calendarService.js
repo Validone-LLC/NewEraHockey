@@ -24,7 +24,7 @@ let syncToken = null;
 let pollingInterval = null;
 
 // Cache configuration
-const CACHE_TTL = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
+const CACHE_TTL = 60 * 1000; // 60 seconds in milliseconds (reduced for real-time updates)
 const CACHE_KEY_PREFIX = 'calendar_events_';
 
 /**
