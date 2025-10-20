@@ -110,7 +110,7 @@ curl -X POST http://localhost:8888/.netlify/functions/batch-update-events \
 
 **Production:**
 ```bash
-curl -X POST https://newerahockey.co/.netlify/functions/batch-update-events \
+curl -X POST https://newerahockeytraining.com/.netlify/functions/batch-update-events \
   -H "Content-Type: application/json" \
   -H "x-admin-secret: YOUR_ADMIN_SECRET" \
   -d '{
@@ -286,7 +286,7 @@ Google Calendar's web interface doesn't directly expose Extended Properties, so 
 
 ### Check via Website
 
-1. Go to [https://newerahockey.co/schedule](https://newerahockey.co/schedule)
+1. Go to [https://newerahockeytraining.com/schedule](https://newerahockeytraining.com/schedule)
 2. Select "Camps" or "Lessons" tab
 3. Verify:
    - ✅ Price displays correctly
@@ -298,7 +298,7 @@ Google Calendar's web interface doesn't directly expose Extended Properties, so 
 
 **Fetch all camps:**
 ```bash
-curl https://newerahockey.co/.netlify/functions/calendar-events?type=camp
+curl https://newerahockeytraining.com/.netlify/functions/calendar-events?type=camp
 ```
 
 **Look for `registrationData` object in response:**

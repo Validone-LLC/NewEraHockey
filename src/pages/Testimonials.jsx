@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import SEO from '@components/common/SEO/SEO';
 import { testimonials } from '@data/testimonials';
 import TestimonialCard from '@components/testimonials/TestimonialCard/TestimonialCard';
 import Button from '@components/common/Button/Button';
@@ -33,6 +34,7 @@ const Testimonials = () => {
 
   return (
     <div className="min-h-screen">
+      <SEO pageKey="testimonials" />
       {/* Hero */}
       <section className="relative bg-gradient-to-br from-primary via-primary-dark to-neutral-bg py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

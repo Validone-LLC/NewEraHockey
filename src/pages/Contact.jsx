@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Mail, Phone, Instagram } from 'lucide-react';
+import SEO from '@components/common/SEO/SEO';
 import ContactForm from '@components/contact/ContactForm/ContactForm';
 import Card from '@components/common/Card/Card';
 import Button from '@components/common/Button/Button';
@@ -7,6 +8,7 @@ import Button from '@components/common/Button/Button';
 const Contact = () => {
   return (
     <div className="min-h-screen">
+      <SEO pageKey="contact" />
       {/* Hero */}
       <section className="relative bg-gradient-to-br from-primary via-primary-dark to-neutral-bg py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

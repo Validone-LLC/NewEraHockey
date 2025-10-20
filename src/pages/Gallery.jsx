@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import SEO from '@components/common/SEO/SEO';
 import { galleryImages, galleryCategories } from '@data/galleryImages';
 
 const Gallery = () => {
@@ -12,6 +13,7 @@ const Gallery = () => {
 
   return (
     <div className="min-h-screen">
+      <SEO pageKey="gallery" />
       {/* Hero */}
       <section className="relative bg-gradient-to-br from-primary via-primary-dark to-neutral-bg py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

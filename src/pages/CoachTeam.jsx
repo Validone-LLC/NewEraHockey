@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import SEO from '@components/common/SEO/SEO';
 import { coaches } from '@data/coachInfo';
 import CoachCard from '@components/coach/CoachCard/CoachCard';
 import Button from '@components/common/Button/Button';
@@ -10,6 +11,7 @@ const CoachTeam = () => {
 
   return (
     <div className="min-h-screen">
+      <SEO pageKey="coaches" />
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-primary via-primary-dark to-neutral-bg py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

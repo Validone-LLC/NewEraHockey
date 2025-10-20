@@ -6,7 +6,7 @@ Deploy previews are temporary environments created by Netlify for testing pull r
 
 **Example URLs:**
 - **Deploy Preview**: `https://deploy-preview-27--super-fenglisu-968777.netlify.app`
-- **Production**: `https://newerahockey.co` or `https://newerahockey.validone-llc.com`
+- **Production**: `https://newerahockeytraining.com` or `https://newerahockey.validone-llc.com`
 
 ## Stripe Redirect Fix
 
@@ -22,7 +22,7 @@ Changed to use `process.env.DEPLOY_URL` which provides the actual deployment URL
 ```javascript
 // Before (WRONG):
 const baseUrl = isProduction
-  ? 'https://newerahockey.co'
+  ? 'https://newerahockeytraining.com'
   : process.env.URL || 'http://localhost:8888';
 
 // After (CORRECT):
@@ -36,7 +36,7 @@ const baseUrl = process.env.DEPLOY_URL || process.env.URL || 'http://localhost:8
 
 ### Expected Behavior Now
 ✅ **Deploy Preview**: Redirects to `https://deploy-preview-27--super-fenglisu-968777.netlify.app/register/success`
-✅ **Production**: Redirects to `https://newerahockey.co/register/success`
+✅ **Production**: Redirects to `https://newerahockeytraining.com/register/success`
 ✅ **Local Dev**: Redirects to `http://localhost:8888/register/success`
 
 ## Stripe Webhook Limitation
@@ -55,7 +55,7 @@ Stripe webhooks are configured in the Stripe Dashboard with a specific endpoint 
 
 **Webhook Configuration (Stripe Dashboard):**
 ```
-Production Webhook: https://newerahockey.co/.netlify/functions/stripe-webhook
+Production Webhook: https://newerahockeytraining.com/.netlify/functions/stripe-webhook
 ```
 
 Stripe will send webhooks to this URL regardless of which environment initiated the checkout.
@@ -68,7 +68,7 @@ Stripe will send webhooks to this URL regardless of which environment initiated 
 
 **Process:**
 1. Merge PR to main branch (deploy to production)
-2. Test registration flow on `https://newerahockey.co`
+2. Test registration flow on `https://newerahockeytraining.com`
 3. Verify webhook execution in Netlify Functions logs
 4. Confirm emails received
 

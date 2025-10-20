@@ -177,7 +177,7 @@ Location: New Era Hockey Training Center, 123 Ice Rink Lane, Anytown, VA
 Description:
   Ages: 8-14
   Price: $450/week
-  Registration: https://newerahockey.com/register
+  Registration: https://newerahockeytraining.com/register
 
   Daily schedule:
   9:00 AM - 12:00 PM: On-ice training
@@ -227,7 +227,7 @@ Description:
 After creating an event, verify it appears on the website:
 
 1. **Wait 30 seconds** (calendar sync happens automatically)
-2. **Visit**: https://newerahockey.com/schedule
+2. **Visit**: https://newerahockeytraining.com/schedule
 3. **Toggle to appropriate category**:
    - Click "Camps" to see camp events
    - Click "Lessons" to see lesson events
@@ -363,4 +363,4 @@ Color: None
 
 **Last Updated**: October 16, 2025
 **Calendar**: coachwill@newerahockeytraining.com
-**Website**: https://newerahockey.com/schedule
+**Website**: https://newerahockeytraining.com/schedule

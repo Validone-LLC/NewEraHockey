@@ -1,10 +1,15 @@
 import { motion } from 'framer-motion';
+import SEO from '@components/common/SEO/SEO';
+import FAQSchema from '@components/common/StructuredData/FAQSchema';
 import FAQComponent from '@components/contact/FAQ/FAQ';
 import Button from '@components/common/Button/Button';
+import { faqs } from '@data/faqs';
 
 const FAQ = () => {
   return (
     <div className="min-h-screen">
+      <SEO pageKey="faq" />
+      <FAQSchema faqs={faqs} />
       {/* Hero */}
       <section className="relative bg-gradient-to-br from-primary via-primary-dark to-neutral-bg py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

@@ -1,0 +1,15 @@
+# New Era Hockey - Robots.txt
+# Guide search engine crawlers
+
+User-agent: *
+Allow: /
+
+# Exclude transactional/confirmation pages
+Disallow: /register/success
+Disallow: /register/cancel
+
+# Temporarily exclude schedule (under development)
+Disallow: /schedule
+
+# Sitemap location
+Sitemap: https://newerahockeytraining.com/sitemap.xml

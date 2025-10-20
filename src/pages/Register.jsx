@@ -1,10 +1,12 @@
 import { motion } from 'framer-motion';
 import { Instagram, Calendar } from 'lucide-react';
+import SEO from '@components/common/SEO/SEO';
 import Card from '@components/common/Card/Card';
 
 const Register = () => {
   return (
     <div className="min-h-screen">
+      <SEO pageKey="register" />
       {/* Hero */}
       <section className="relative bg-gradient-to-br from-primary via-primary-dark to-neutral-bg py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
