@@ -55,14 +55,19 @@ Desktop.ini
 # Temporary files
 *.tmp
 *.temp
+*.stackdump
 .cache/
 .temp/
+docs/todo.md
 
 # Playwright MCP
 .playwright-mcp/
 
-# Claude docs (optional - remove if you want to commit these)
-claudedocs/screenshots/
+# Claude Code user settings (private)
+.claude/
+
+# Claude generated documentation
+claudedocs/
 
 # Vite
 vite.config.js.timestamp-*
