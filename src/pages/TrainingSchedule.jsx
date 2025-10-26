@@ -1,6 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { HiCalendar, HiViewList, HiRefresh } from 'react-icons/hi';
+import {
+  HiCalendar,
+  HiViewList,
+  HiRefresh,
+  HiUserGroup,
+  HiHome,
+  HiVideoCamera,
+  HiArrowRight,
+} from 'react-icons/hi';
 import EventList from '@components/schedule/EventList/EventList';
 import EventCalendar from '@components/schedule/EventCalendar/EventCalendar';
 import {
@@ -108,6 +117,61 @@ const TrainingSchedule = () => {
             </p>
           </motion.div>
         </div>
+      </section>
+
+      {/* Additional Services Info */}
+      <section className="section-container">
+        <motion.div
+          className="card bg-primary/50 border-neutral-dark mb-8 max-w-3xl mx-auto"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <h2 className="text-xl font-display font-bold mb-4 text-center gradient-text">
+            Additional Training Services
+          </h2>
+          <p className="text-neutral-light text-center mb-4">
+            For the following services, contact Coach Will directly:
+          </p>
+          <div className="space-y-2">
+            <Link
+              to="/contact"
+              className="flex items-center justify-between gap-3 p-4 rounded-lg bg-primary/30 border border-neutral-dark hover:border-teal-500 hover:bg-primary transition-all group"
+            >
+              <div className="flex items-center gap-3">
+                <HiUserGroup className="text-2xl text-teal-500 group-hover:text-teal-400 transition-colors flex-shrink-0" />
+                <span className="text-neutral-light group-hover:text-white transition-colors">
+                  1-on-1 training sessions
+                </span>
+              </div>
+              <HiArrowRight className="text-lg text-neutral-light group-hover:text-teal-400 transition-colors flex-shrink-0" />
+            </Link>
+            <Link
+              to="/contact"
+              className="flex items-center justify-between gap-3 p-4 rounded-lg bg-primary/30 border border-neutral-dark hover:border-teal-500 hover:bg-primary transition-all group"
+            >
+              <div className="flex items-center gap-3">
+                <HiHome className="text-2xl text-teal-500 group-hover:text-teal-400 transition-colors flex-shrink-0" />
+                <span className="text-neutral-light group-hover:text-white transition-colors">
+                  At-home stick handling & shooting
+                </span>
+              </div>
+              <HiArrowRight className="text-lg text-neutral-light group-hover:text-teal-400 transition-colors flex-shrink-0" />
+            </Link>
+            <Link
+              to="/contact"
+              className="flex items-center justify-between gap-3 p-4 rounded-lg bg-primary/30 border border-neutral-dark hover:border-teal-500 hover:bg-primary transition-all group"
+            >
+              <div className="flex items-center gap-3">
+                <HiVideoCamera className="text-2xl text-teal-500 group-hover:text-teal-400 transition-colors flex-shrink-0" />
+                <span className="text-neutral-light group-hover:text-white transition-colors">
+                  Film analysis services
+                </span>
+              </div>
+              <HiArrowRight className="text-lg text-neutral-light group-hover:text-teal-400 transition-colors flex-shrink-0" />
+            </Link>
+          </div>
+        </motion.div>
       </section>
 
       {/* Controls */}
