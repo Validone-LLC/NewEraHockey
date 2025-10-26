@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import PropTypes from 'prop-types';
 import { HiPaperAirplane } from 'react-icons/hi';
 import Button from '@components/common/Button/Button';
 import Modal from '@components/common/Modal/Modal';
 
-const ContactForm = () => {
+const ContactForm = ({ initialMessage = '' }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modalState, setModalState] = useState({
     isOpen: false,
@@ -34,7 +35,7 @@ const ContactForm = () => {
       name: '',
       phone: '',
       email: '',
-      message: '',
+      message: initialMessage,
     },
     validationSchema: Yup.object({
       name: Yup.string()
@@ -225,6 +226,10 @@ const ContactForm = () => {
       />
     </form>
   );
+};
+
+ContactForm.propTypes = {
+  initialMessage: PropTypes.string,
 };
 
 export default ContactForm;

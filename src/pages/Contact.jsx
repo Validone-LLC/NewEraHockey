@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { useSearchParams } from 'react-router-dom';
 import { Mail, Phone, Instagram } from 'lucide-react';
 import SEO from '@components/common/SEO/SEO';
 import ContactForm from '@components/contact/ContactForm/ContactForm';
@@ -6,6 +7,20 @@ import Card from '@components/common/Card/Card';
 import Button from '@components/common/Button/Button';
 
 const Contact = () => {
+  const [searchParams] = useSearchParams();
+  const eventParam = searchParams.get('event');
+
+  // Parse event data from URL if present
+  let initialMessage = '';
+  if (eventParam) {
+    try {
+      const eventData = JSON.parse(decodeURIComponent(eventParam));
+      initialMessage = `I'm interested in the following event:\n\nEvent: ${eventData.summary}\nDate: ${eventData.date}\nTime: ${eventData.time}${eventData.location ? `\nLocation: ${eventData.location}` : ''}\n\nPlease provide more information about this event.`;
+    } catch (error) {
+      console.error('Failed to parse event data:', error);
+    }
+  }
+
   return (
     <div className="min-h-screen">
       <SEO pageKey="contact" />
@@ -92,7 +107,7 @@ const Contact = () => {
           >
             <h2 className="text-3xl font-display font-bold text-white mb-8">Get In Touch</h2>
             <Card hover={false}>
-              <ContactForm />
+              <ContactForm initialMessage={initialMessage} />
             </Card>
           </motion.div>
         </div>

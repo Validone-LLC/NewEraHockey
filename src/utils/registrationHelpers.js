@@ -5,6 +5,8 @@
  */
 
 import { formatPrice, getEventPrice } from './priceParser';
+import { categorizeEvent } from './eventCategorization';
+import { isRegistrationEnabledForEventType } from '@/config/featureFlags';
 
 /**
  * Check if event has registration enabled
@@ -84,6 +86,12 @@ export const getRegistrationButtonText = event => {
     return 'Sold Out';
   }
 
+  // Check feature toggle - if registration disabled for this event type, show "Contact"
+  const eventType = categorizeEvent(event);
+  if (!isRegistrationEnabledForEventType(eventType)) {
+    return 'Contact';
+  }
+
   if (!isRegistrationEnabled(event)) {
     return 'View Details';
   }
@@ -136,6 +144,12 @@ export const getFormattedPrice = (event, includeCents = false) => {
  */
 export const canRegister = event => {
   if (!event) return false;
+
+  // Check feature toggle first - if registration disabled for this event type, return false
+  const eventType = categorizeEvent(event);
+  if (!isRegistrationEnabledForEventType(eventType)) {
+    return false;
+  }
 
   // Must have registration enabled
   if (!isRegistrationEnabled(event)) return false;

@@ -124,6 +124,13 @@ const EventCard = ({ event, eventType }) => {
               >
                 {buttonText}
               </Link>
+            ) : buttonText === 'Contact' ? (
+              <Link
+                to={`/contact?event=${encodeURIComponent(JSON.stringify({ id: event.id, summary: event.summary, date, time, location: event.location }))}`}
+                className="px-6 py-2 bg-gradient-to-r from-teal-500 to-teal-700 text-white font-semibold rounded-lg hover:from-teal-600 hover:to-teal-800 transition-all duration-300 text-center"
+              >
+                {buttonText}
+              </Link>
             ) : soldOut ? (
               <button
                 disabled
