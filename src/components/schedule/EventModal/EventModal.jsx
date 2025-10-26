@@ -2,12 +2,18 @@ import { HiX, HiCalendar, HiClock, HiLocationMarker, HiCurrencyDollar } from 're
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { formatEventDateTime } from '@utils/eventCategorization';
-import { getFormattedPrice } from '@/services/calendarService';
+import {
+  getFormattedPrice,
+  getRegistrationButtonText,
+  canRegister,
+} from '@/services/calendarService';
 
 const EventModal = ({ isOpen, onClose, event, eventType }) => {
   if (!event) return null;
 
   const { date, time } = formatEventDateTime(event);
+  const buttonText = getRegistrationButtonText(event);
+  const eligible = canRegister(event);
 
   return (
     <AnimatePresence>
@@ -102,12 +108,28 @@ const EventModal = ({ isOpen, onClose, event, eventType }) => {
                   >
                     Close
                   </button>
-                  <Link
-                    to={`/register/${event.id}`}
-                    className="px-6 py-2 bg-gradient-to-r from-teal-500 to-teal-700 text-white font-semibold rounded-lg hover:from-teal-600 hover:to-teal-800 transition-all duration-300"
-                  >
-                    Register
-                  </Link>
+                  {eligible ? (
+                    <Link
+                      to={`/register/${event.id}`}
+                      className="px-6 py-2 bg-gradient-to-r from-teal-500 to-teal-700 text-white font-semibold rounded-lg hover:from-teal-600 hover:to-teal-800 transition-all duration-300"
+                    >
+                      {buttonText}
+                    </Link>
+                  ) : buttonText === 'Contact' ? (
+                    <Link
+                      to={`/contact?event=${encodeURIComponent(JSON.stringify({ id: event.id, summary: event.summary, date, time, location: event.location }))}`}
+                      className="px-6 py-2 bg-gradient-to-r from-teal-500 to-teal-700 text-white font-semibold rounded-lg hover:from-teal-600 hover:to-teal-800 transition-all duration-300"
+                    >
+                      {buttonText}
+                    </Link>
+                  ) : (
+                    <button
+                      disabled
+                      className="px-6 py-2 bg-neutral-dark text-neutral-light font-semibold rounded-lg cursor-not-allowed"
+                    >
+                      {buttonText}
+                    </button>
+                  )}
                 </div>
               </motion.div>
             </div>
