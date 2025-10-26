@@ -8,6 +8,7 @@
 import {
   isRegistrationEnabled,
   isSoldOut,
+  isDescriptionMarkedFull,
   getCurrentRegistrations,
   getMaxCapacity,
   getRemainingSpots,
@@ -417,6 +418,7 @@ export const getEventStatistics = events => {
 export {
   isRegistrationEnabled,
   isSoldOut,
+  isDescriptionMarkedFull,
   getCurrentRegistrations,
   getMaxCapacity,
   getRemainingSpots,

@@ -8,8 +8,5 @@ Allow: /
 Disallow: /register/success
 Disallow: /register/cancel
 
-# Temporarily exclude schedule (under development)
-Disallow: /schedule
-
 # Sitemap location
 Sitemap: https://newerahockeytraining.com/sitemap.xml

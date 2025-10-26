@@ -10,6 +10,7 @@ import {
   HiVideoCamera,
   HiArrowRight,
 } from 'react-icons/hi';
+import SEO from '@components/common/SEO/SEO';
 import EventList from '@components/schedule/EventList/EventList';
 import EventCalendar from '@components/schedule/EventCalendar/EventCalendar';
 import {
@@ -101,6 +102,7 @@ const TrainingSchedule = () => {
 
   return (
     <div className="min-h-screen">
+      <SEO pageKey="events" />
       {/* Hero */}
       <section className="relative bg-gradient-to-br from-primary via-primary-dark to-neutral-bg py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -110,10 +112,10 @@ const TrainingSchedule = () => {
             transition={{ duration: 0.8 }}
           >
             <h1 className="text-5xl sm:text-6xl font-display font-bold mb-4">
-              <span className="gradient-text">TRAINING SCHEDULE</span>
+              <span className="gradient-text">TRAINING EVENTS</span>
             </h1>
             <p className="text-xl text-neutral-light max-w-2xl mx-auto">
-              View upcoming camps and private lessons with Coach Will
+              Browse and register for upcoming camps and private lessons
             </p>
           </motion.div>
         </div>
@@ -135,7 +137,7 @@ const TrainingSchedule = () => {
           </p>
           <div className="space-y-2">
             <Link
-              to="/contact"
+              to={`/contact?service=${encodeURIComponent('1-on-1 training sessions')}`}
               className="flex items-center justify-between gap-3 p-4 rounded-lg bg-primary/30 border border-neutral-dark hover:border-teal-500 hover:bg-primary transition-all group"
             >
               <div className="flex items-center gap-3">
@@ -147,7 +149,7 @@ const TrainingSchedule = () => {
               <HiArrowRight className="text-lg text-neutral-light group-hover:text-teal-400 transition-colors flex-shrink-0" />
             </Link>
             <Link
-              to="/contact"
+              to={`/contact?service=${encodeURIComponent('At-home stick handling & shooting sessions')}`}
               className="flex items-center justify-between gap-3 p-4 rounded-lg bg-primary/30 border border-neutral-dark hover:border-teal-500 hover:bg-primary transition-all group"
             >
               <div className="flex items-center gap-3">
@@ -159,7 +161,7 @@ const TrainingSchedule = () => {
               <HiArrowRight className="text-lg text-neutral-light group-hover:text-teal-400 transition-colors flex-shrink-0" />
             </Link>
             <Link
-              to="/contact"
+              to={`/contact?service=${encodeURIComponent('Film analysis services')}`}
               className="flex items-center justify-between gap-3 p-4 rounded-lg bg-primary/30 border border-neutral-dark hover:border-teal-500 hover:bg-primary transition-all group"
             >
               <div className="flex items-center gap-3">

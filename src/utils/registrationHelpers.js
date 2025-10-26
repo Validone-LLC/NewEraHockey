@@ -19,13 +19,37 @@ export const isRegistrationEnabled = event => {
 };
 
 /**
+ * Check if event description indicates full capacity
+ * Looks for "Spots: FULL" or "Spots: full" in description
+ * @param {Object} event - Calendar event object
+ * @returns {boolean}
+ */
+export const isDescriptionMarkedFull = event => {
+  if (!event?.description) return false;
+  const description = event.description.toLowerCase();
+  return /spots:\s*full/i.test(description);
+};
+
+/**
  * Check if event is sold out
  * @param {Object} event - Calendar event object
  * @returns {boolean}
  */
 export const isSoldOut = event => {
   if (!event) return false;
-  return event.registrationData?.isSoldOut === true;
+
+  // Check registration data sold out flag
+  if (event.registrationData?.isSoldOut === true) {
+    return true;
+  }
+
+  // For camps only, check description for "Spots: FULL"
+  const eventType = categorizeEvent(event);
+  if (eventType.toLowerCase() === 'camp' || eventType.toLowerCase() === 'camps') {
+    return isDescriptionMarkedFull(event);
+  }
+
+  return false;
 };
 
 /**
@@ -86,9 +110,13 @@ export const getRegistrationButtonText = event => {
     return 'Sold Out';
   }
 
-  // Check feature toggle - if registration disabled for this event type, show "Contact"
+  // Check feature toggle - if registration disabled for this event type
   const eventType = categorizeEvent(event);
   if (!isRegistrationEnabledForEventType(eventType)) {
+    // If toggle is off AND event is marked full in description, show "Sold Out"
+    if (isDescriptionMarkedFull(event)) {
+      return 'Sold Out';
+    }
     return 'Contact';
   }
 

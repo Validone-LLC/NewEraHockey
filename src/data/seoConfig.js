@@ -71,13 +71,13 @@ export const seoConfig = {
     url: `${BASE_URL}/faq`,
   },
 
-  register: {
-    title: 'Register for Training | New Era Hockey',
+  events: {
+    title: 'Training Events & Registration | New Era Hockey',
     description:
-      'Register for New Era Hockey training camps and sessions. View upcoming events, available spots, pricing, and secure your place in our programs.',
+      'Browse New Era Hockey training events including camps and private lessons. View upcoming sessions, available spots, pricing, and register for programs in the DMV area.',
     keywords:
-      'hockey camp registration, hockey training signup, DMV hockey camps, register for hockey',
-    url: `${BASE_URL}/register`,
+      'hockey events, hockey camps, hockey lessons, DMV hockey training, hockey registration, training schedule',
+    url: `${BASE_URL}/events`,
   },
 
   'event-registration': {
@@ -86,14 +86,6 @@ export const seoConfig = {
       'Complete your registration for New Era Hockey training events. Secure payment processing and easy registration for camps and training sessions.',
     keywords: 'hockey event registration, camp signup, training registration',
     url: `${BASE_URL}/register`,
-  },
-
-  schedule: {
-    title: 'Training Schedule | New Era Hockey',
-    description:
-      'View the New Era Hockey training schedule. Find upcoming camps, training sessions, and events. Plan your hockey development journey with us.',
-    keywords: 'hockey schedule, training calendar, camp dates, hockey events',
-    url: `${BASE_URL}/schedule`,
   },
 
   waiver: {

@@ -9,16 +9,23 @@ import Button from '@components/common/Button/Button';
 const Contact = () => {
   const [searchParams] = useSearchParams();
   const eventParam = searchParams.get('event');
+  const serviceParam = searchParams.get('service');
 
-  // Parse event data from URL if present
+  // Parse event data or service type from URL if present
   let initialMessage = '';
+
   if (eventParam) {
+    // Pre-fill for specific event
     try {
       const eventData = JSON.parse(decodeURIComponent(eventParam));
       initialMessage = `I'm interested in the following event:\n\nEvent: ${eventData.summary}\nDate: ${eventData.date}\nTime: ${eventData.time}${eventData.location ? `\nLocation: ${eventData.location}` : ''}\n\nPlease provide more information about this event.`;
     } catch (error) {
       console.error('Failed to parse event data:', error);
     }
+  } else if (serviceParam) {
+    // Pre-fill for service request
+    const service = decodeURIComponent(serviceParam);
+    initialMessage = `I'm interested in ${service}.\n\nPlease provide more information about availability, pricing, and next steps.`;
   }
 
   return (
