@@ -68,10 +68,12 @@ const Contact = () => {
                   href="mailto:coachwill@newerahockeytraining.com"
                   className="flex items-center gap-3 text-neutral-light hover:text-white transition-colors group"
                 >
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center">
+                  <div className="w-12 h-12 flex-shrink-0 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center">
                     <Mail className="w-6 h-6 text-white" />
                   </div>
-                  <span className="text-lg">coachwill@newerahockeytraining.com</span>
+                  <span className="text-base sm:text-lg break-all">
+                    coachwill@newerahockeytraining.com
+                  </span>
                 </a>
               </Card>
 
@@ -81,10 +83,10 @@ const Contact = () => {
                   href="tel:+15712744691"
                   className="flex items-center gap-3 text-neutral-light hover:text-white transition-colors group"
                 >
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center">
+                  <div className="w-12 h-12 flex-shrink-0 rounded-full bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center">
                     <Phone className="w-6 h-6 text-white" />
                   </div>
-                  <span className="text-lg">(571) 274-4691</span>
+                  <span className="text-base sm:text-lg">(571) 274-4691</span>
                 </a>
               </Card>
 
@@ -96,10 +98,10 @@ const Contact = () => {
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 text-neutral-light hover:text-white transition-colors group"
                 >
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-300 to-teal-500 flex items-center justify-center">
+                  <div className="w-12 h-12 flex-shrink-0 rounded-full bg-gradient-to-br from-teal-300 to-teal-500 flex items-center justify-center">
                     <Instagram className="w-6 h-6 text-white" />
                   </div>
-                  <span className="text-lg">@NewEraHockeyDMV</span>
+                  <span className="text-base sm:text-lg">@NewEraHockeyDMV</span>
                 </a>
               </Card>
             </div>
