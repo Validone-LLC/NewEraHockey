@@ -98,8 +98,6 @@ export const fetchEventById = async eventId => {
     const url = new URL('/.netlify/functions/calendar-event', window.location.origin);
     url.searchParams.set('eventId', eventId);
 
-    console.log(`🌐 Fetching single event: ${eventId}`);
-
     // Fetch from Netlify function
     const response = await fetch(url.toString());
 
@@ -136,7 +134,6 @@ export const fetchEvents = async (eventType = null, useSync = true, useCache = t
     if (useCache) {
       const cachedData = cache.get(cacheKey);
       if (cachedData) {
-        console.log(`📦 Cache hit: ${cacheKey}`);
         return {
           ...cachedData,
           cached: true,
@@ -154,8 +151,6 @@ export const fetchEvents = async (eventType = null, useSync = true, useCache = t
     if (useSync && syncToken) {
       url.searchParams.set('syncToken', syncToken);
     }
-
-    console.log(`🌐 API call: ${cacheKey}`);
 
     // Fetch from Netlify function
     const response = await fetch(url.toString());
@@ -329,10 +324,8 @@ export const refreshEvents = async eventType => {
 export const invalidateCache = eventType => {
   if (eventType) {
     cache.remove(eventType);
-    console.log(`🗑️ Cache invalidated: ${eventType}`);
   } else {
     cache.clear();
-    console.log('🗑️ All cache invalidated');
   }
 };
 

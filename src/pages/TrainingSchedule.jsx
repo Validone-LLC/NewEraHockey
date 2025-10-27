@@ -9,6 +9,7 @@ import {
   HiHome,
   HiVideoCamera,
   HiArrowRight,
+  HiInformationCircle,
 } from 'react-icons/hi';
 import SEO from '@components/common/SEO/SEO';
 import EventList from '@components/schedule/EventList/EventList';
@@ -173,6 +174,19 @@ const TrainingSchedule = () => {
               <HiArrowRight className="text-lg text-neutral-light group-hover:text-teal-400 transition-colors flex-shrink-0" />
             </Link>
           </div>
+        </motion.div>
+
+        {/* Cabin John Info Pill */}
+        <motion.div
+          className="flex items-center justify-center gap-2 max-w-3xl mx-auto px-4 py-3 rounded-full bg-blue-500/10 border border-blue-500/30"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <HiInformationCircle className="text-blue-400 text-xl flex-shrink-0" />
+          <span className="text-sm text-blue-300 text-center">
+            Cabin John Ice Rink events coming soon!
+          </span>
         </motion.div>
       </section>
 
