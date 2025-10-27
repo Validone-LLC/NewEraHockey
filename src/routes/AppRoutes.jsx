@@ -9,7 +9,6 @@ import SubmitReview from '@pages/SubmitReview';
 import Gallery from '@pages/Gallery';
 import Contact from '@pages/Contact';
 import FAQ from '@pages/FAQ';
-import Register from '@pages/Register';
 import EventRegistration from '@pages/EventRegistration';
 import RegistrationSuccess from '@pages/RegistrationSuccess';
 import RegistrationCancel from '@pages/RegistrationCancel';
@@ -33,11 +32,10 @@ const AppRoutes = () => {
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/faq" element={<FAQ />} />
-          <Route path="/register" element={<Register />} />
+          <Route path="/events" element={<TrainingSchedule />} />
           <Route path="/register/:eventId" element={<EventRegistration />} />
           <Route path="/register/success" element={<RegistrationSuccess />} />
           <Route path="/register/cancel" element={<RegistrationCancel />} />
-          <Route path="/schedule" element={<TrainingSchedule />} />
           <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/waiver" element={<Waiver />} />

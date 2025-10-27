@@ -19,8 +19,8 @@
     ]
   },
   "primaryCTA": {
-    "text": "Register for Training",
-    "link": "/register"
+    "text": "View Events",
+    "link": "/events"
   },
   "secondaryCTA": {
     "text": "Contact Coach Will",

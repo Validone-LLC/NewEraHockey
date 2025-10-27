@@ -10,7 +10,7 @@ const Footer = () => {
     { path: '/gallery', label: 'Gallery' },
     { path: '/faq', label: 'FAQ' },
     { path: '/contact', label: 'Contact' },
-    { path: '/register', label: 'Event Schedule & Registration' },
+    { path: '/events', label: 'Events' },
   ];
 
   return (

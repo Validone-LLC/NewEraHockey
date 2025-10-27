@@ -7,7 +7,7 @@ const navLinks = [
   { path: '/testimonials', label: 'Testimonials' },
   { path: '/gallery', label: 'Gallery' },
   { path: '/contact', label: 'Contact' },
-  { path: '/register', label: 'Register' },
+  { path: '/events', label: 'Events' },
 ];
 
 const Navigation = ({ mobile = false }) => {
