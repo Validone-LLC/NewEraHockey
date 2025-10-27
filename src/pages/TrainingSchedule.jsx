@@ -103,7 +103,7 @@ const TrainingSchedule = () => {
 
   return (
     <div className="min-h-screen">
-      <SEO pageKey="events" />
+      <SEO pageKey="event-registration" />
       {/* Hero */}
       <section className="relative bg-gradient-to-br from-primary via-primary-dark to-neutral-bg py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

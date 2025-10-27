@@ -32,7 +32,7 @@ const AppRoutes = () => {
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/faq" element={<FAQ />} />
-          <Route path="/events" element={<TrainingSchedule />} />
+          <Route path="/event-registration" element={<TrainingSchedule />} />
           <Route path="/register/:eventId" element={<EventRegistration />} />
           <Route path="/register/success" element={<RegistrationSuccess />} />
           <Route path="/register/cancel" element={<RegistrationCancel />} />
