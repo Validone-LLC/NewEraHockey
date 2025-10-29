@@ -8,6 +8,7 @@ import {
   getFormattedPrice,
   getRemainingSpots,
   getRegistrationButtonText,
+  getEventCustomText,
 } from '@/services/calendarService';
 import SoldOutBadge from '@components/registration/SoldOutBadge';
 
@@ -33,6 +34,7 @@ const EventCard = ({ event, eventType }) => {
   const remaining = getRemainingSpots(event);
   const price = getFormattedPrice(event);
   const buttonText = getRegistrationButtonText(event);
+  const customText = getEventCustomText(event);
 
   return (
     <motion.div
@@ -89,6 +91,9 @@ const EventCard = ({ event, eventType }) => {
               <span>{event.location}</span>
             </div>
           )}
+
+          {/* Custom Text */}
+          {customText && <div className="text-neutral-light text-sm mb-3 italic">{customText}</div>}
 
           {/* Registration Status */}
           {upcoming && remaining !== null && remaining <= 5 && !soldOut && (

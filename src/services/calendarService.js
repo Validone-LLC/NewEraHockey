@@ -19,6 +19,7 @@ import {
   getFormattedPrice,
   canRegister,
   getRegistrationStatus,
+  getEventCustomText,
 } from '../utils/registrationHelpers';
 
 let syncToken = null;
@@ -422,4 +423,5 @@ export {
   getFormattedPrice,
   canRegister,
   getRegistrationStatus,
+  getEventCustomText,
 };

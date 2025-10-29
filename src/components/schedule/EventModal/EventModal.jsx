@@ -6,6 +6,7 @@ import {
   getFormattedPrice,
   getRegistrationButtonText,
   canRegister,
+  getEventCustomText,
 } from '@/services/calendarService';
 
 const EventModal = ({ isOpen, onClose, event, eventType }) => {
@@ -14,6 +15,7 @@ const EventModal = ({ isOpen, onClose, event, eventType }) => {
   const { date, time } = formatEventDateTime(event);
   const buttonText = getRegistrationButtonText(event);
   const eligible = canRegister(event);
+  const customText = getEventCustomText(event);
 
   return (
     <AnimatePresence>
@@ -96,6 +98,13 @@ const EventModal = ({ isOpen, onClose, event, eventType }) => {
                     <div className="flex items-center gap-3 text-neutral-light">
                       <HiCurrencyDollar className="text-teal-500 text-xl flex-shrink-0" />
                       <span className="font-medium">{getFormattedPrice(event)}</span>
+                    </div>
+                  )}
+
+                  {/* Custom Text */}
+                  {customText && (
+                    <div className="pt-4 border-t border-neutral-dark/50">
+                      <p className="text-neutral-light text-sm italic">{customText}</p>
                     </div>
                   )}
                 </div>

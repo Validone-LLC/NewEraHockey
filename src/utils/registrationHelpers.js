@@ -214,3 +214,16 @@ export const getRegistrationStatus = event => {
 
   return 'Registration Open';
 };
+
+/**
+ * Extract custom text from event description
+ * Looks for "Text: " prefix in description and returns the text after it
+ * @param {Object} event - Calendar event object
+ * @returns {string|null} - Custom text or null if not found
+ */
+export const getEventCustomText = event => {
+  if (!event?.description) return null;
+
+  const match = event.description.match(/Text:\s*(.+?)(?:\n|$)/i);
+  return match ? match[1].trim() : null;
+};

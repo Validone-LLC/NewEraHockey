@@ -107,7 +107,7 @@ export const getEventCounts = events => {
 /**
  * Format event date/time for display
  * @param {Object} event - Google Calendar event object
- * @returns {Object} - { date: 'Mon, Jan 15', time: '2:00 PM - 4:00 PM', isAllDay: false }
+ * @returns {Object} - { date: 'Mon, Jan 15' or 'Jan 1st - Jan 3rd', time: '2:00 PM - 4:00 PM', isAllDay: false }
  */
 export const formatEventDateTime = event => {
   if (!event) return { date: '', time: '', isAllDay: false };
@@ -121,12 +121,53 @@ export const formatEventDateTime = event => {
   const startDate = new Date(start);
   const endDate = new Date(end);
 
-  // Format date: "Mon, Jan 15"
-  const date = startDate.toLocaleDateString('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-  });
+  // Check if multi-day event (different dates, not just different times)
+  const startDay = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+  const endDay = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+
+  // For all-day events, Google Calendar sets end date to the day AFTER the last day
+  // So we need to subtract 1 day from the end date for all-day multi-day events
+  const adjustedEndDate = isAllDay ? new Date(endDay.getTime() - 24 * 60 * 60 * 1000) : endDate;
+  const adjustedEndDay = new Date(
+    adjustedEndDate.getFullYear(),
+    adjustedEndDate.getMonth(),
+    adjustedEndDate.getDate()
+  );
+
+  const isMultiDay = startDay.getTime() !== adjustedEndDay.getTime();
+
+  let date;
+  if (isMultiDay) {
+    // Multi-day format: "Jan 1st - Jan 3rd"
+    const startFormatted = startDate.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+    });
+    const endFormatted = adjustedEndDate.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+    });
+
+    // Add ordinal suffixes (1st, 2nd, 3rd, etc.)
+    const addOrdinalSuffix = dateStr => {
+      const parts = dateStr.split(' ');
+      const day = parseInt(parts[1]);
+      let suffix = 'th';
+      if (day === 1 || day === 21 || day === 31) suffix = 'st';
+      else if (day === 2 || day === 22) suffix = 'nd';
+      else if (day === 3 || day === 23) suffix = 'rd';
+      return `${parts[0]} ${day}${suffix}`;
+    };
+
+    date = `${addOrdinalSuffix(startFormatted)} - ${addOrdinalSuffix(endFormatted)}`;
+  } else {
+    // Single day format: "Mon, Jan 15"
+    date = startDate.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    });
+  }
 
   // Format time: "2:00 PM - 4:00 PM" or "All Day"
   let time = 'All Day';

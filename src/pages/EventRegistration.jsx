@@ -81,8 +81,8 @@ const EventRegistration = () => {
             <p className="text-neutral-light mb-6">
               The event you're looking for doesn't exist or has been removed.
             </p>
-            <Button to="/schedule" variant="primary">
-              Back to Schedule
+            <Button to="/event-registration" variant="primary">
+              Back to Event Registration
             </Button>
           </div>
         </Card>
@@ -107,11 +107,11 @@ const EventRegistration = () => {
           >
             {/* Back button */}
             <Link
-              to="/schedule"
+              to="/event-registration"
               className="inline-flex items-center gap-2 text-teal-400 hover:text-teal-300 mb-6 transition-colors"
             >
               <HiArrowLeft className="w-5 h-5" />
-              <span>Back to Schedule</span>
+              <span>Back to Event Registration</span>
             </Link>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold mb-2">
@@ -276,7 +276,7 @@ const EventRegistration = () => {
                       events or contact us about waitlist options.
                     </p>
                     <div className="flex gap-4 justify-center">
-                      <Button to="/schedule" variant="secondary">
+                      <Button to="/event-registration" variant="secondary">
                         View Other Events
                       </Button>
                       <Button to="/contact" variant="primary">
