@@ -45,6 +45,19 @@
   bundle = true
   minify = true
 
+# Force canonical domain (non-www) - MUST come before SPA fallback
+[[redirects]]
+  from = "https://www.newerahockeytraining.com/*"
+  to = "https://newerahockeytraining.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "http://www.newerahockeytraining.com/*"
+  to = "https://newerahockeytraining.com/:splat"
+  status = 301
+  force = true
+
 # SPA fallback: redirect all routes to index.html for client-side routing
 [[redirects]]
   from = "/*"
