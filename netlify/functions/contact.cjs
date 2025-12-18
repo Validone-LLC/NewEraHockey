@@ -15,7 +15,7 @@ const dynamodb = new AWS.DynamoDB.DocumentClient({
   region: process.env.NEH_AWS_REGION || 'us-east-1',
 });
 
-const DYNAMODB_TABLE = process.env.DYNAMODB_TABLE_NAME || 'neh-spam-logs';
+const DYNAMODB_TABLE = process.env.DYNAMODB_TABLE_NAME;
 const RATE_LIMIT = 3; // Max submissions per hour
 const RATE_LIMIT_WINDOW = 3600000; // 1 hour in milliseconds
 

@@ -13,7 +13,7 @@ const dynamodb = new AWS.DynamoDB.DocumentClient({
   region: process.env.NEH_AWS_REGION || 'us-east-1',
 });
 
-const DYNAMODB_TABLE = process.env.DYNAMODB_TABLE_NAME || 'neh-spam-logs';
+const DYNAMODB_TABLE = process.env.DYNAMODB_TABLE_NAME;
 
 // Helper: Get week date range
 function getWeekDateRange() {
