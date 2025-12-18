@@ -8,6 +8,8 @@
 
 [build.environment]
   NODE_ENV = "development"
+  # Turnstile site key is PUBLIC (not a secret) - safe to bundle in frontend
+  SECRETS_SCAN_OMIT_KEYS = "TURNSTILE_SITE_KEY,VITE_TURNSTILE_SITE_KEY"
 
 # Branch deploy settings
 [context.branch-deploy]
