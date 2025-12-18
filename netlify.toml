@@ -30,6 +30,10 @@
   directory = "netlify/functions"
   node_bundler = "esbuild"
 
+# Scheduled function: Weekly spam report (Mondays at 9 AM EST = 2 PM UTC)
+[functions."spam-report"]
+  schedule = "0 14 * * 1"
+
 # Enable prerendering for better SEO (crawlers get pre-rendered HTML)
 [build.processing]
   skip_processing = false

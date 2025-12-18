@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import PropTypes from 'prop-types';
@@ -8,12 +8,35 @@ import Modal from '@components/common/Modal/Modal';
 
 const ContactForm = ({ initialMessage = '' }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const turnstileRef = useRef(null);
   const [modalState, setModalState] = useState({
     isOpen: false,
     type: 'success',
     title: '',
     message: '',
   });
+
+  // Load Turnstile script and setup callback
+  useEffect(() => {
+    // Define callback for Turnstile success
+    window.onTurnstileSuccess = token => {
+      setTurnstileToken(token);
+    };
+
+    const script = document.createElement('script');
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+
+    return () => {
+      if (document.head.contains(script)) {
+        document.head.removeChild(script);
+      }
+      delete window.onTurnstileSuccess;
+    };
+  }, []);
 
   // Phone number formatting helper
   const formatPhoneNumber = value => {
@@ -36,6 +59,7 @@ const ContactForm = ({ initialMessage = '' }) => {
       phone: '',
       email: '',
       message: initialMessage,
+      website: '', // Honeypot field
     },
     validationSchema: Yup.object({
       name: Yup.string()
@@ -59,13 +83,28 @@ const ContactForm = ({ initialMessage = '' }) => {
       setIsSubmitting(true);
 
       try {
+        // Validate Turnstile
+        if (!turnstileToken) {
+          setModalState({
+            isOpen: true,
+            type: 'error',
+            title: 'Verification Required',
+            message: 'Please complete the verification challenge.',
+          });
+          setIsSubmitting(false);
+          return;
+        }
+
         // Send form data to Netlify Function
         const response = await fetch('/.netlify/functions/contact', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(values),
+          body: JSON.stringify({
+            ...values,
+            turnstileToken,
+          }),
         });
 
         const data = await response.json();
@@ -82,6 +121,11 @@ const ContactForm = ({ initialMessage = '' }) => {
           message: "Thank you for reaching out! We'll get back to you soon.",
         });
         resetForm();
+        setTurnstileToken('');
+        // Reset Turnstile widget
+        if (window.turnstile && turnstileRef.current) {
+          window.turnstile.reset(turnstileRef.current);
+        }
       } catch (error) {
         console.error('Contact form error:', error);
         // Show error modal with phone number
@@ -203,6 +247,29 @@ const ContactForm = ({ initialMessage = '' }) => {
             {formik.errors.message}
           </p>
         )}
+      </div>
+
+      {/* Honeypot - hidden from real users, bots will fill it */}
+      <input
+        type="text"
+        name="website"
+        value={formik.values.website}
+        onChange={formik.handleChange}
+        style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px' }}
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+      />
+
+      {/* Turnstile CAPTCHA */}
+      <div>
+        <div
+          ref={turnstileRef}
+          className="cf-turnstile"
+          data-sitekey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+          data-callback="onTurnstileSuccess"
+          data-theme="dark"
+        />
       </div>
 
       {/* Submit Button */}
