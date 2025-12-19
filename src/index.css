@@ -26,6 +26,44 @@
     cursor: pointer;
   }
 
+  /* Normalize date input height to match other inputs */
+  input[type='date'] {
+    height: 42px;
+    line-height: 1;
+  }
+
+  /* Ensure date input internal elements don't affect height */
+  input[type='date']::-webkit-datetime-edit {
+    display: flex;
+    align-items: center;
+    padding: 0;
+  }
+
+  input[type='date']::-webkit-datetime-edit-fields-wrapper {
+    padding: 0;
+  }
+
+  /* Style select dropdowns with dark theme */
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+  }
+
+  /* Style select dropdown options */
+  select option {
+    background-color: #1a2332;
+    color: #ffffff;
+    padding: 0.5rem;
+  }
+
+  select option:hover {
+    background-color: #14b8a6;
+  }
+
   /* Fix autofill styling to maintain dark theme */
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
