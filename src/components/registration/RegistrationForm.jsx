@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { HiUser, HiMail, HiPhone } from 'react-icons/hi';
 import Card from '@components/common/Card/Card';
+import Select from '@components/common/Select';
 import { getFormattedPrice } from '@/services/calendarService';
 
 const RegistrationForm = ({ event }) => {
@@ -11,6 +12,7 @@ const RegistrationForm = ({ event }) => {
     playerLastName: '',
     playerDateOfBirth: '',
     playerAge: '',
+    playerLevelOfPlay: '',
 
     // Parent/Guardian Information
     guardianFirstName: '',
@@ -83,6 +85,9 @@ const RegistrationForm = ({ event }) => {
       case 'playerDateOfBirth':
         if (!value) error = 'Date of birth is required';
         break;
+      case 'playerLevelOfPlay':
+        if (!value.trim()) error = 'Level of play is required';
+        break;
       case 'guardianFirstName':
         if (!value.trim()) error = 'Guardian first name is required';
         break;
@@ -145,6 +150,9 @@ const RegistrationForm = ({ event }) => {
     if (!formData.playerDateOfBirth) {
       newErrors.playerDateOfBirth = 'Date of birth is required';
     }
+    if (!formData.playerLevelOfPlay.trim()) {
+      newErrors.playerLevelOfPlay = 'Level of play is required';
+    }
 
     // Guardian validation
     if (!formData.guardianFirstName.trim()) {
@@ -200,6 +208,7 @@ const RegistrationForm = ({ event }) => {
       playerFirstName: true,
       playerLastName: true,
       playerDateOfBirth: true,
+      playerLevelOfPlay: true,
       guardianFirstName: true,
       guardianLastName: true,
       guardianEmail: true,
@@ -327,7 +336,7 @@ const RegistrationForm = ({ event }) => {
               )}
             </div>
 
-            <div className="md:col-span-2">
+            <div>
               <label
                 htmlFor="playerDateOfBirth"
                 className="block text-sm font-medium text-neutral-light mb-2"
@@ -349,6 +358,42 @@ const RegistrationForm = ({ event }) => {
               />
               {touched.playerDateOfBirth && errors.playerDateOfBirth && (
                 <p className="text-red-400 text-sm mt-1">{errors.playerDateOfBirth}</p>
+              )}
+            </div>
+
+            <div>
+              <label
+                htmlFor="playerLevelOfPlay"
+                className="block text-sm font-medium text-neutral-light mb-2"
+              >
+                Level of Play *
+              </label>
+              <Select
+                id="playerLevelOfPlay"
+                name="playerLevelOfPlay"
+                value={formData.playerLevelOfPlay}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                error={touched.playerLevelOfPlay && errors.playerLevelOfPlay}
+                placeholder="Select level of play"
+                options={[
+                  { value: 'Mini Mite/U6: Ages 5-6', label: 'Mini Mite/U6: Ages 5-6' },
+                  { value: 'Mite/U8: Ages 7-8', label: 'Mite/U8: Ages 7-8' },
+                  { value: 'Squirt/U10: Ages 9-10', label: 'Squirt/U10: Ages 9-10' },
+                  { value: 'PeeWee/U12: Ages 11-12', label: 'PeeWee/U12: Ages 11-12' },
+                  { value: 'Bantam/U14: Ages 13-14', label: 'Bantam/U14: Ages 13-14' },
+                  {
+                    value: 'Midget U16 (Minor Midget): Ages 15-16',
+                    label: 'Midget U16 (Minor Midget): Ages 15-16',
+                  },
+                  {
+                    value: 'Midget U18 (Major Midget): Ages 15-18',
+                    label: 'Midget U18 (Major Midget): Ages 15-18',
+                  },
+                ]}
+              />
+              {touched.playerLevelOfPlay && errors.playerLevelOfPlay && (
+                <p className="text-red-400 text-sm mt-1">{errors.playerLevelOfPlay}</p>
               )}
             </div>
           </div>
@@ -486,17 +531,18 @@ const RegistrationForm = ({ event }) => {
               >
                 Relationship to Player *
               </label>
-              <select
+              <Select
                 id="guardianRelationship"
                 name="guardianRelationship"
                 value={formData.guardianRelationship}
                 onChange={handleChange}
-                className="w-full px-4 py-2 bg-neutral-bg border border-neutral-dark rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors"
-              >
-                <option value="Parent">Parent</option>
-                <option value="Guardian">Guardian</option>
-                <option value="Other">Other</option>
-              </select>
+                placeholder="Select relationship"
+                options={[
+                  { value: 'Parent', label: 'Parent' },
+                  { value: 'Guardian', label: 'Guardian' },
+                  { value: 'Other', label: 'Other' },
+                ]}
+              />
             </div>
           </div>
         </div>

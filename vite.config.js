@@ -22,6 +22,7 @@ export default defineConfig({
     host: '127.0.0.1',
   },
   resolve: {
+    extensions: ['.js', '.jsx', '.json'],
     alias: {
       '@': '/src',
       '@components': '/src/components',

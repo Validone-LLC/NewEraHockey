@@ -129,6 +129,7 @@ exports.handler = async (event, context) => {
         playerLastName: formData.playerLastName,
         playerDateOfBirth: formData.playerDateOfBirth,
         playerAge: formData.playerAge || '',
+        playerLevelOfPlay: formData.playerLevelOfPlay || '',
 
         // Guardian information
         guardianFirstName: formData.guardianFirstName,
