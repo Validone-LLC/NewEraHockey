@@ -191,7 +191,7 @@ const TrainingSchedule = () => {
       </section>
 
       {/* Controls */}
-      <section className="section-container">
+      <section className="section-container pt-0">
         <div className="flex flex-col lg:flex-row gap-4 justify-between items-center mb-8">
           {/* Event Type Toggle */}
           <div className="flex gap-2 bg-primary rounded-lg p-1 border border-neutral-dark">

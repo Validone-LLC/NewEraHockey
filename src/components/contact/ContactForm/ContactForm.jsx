@@ -9,6 +9,7 @@ import Modal from '@components/common/Modal/Modal';
 const ContactForm = ({ initialMessage = '' }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState('');
+  const [widgetId, setWidgetId] = useState(null);
   const turnstileRef = useRef(null);
   const [modalState, setModalState] = useState({
     isOpen: false,
@@ -19,20 +20,74 @@ const ContactForm = ({ initialMessage = '' }) => {
 
   // Load Turnstile script and setup callback
   useEffect(() => {
+    let currentWidgetId = null;
+
     // Define callback for Turnstile success
     window.onTurnstileSuccess = token => {
       setTurnstileToken(token);
     };
 
-    const script = document.createElement('script');
-    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
-    script.async = true;
-    script.defer = true;
-    document.head.appendChild(script);
+    // Render widget helper function
+    const renderWidget = () => {
+      if (!window.turnstile || !turnstileRef.current) return;
 
+      // Clean up any existing widget first
+      if (currentWidgetId !== null) {
+        try {
+          window.turnstile.remove(currentWidgetId);
+        } catch (e) {
+          // Widget may not exist, ignore
+        }
+      }
+
+      // Clear the container to ensure clean state
+      if (turnstileRef.current) {
+        turnstileRef.current.innerHTML = '';
+      }
+
+      // Render fresh widget
+      try {
+        const id = window.turnstile.render(turnstileRef.current, {
+          sitekey: import.meta.env.VITE_TURNSTILE_SITE_KEY,
+          callback: 'onTurnstileSuccess',
+          theme: 'dark',
+        });
+        currentWidgetId = id;
+        setWidgetId(id);
+      } catch (error) {
+        console.error('Turnstile render error:', error);
+      }
+    };
+
+    // Check if Turnstile script already loaded
+    const existingScript = document.querySelector('script[src*="turnstile"]');
+
+    if (existingScript) {
+      // Script already exists, just render widget if API is ready
+      if (window.turnstile) {
+        renderWidget();
+      } else {
+        // Wait for existing script to load
+        existingScript.addEventListener('load', renderWidget);
+      }
+    } else {
+      // Load script for first time
+      const script = document.createElement('script');
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+      script.async = true;
+      script.defer = true;
+      script.onload = renderWidget;
+      document.head.appendChild(script);
+    }
+
+    // Cleanup on unmount
     return () => {
-      if (document.head.contains(script)) {
-        document.head.removeChild(script);
+      if (currentWidgetId !== null && window.turnstile) {
+        try {
+          window.turnstile.remove(currentWidgetId);
+        } catch (e) {
+          // Widget may already be removed, ignore
+        }
       }
       delete window.onTurnstileSuccess;
     };
@@ -123,8 +178,8 @@ const ContactForm = ({ initialMessage = '' }) => {
         resetForm();
         setTurnstileToken('');
         // Reset Turnstile widget
-        if (window.turnstile && turnstileRef.current) {
-          window.turnstile.reset(turnstileRef.current);
+        if (window.turnstile && widgetId !== null) {
+          window.turnstile.reset(widgetId);
         }
       } catch (error) {
         console.error('Contact form error:', error);
@@ -263,13 +318,7 @@ const ContactForm = ({ initialMessage = '' }) => {
 
       {/* Turnstile CAPTCHA */}
       <div>
-        <div
-          ref={turnstileRef}
-          className="cf-turnstile"
-          data-sitekey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
-          data-callback="onTurnstileSuccess"
-          data-theme="dark"
-        />
+        <div ref={turnstileRef} />
       </div>
 
       {/* Submit Button */}
