@@ -37,7 +37,7 @@ export const categorizeEvent = event => {
   const title = (event.summary || '').toLowerCase();
 
   if (title.includes('camp')) return 'camp';
-  if (title.includes('lesson') || title.includes('training') || title.includes('session')) {
+  if (title.includes('lesson')) {
     return 'lesson';
   }
 

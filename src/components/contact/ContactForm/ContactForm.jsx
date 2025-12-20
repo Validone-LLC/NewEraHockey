@@ -20,6 +20,8 @@ const ContactForm = ({ initialMessage = '' }) => {
 
   // Load Turnstile script and setup callback
   useEffect(() => {
+    let currentWidgetId = null;
+
     // Define callback for Turnstile success
     window.onTurnstileSuccess = token => {
       setTurnstileToken(token);
@@ -27,14 +29,36 @@ const ContactForm = ({ initialMessage = '' }) => {
 
     // Render widget helper function
     const renderWidget = () => {
-      // Check if widget already rendered in DOM (prevents double-render in Strict Mode)
-      if (window.turnstile && turnstileRef.current && turnstileRef.current.children.length === 0) {
-        const id = window.turnstile.render(turnstileRef.current, {
-          sitekey: import.meta.env.VITE_TURNSTILE_SITE_KEY,
-          callback: 'onTurnstileSuccess',
-          theme: 'dark',
-        });
-        setWidgetId(id);
+      if (!window.turnstile || !turnstileRef.current) return;
+
+      // Clean up any existing widget first
+      if (currentWidgetId !== null) {
+        try {
+          window.turnstile.remove(currentWidgetId);
+        } catch (e) {
+          // Widget may not exist, ignore
+        }
+      }
+
+      // Clear the container to ensure clean state
+      if (turnstileRef.current) {
+        turnstileRef.current.innerHTML = '';
+      }
+
+      // Render fresh widget
+      try {
+        // Check if widget already rendered in DOM (prevents double-render in Strict Mode)
+        if (turnstileRef.current.children.length === 0) {
+          const id = window.turnstile.render(turnstileRef.current, {
+            sitekey: import.meta.env.VITE_TURNSTILE_SITE_KEY,
+            callback: 'onTurnstileSuccess',
+            theme: 'dark',
+          });
+          currentWidgetId = id;
+          setWidgetId(id);
+        }
+      } catch (error) {
+        console.error('Turnstile render error:', error);
       }
     };
 
@@ -59,7 +83,15 @@ const ContactForm = ({ initialMessage = '' }) => {
       document.head.appendChild(script);
     }
 
+    // Cleanup on unmount
     return () => {
+      if (currentWidgetId !== null && window.turnstile) {
+        try {
+          window.turnstile.remove(currentWidgetId);
+        } catch (e) {
+          // Widget may already be removed, ignore
+        }
+      }
       delete window.onTurnstileSuccess;
     };
   }, []);

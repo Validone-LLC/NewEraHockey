@@ -190,7 +190,7 @@ function categorizeEvent(event) {
   // Method 3: Keyword detection in title
   const title = (event.summary || '').toLowerCase();
   if (title.includes('camp')) return 'camp';
-  if (title.includes('lesson') || title.includes('training')) return 'lesson';
+  if (title.includes('lesson')) return 'lesson';
 
   return 'other';
 }

@@ -59,6 +59,7 @@ Desktop.ini
 .cache/
 .temp/
 docs/todo.md
+todo.md
 
 # Playwright MCP
 .playwright-mcp/
