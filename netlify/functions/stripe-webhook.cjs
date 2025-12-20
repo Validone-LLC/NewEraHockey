@@ -62,6 +62,7 @@ exports.handler = async (event, context) => {
           playerLastName,
           playerDateOfBirth,
           playerAge,
+          playerLevelOfPlay,
           guardianFirstName,
           guardianLastName,
           guardianEmail,
@@ -123,6 +124,7 @@ exports.handler = async (event, context) => {
             playerLastName,
             playerAge,
             playerDateOfBirth,
+            playerLevelOfPlay,
             emergencyContactName: emergencyName,
             emergencyContactPhone: emergencyPhone,
             emergencyContactRelationship: emergencyRelationship,
@@ -208,6 +210,7 @@ async function sendRegistrationEmails(data) {
     playerLastName,
     playerAge,
     playerDateOfBirth,
+    playerLevelOfPlay,
     emergencyContactName,
     emergencyContactPhone,
     emergencyContactRelationship,
@@ -257,6 +260,7 @@ async function sendRegistrationEmails(data) {
                 <p><strong>Name:</strong> ${playerFirstName} ${playerLastName}</p>
                 <p><strong>Date of Birth:</strong> ${formattedDOB}</p>
                 <p><strong>Age:</strong> ${displayAge}</p>
+                <p><strong>Level of Play:</strong> ${playerLevelOfPlay || 'N/A'}</p>
               </div>
 
               <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">

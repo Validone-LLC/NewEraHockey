@@ -47,6 +47,8 @@ const ContactForm = ({ initialMessage = '' }) => {
 
       // Render fresh widget
       try {
+      // Check if widget already rendered in DOM (prevents double-render in Strict Mode)
+      if (window.turnstile && turnstileRef.current && turnstileRef.current.children.length === 0) {
         const id = window.turnstile.render(turnstileRef.current, {
           sitekey: import.meta.env.VITE_TURNSTILE_SITE_KEY,
           callback: 'onTurnstileSuccess',
@@ -56,6 +58,13 @@ const ContactForm = ({ initialMessage = '' }) => {
         setWidgetId(id);
       } catch (error) {
         console.error('Turnstile render error:', error);
+      }
+    };
+
+    // Check if Turnstile script already loaded
+    const existingScript = document.querySelector('script[src*="turnstile"]');
+
+        setWidgetId(id);
       }
     };
 
@@ -89,6 +98,17 @@ const ContactForm = ({ initialMessage = '' }) => {
           // Widget may already be removed, ignore
         }
       }
+    } else {
+      // Load script for first time
+      const script = document.createElement('script');
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+      script.async = true;
+      script.defer = true;
+      script.onload = renderWidget;
+      document.head.appendChild(script);
+    }
+
+    return () => {
       delete window.onTurnstileSuccess;
     };
   }, []);
