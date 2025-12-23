@@ -1,5 +1,6 @@
 const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
+const { escapeHtml } = require('./lib/htmlUtils.cjs');
 
 // Initialize AWS SES
 const ses = new AWS.SES({
@@ -234,15 +235,21 @@ exports.handler = async event => {
 
     console.log(`Sending admin notification to: ${adminEmail}`);
 
+    // Escape user-provided data for safe HTML insertion
+    const safeName = escapeHtml(name);
+    const safeEmail = escapeHtml(email);
+    const safePhone = escapeHtml(phone);
+    const safeMessage = escapeHtml(message);
+
     const adminEmailParams = {
       Source: process.env.SES_FROM_EMAIL || 'noreply@newerahockeytraining.com',
       Destination: {
         ToAddresses: [adminEmail],
       },
-      ReplyToAddresses: [email],
+      ReplyToAddresses: [email], // Use original email for reply-to
       Message: {
         Subject: {
-          Data: `New Contact Form Submission from ${name}`,
+          Data: `New Contact Form Submission from ${safeName}`,
         },
         Body: {
           Html: {
@@ -251,21 +258,21 @@ exports.handler = async event => {
                 <h2 style="color: #14b8a6;">New Contact Form Submission</h2>
 
                 <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                  <p><strong>Name:</strong> ${name}</p>
-                  <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
-                  <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
+                  <p><strong>Name:</strong> ${safeName}</p>
+                  <p><strong>Email:</strong> <a href="mailto:${safeEmail}">${safeEmail}</a></p>
+                  <p><strong>Phone:</strong> ${safePhone || 'Not provided'}</p>
                 </div>
 
                 <h3 style="color: #333;">Message:</h3>
                 <div style="background-color: #fff; padding: 15px; border-left: 4px solid #14b8a6; margin: 20px 0;">
-                  <p style="white-space: pre-wrap;">${message}</p>
+                  <p style="white-space: pre-wrap;">${safeMessage}</p>
                 </div>
 
                 <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
 
                 <p style="font-size: 12px; color: #666;">
                   <strong>Action Required:</strong> Please respond to this inquiry within 24-48 hours.<br>
-                  You can reply directly to this email to reach ${name}.
+                  You can reply directly to this email to reach ${safeName}.
                 </p>
               </div>
             `,
@@ -278,7 +285,7 @@ exports.handler = async event => {
     const userEmailParams = {
       Source: process.env.SES_FROM_EMAIL || 'noreply@newerahockeytraining.com',
       Destination: {
-        ToAddresses: [email],
+        ToAddresses: [email], // Use original email for sending
       },
       Message: {
         Subject: {
@@ -288,7 +295,7 @@ exports.handler = async event => {
           Html: {
             Data: `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #14b8a6;">Hi ${name},</h2>
+                <h2 style="color: #14b8a6;">Hi ${safeName},</h2>
 
                 <p style="font-size: 16px; line-height: 1.6;">
                   Thank you for reaching out to New Era Hockey! We've received your message and will get back to you within 24-48 hours.
@@ -296,7 +303,7 @@ exports.handler = async event => {
 
                 <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
                   <h3 style="color: #333; margin-top: 0;">Your Message:</h3>
-                  <p style="white-space: pre-wrap; color: #666;">${message}</p>
+                  <p style="white-space: pre-wrap; color: #666;">${safeMessage}</p>
                 </div>
 
                 <p style="font-size: 16px; line-height: 1.6;">
@@ -306,7 +313,7 @@ exports.handler = async event => {
                 <br>
                 <p style="font-size: 16px;">
                   Best regards,<br>
-                  <strong>Coach Will & The New Era Hockey Team</strong>
+                  <strong>Coach Will &amp; The New Era Hockey Team</strong>
                 </p>
 
                 <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HiChevronDown } from 'react-icons/hi';
+import { ChevronDown } from 'lucide-react';
 import { faqs } from '@data/faqs';
 
 const FAQ = () => {
@@ -22,7 +22,7 @@ const FAQ = () => {
               animate={{ rotate: openIndex === index ? 180 : 0 }}
               transition={{ duration: 0.3 }}
             >
-              <HiChevronDown className="w-5 h-5 text-teal-500 flex-shrink-0" />
+              <ChevronDown className="w-5 h-5 text-teal-500 flex-shrink-0" />
             </motion.div>
           </button>
 

@@ -1,6 +1,6 @@
 // SEO metadata configuration for all routes
 const BASE_URL = 'https://newerahockeytraining.com';
-const DEFAULT_IMAGE = `${BASE_URL}/assets/og-image.jpg`; // TODO: Create default OG image
+const DEFAULT_IMAGE = `${BASE_URL}/assets/images/logo/neh-logo.png`;
 
 export const seoConfig = {
   default: {

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { HiMail, HiPhone } from 'react-icons/hi';
+import { Mail, Phone } from 'lucide-react';
 import { FaInstagram } from 'react-icons/fa';
 
 const Footer = () => {
@@ -59,14 +59,14 @@ const Footer = () => {
                 href="mailto:coachwill@newerahockeytraining.com"
                 className="flex items-center gap-2 text-neutral-text hover:text-white transition-colors text-sm"
               >
-                <HiMail className="w-5 h-5 text-teal-400" />
+                <Mail className="w-5 h-5 text-teal-400" />
                 coachwill@newerahockeytraining.com
               </a>
               <a
                 href="tel:+15712744691"
                 className="flex items-center gap-2 text-neutral-text hover:text-white transition-colors text-sm"
               >
-                <HiPhone className="w-5 h-5 text-teal-500" />
+                <Phone className="w-5 h-5 text-teal-500" />
                 (571) 274-4691
               </a>
               <a

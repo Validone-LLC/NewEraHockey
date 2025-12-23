@@ -12,6 +12,7 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const AWS = require('aws-sdk');
 const { addRegistration } = require('./lib/registrationStore.cjs');
+const { escapeHtml, formatDate, calculateAge } = require('./lib/htmlUtils.cjs');
 
 // Initialize AWS SES for email notifications
 const ses = new AWS.SES({
@@ -58,11 +59,25 @@ exports.handler = async (event, context) => {
           eventId,
           eventType,
           eventSummary,
+          playerCount,
+          totalPrice,
+          // At Home Training specific
+          slotDate,
+          slotTime,
+          playersData, // JSON string for multi-player
+          addressStreet,
+          addressUnit,
+          addressCity,
+          addressState,
+          addressZip,
+          addressCountry,
+          // Single player (backwards compatible)
           playerFirstName,
           playerLastName,
           playerDateOfBirth,
           playerAge,
           playerLevelOfPlay,
+          // Guardian & emergency
           guardianFirstName,
           guardianLastName,
           guardianEmail,
@@ -80,6 +95,10 @@ exports.handler = async (event, context) => {
           console.log('Session metadata:', session.metadata);
           break;
         }
+
+        // Parse players data for At Home Training
+        const isAtHomeTraining = eventType === 'at_home_training';
+        const players = isAtHomeTraining && playersData ? JSON.parse(playersData) : null;
 
         // Add registration to blob storage
         const registrationData = await addRegistration(
@@ -110,21 +129,87 @@ exports.handler = async (event, context) => {
           isSoldOut: registrationData.currentRegistrations >= registrationData.maxCapacity,
         });
 
+        // For At Home Training: Update calendar (color change, add booking details, delete paired slot)
+        if (isAtHomeTraining) {
+          try {
+            const calendarUpdateUrl =
+              process.env.DEPLOY_URL || process.env.URL || 'http://localhost:8888';
+            const calendarFunctionUrl = `${calendarUpdateUrl}/.netlify/functions/calendar-update-event`;
+
+            // Reconstruct formData for calendar update
+            const formDataForCalendar = {
+              players,
+              guardianFirstName,
+              guardianLastName,
+              guardianEmail,
+              guardianPhone,
+              guardianRelationship,
+              addressStreet,
+              addressUnit,
+              addressCity,
+              addressState,
+              addressZip,
+              addressCountry,
+              emergencyName,
+              emergencyPhone,
+              emergencyRelationship,
+              medicalNotes,
+            };
+
+            const calendarResponse = await fetch(calendarFunctionUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                eventId,
+                formData: formDataForCalendar,
+                eventType,
+                slotDate,
+                slotTime,
+              }),
+            });
+
+            if (!calendarResponse.ok) {
+              const errorText = await calendarResponse.text();
+              console.error('Calendar update failed:', calendarResponse.status, errorText);
+            } else {
+              const calendarResult = await calendarResponse.json();
+              console.log('Calendar updated successfully:', calendarResult);
+            }
+          } catch (calendarError) {
+            console.error('Failed to update calendar (non-blocking):', calendarError.message);
+          }
+        }
+
         // Send confirmation emails
         try {
           await sendRegistrationEmails({
             eventSummary,
             eventId,
+            eventType,
             guardianEmail,
             guardianFirstName,
             guardianLastName,
             guardianPhone,
             guardianRelationship,
+            // Single player (camps/lessons)
             playerFirstName,
             playerLastName,
             playerAge,
             playerDateOfBirth,
             playerLevelOfPlay,
+            // Multi-player (at home training)
+            players,
+            playerCount: playerCount ? parseInt(playerCount) : 1,
+            // At Home Training address
+            addressStreet,
+            addressUnit,
+            addressCity,
+            addressState,
+            addressZip,
+            addressCountry,
+            slotDate,
+            slotTime,
+            // Emergency & medical
             emergencyContactName: emergencyName,
             emergencyContactPhone: emergencyPhone,
             emergencyContactRelationship: emergencyRelationship,
@@ -163,54 +248,38 @@ exports.handler = async (event, context) => {
 };
 
 /**
- * Calculate age from date of birth
- * @param {string} dateOfBirth - Date in YYYY-MM-DD format
- * @returns {number} Age in years
- */
-function calculateAge(dateOfBirth) {
-  if (!dateOfBirth) return null;
-  const today = new Date();
-  const birthDate = new Date(dateOfBirth);
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const monthDiff = today.getMonth() - birthDate.getMonth();
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-    age--;
-  }
-  return age;
-}
-
-/**
- * Format date from YYYY-MM-DD to MM/DD/YYYY
- * @param {string} dateString - Date in YYYY-MM-DD format
- * @returns {string} Date in MM/DD/YYYY format or original string if invalid
- */
-function formatDate(dateString) {
-  if (!dateString) return 'N/A';
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return dateString; // Return original if invalid
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const year = date.getFullYear();
-  return `${month}/${day}/${year}`;
-}
-
-/**
  * Send registration confirmation emails to both admin and guardian
+ * All user-provided data is escaped to prevent XSS attacks
  */
 async function sendRegistrationEmails(data) {
   const {
     eventSummary,
     eventId,
+    eventType,
     guardianEmail,
     guardianFirstName,
     guardianLastName,
     guardianPhone,
     guardianRelationship,
+    // Single player
     playerFirstName,
     playerLastName,
     playerAge,
     playerDateOfBirth,
     playerLevelOfPlay,
+    // Multi-player
+    players,
+    playerCount,
+    // At Home Training
+    addressStreet,
+    addressUnit,
+    addressCity,
+    addressState,
+    addressZip,
+    addressCountry,
+    slotDate,
+    slotTime,
+    // Emergency & medical
     emergencyContactName,
     emergencyContactPhone,
     emergencyContactRelationship,
@@ -218,12 +287,42 @@ async function sendRegistrationEmails(data) {
     amountPaid,
   } = data;
 
+  // Escape all user-provided strings for safe HTML insertion
+  const safe = {
+    eventSummary: escapeHtml(eventSummary),
+    eventId: escapeHtml(eventId),
+    guardianEmail: escapeHtml(guardianEmail),
+    guardianFirstName: escapeHtml(guardianFirstName),
+    guardianLastName: escapeHtml(guardianLastName),
+    guardianPhone: escapeHtml(guardianPhone),
+    guardianRelationship: escapeHtml(guardianRelationship),
+    playerFirstName: escapeHtml(playerFirstName),
+    playerLastName: escapeHtml(playerLastName),
+    playerAge: escapeHtml(playerAge),
+    playerLevelOfPlay: escapeHtml(playerLevelOfPlay),
+    addressStreet: escapeHtml(addressStreet),
+    addressUnit: escapeHtml(addressUnit),
+    addressCity: escapeHtml(addressCity),
+    addressState: escapeHtml(addressState),
+    addressZip: escapeHtml(addressZip),
+    addressCountry: escapeHtml(addressCountry),
+    slotTime: escapeHtml(slotTime),
+    emergencyContactName: escapeHtml(emergencyContactName),
+    emergencyContactPhone: escapeHtml(emergencyContactPhone),
+    emergencyContactRelationship: escapeHtml(emergencyContactRelationship),
+    medicalNotes: escapeHtml(medicalNotes),
+  };
+
+  const isAtHomeTraining = eventType === 'at_home_training';
+  const hasMultiplePlayers = players && players.length > 0;
+
   // Calculate age from DOB if available, otherwise use provided age
   const calculatedAge = calculateAge(playerDateOfBirth);
-  const displayAge = calculatedAge !== null ? calculatedAge : (playerAge || 'N/A');
+  const displayAge = calculatedAge !== null ? calculatedAge : (safe.playerAge || 'N/A');
 
   // Format date for display
   const formattedDOB = formatDate(playerDateOfBirth);
+  const formattedSlotDate = formatDate(slotDate);
 
   const adminEmail = process.env.ADMIN_EMAIL;
   const fromEmail = process.env.SES_FROM_EMAIL || 'noreply@newerahockeytraining.com';
@@ -231,6 +330,16 @@ async function sendRegistrationEmails(data) {
   if (!adminEmail) {
     throw new Error('ADMIN_EMAIL environment variable not configured');
   }
+
+  // Escape player data for multi-player scenarios
+  const safePlayers = hasMultiplePlayers
+    ? players.map(p => ({
+        firstName: escapeHtml(p.firstName),
+        lastName: escapeHtml(p.lastName),
+        dateOfBirth: p.dateOfBirth,
+        levelOfPlay: escapeHtml(p.levelOfPlay),
+      }))
+    : [];
 
   // Admin notification email
   const adminEmailParams = {
@@ -240,7 +349,7 @@ async function sendRegistrationEmails(data) {
     },
     Message: {
       Subject: {
-        Data: `New Registration: ${eventSummary}`,
+        Data: `New Registration: ${safe.eventSummary}`,
       },
       Body: {
         Html: {
@@ -250,38 +359,72 @@ async function sendRegistrationEmails(data) {
 
               <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
                 <h3 style="color: #333; margin-top: 0;">Event Details</h3>
-                <p><strong>Event:</strong> ${eventSummary}</p>
-                <p><strong>Event ID:</strong> ${eventId}</p>
+                <p><strong>Event:</strong> ${safe.eventSummary}</p>
+                <p><strong>Event ID:</strong> ${safe.eventId}</p>
                 <p><strong>Amount Paid:</strong> $${amountPaid.toFixed(2)}</p>
               </div>
 
               <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
                 <h3 style="color: #333; margin-top: 0;">Player Information</h3>
-                <p><strong>Name:</strong> ${playerFirstName} ${playerLastName}</p>
-                <p><strong>Date of Birth:</strong> ${formattedDOB}</p>
-                <p><strong>Age:</strong> ${displayAge}</p>
-                <p><strong>Level of Play:</strong> ${playerLevelOfPlay || 'N/A'}</p>
+                ${
+                  hasMultiplePlayers
+                    ? safePlayers
+                        .map(
+                          (player, idx) => `
+                    <div style="margin-bottom: ${idx < safePlayers.length - 1 ? '15px' : '0'}; ${idx > 0 ? 'padding-top: 15px; border-top: 1px solid #ddd;' : ''}">
+                      <p><strong>Player ${idx + 1}:</strong> ${player.firstName} ${player.lastName}</p>
+                      <p><strong>Date of Birth:</strong> ${formatDate(player.dateOfBirth)}</p>
+                      <p><strong>Age:</strong> ${calculateAge(player.dateOfBirth) || 'N/A'}</p>
+                      <p><strong>Level of Play:</strong> ${player.levelOfPlay || 'N/A'}</p>
+                    </div>
+                  `
+                        )
+                        .join('')
+                    : `
+                    <p><strong>Name:</strong> ${safe.playerFirstName} ${safe.playerLastName}</p>
+                    <p><strong>Date of Birth:</strong> ${formattedDOB}</p>
+                    <p><strong>Age:</strong> ${displayAge}</p>
+                    <p><strong>Level of Play:</strong> ${safe.playerLevelOfPlay || 'N/A'}</p>
+                  `
+                }
               </div>
 
               <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
                 <h3 style="color: #333; margin-top: 0;">Guardian Information</h3>
-                <p><strong>Name:</strong> ${guardianFirstName} ${guardianLastName}</p>
-                <p><strong>Email:</strong> <a href="mailto:${guardianEmail}">${guardianEmail}</a></p>
-                <p><strong>Phone:</strong> ${guardianPhone || 'N/A'}</p>
-                <p><strong>Relationship to Player:</strong> ${guardianRelationship || 'N/A'}</p>
+                <p><strong>Name:</strong> ${safe.guardianFirstName} ${safe.guardianLastName}</p>
+                <p><strong>Email:</strong> <a href="mailto:${safe.guardianEmail}">${safe.guardianEmail}</a></p>
+                <p><strong>Phone:</strong> ${safe.guardianPhone || 'N/A'}</p>
+                <p><strong>Relationship to Player:</strong> ${safe.guardianRelationship || 'N/A'}</p>
               </div>
+
+              ${
+                isAtHomeTraining && safe.addressStreet
+                  ? `
+              <div style="background-color: #fff; padding: 15px; border-left: 4px solid #f97316; margin: 20px 0;">
+                <h3 style="color: #333; margin-top: 0;">Training Address</h3>
+                <p><strong>Street:</strong> ${safe.addressStreet}${safe.addressUnit ? ' ' + safe.addressUnit : ''}</p>
+                <p><strong>City:</strong> ${safe.addressCity || 'N/A'}</p>
+                <p><strong>State:</strong> ${safe.addressState || 'N/A'}</p>
+                <p><strong>ZIP:</strong> ${safe.addressZip || 'N/A'}</p>
+                <p><strong>Country:</strong> ${safe.addressCountry || 'USA'}</p>
+                ${slotDate ? `<p><strong>Date:</strong> ${formattedSlotDate}</p>` : ''}
+                ${safe.slotTime ? `<p><strong>Time:</strong> ${safe.slotTime}</p>` : ''}
+              </div>
+              `
+                  : ''
+              }
 
               <div style="background-color: #fff; padding: 15px; border-left: 4px solid #14b8a6; margin: 20px 0;">
                 <h3 style="color: #333; margin-top: 0;">Emergency Contact</h3>
-                <p><strong>Name:</strong> ${emergencyContactName || 'N/A'}</p>
-                <p><strong>Phone:</strong> ${emergencyContactPhone || 'N/A'}</p>
-                <p><strong>Relationship to Player:</strong> ${emergencyContactRelationship || 'N/A'}</p>
+                <p><strong>Name:</strong> ${safe.emergencyContactName || 'N/A'}</p>
+                <p><strong>Phone:</strong> ${safe.emergencyContactPhone || 'N/A'}</p>
+                <p><strong>Relationship to Player:</strong> ${safe.emergencyContactRelationship || 'N/A'}</p>
               </div>
 
-              ${medicalNotes ? `
+              ${safe.medicalNotes ? `
                 <div style="background-color: #fff3cd; padding: 15px; border-left: 4px solid #ffc107; margin: 20px 0;">
                   <h3 style="color: #856404; margin-top: 0;">Medical Notes</h3>
-                  <p style="color: #856404; white-space: pre-wrap;">${medicalNotes}</p>
+                  <p style="color: #856404; white-space: pre-wrap;">${safe.medicalNotes}</p>
                 </div>
               ` : ''}
 
@@ -301,11 +444,11 @@ async function sendRegistrationEmails(data) {
   const userEmailParams = {
     Source: fromEmail,
     Destination: {
-      ToAddresses: [guardianEmail],
+      ToAddresses: [guardianEmail], // Use original email for sending
     },
     Message: {
       Subject: {
-        Data: `Registration Confirmed: ${eventSummary}`,
+        Data: `Registration Confirmed: ${safe.eventSummary}`,
       },
       Body: {
         Html: {
@@ -314,27 +457,51 @@ async function sendRegistrationEmails(data) {
               <h2 style="color: #14b8a6;">Registration Confirmed!</h2>
 
               <p style="font-size: 16px; line-height: 1.6;">
-                Hi ${guardianFirstName},
+                Hi ${safe.guardianFirstName},
               </p>
 
               <p style="font-size: 16px; line-height: 1.6;">
-                Thank you for registering ${playerFirstName} ${playerLastName} for <strong>${eventSummary}</strong>!
-                We're excited to have them join us on the ice.
+                Thank you for registering ${
+                  hasMultiplePlayers
+                    ? `${playerCount} player${playerCount > 1 ? 's' : ''}`
+                    : `${safe.playerFirstName} ${safe.playerLastName}`
+                } for <strong>${safe.eventSummary}</strong>!
+                We're excited to have them join us ${isAtHomeTraining ? 'for at-home training' : 'on the ice'}.
               </p>
 
               <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
                 <h3 style="color: #333; margin-top: 0;">Registration Summary</h3>
-                <p><strong>Player:</strong> ${playerFirstName} ${playerLastName}</p>
-                <p><strong>Age:</strong> ${displayAge}</p>
-                <p><strong>Event:</strong> ${eventSummary}</p>
+                ${
+                  hasMultiplePlayers
+                    ? `<p><strong>Players:</strong></p>
+                       <ul style="margin: 10px 0; padding-left: 20px;">
+                         ${safePlayers.map(p => `<li>${p.firstName} ${p.lastName} (Age ${calculateAge(p.dateOfBirth) || 'N/A'})</li>`).join('')}
+                       </ul>`
+                    : `<p><strong>Player:</strong> ${safe.playerFirstName} ${safe.playerLastName}</p>
+                       <p><strong>Age:</strong> ${displayAge}</p>`
+                }
+                <p><strong>Event:</strong> ${safe.eventSummary}</p>
+                ${isAtHomeTraining && slotDate ? `<p><strong>Date:</strong> ${formattedSlotDate}</p>` : ''}
+                ${isAtHomeTraining && safe.slotTime ? `<p><strong>Time:</strong> ${safe.slotTime}</p>` : ''}
+                ${isAtHomeTraining && safe.addressStreet ? `<p><strong>Location:</strong> ${safe.addressStreet}, ${safe.addressCity}, ${safe.addressState}</p>` : ''}
                 <p><strong>Amount Paid:</strong> $${amountPaid.toFixed(2)}</p>
               </div>
 
               <div style="background-color: #e0f2f1; padding: 20px; border-radius: 8px; margin: 20px 0;">
                 <h3 style="color: #00695c; margin-top: 0;">What's Next?</h3>
                 <ul style="color: #00695c; line-height: 1.8;">
-                  <li>Please arrive 15 minutes early before ice-time</li>
-                  <li>Bring all necessary hockey equipment</li>
+                  ${
+                    isAtHomeTraining
+                      ? `
+                    <li>Coach Will will arrive at your address on ${slotDate ? formattedSlotDate : 'the scheduled date'} at ${safe.slotTime || 'the scheduled time'}</li>
+                    <li>Have all players ready with their hockey equipment</li>
+                    <li>Ensure training area is clear and ready for the session</li>
+                  `
+                      : `
+                    <li>Please arrive 15 minutes early before ice-time</li>
+                    <li>Bring all necessary hockey equipment</li>
+                  `
+                  }
                 </ul>
               </div>
 
@@ -345,7 +512,7 @@ async function sendRegistrationEmails(data) {
               <br>
               <p style="font-size: 16px;">
                 Best regards,<br>
-                <strong>Coach Will & The New Era Hockey Team</strong>
+                <strong>Coach Will &amp; The New Era Hockey Team</strong>
               </p>
 
               <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">

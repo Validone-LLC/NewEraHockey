@@ -5,6 +5,7 @@ import { enUS } from 'date-fns/locale';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import './EventCalendar.css';
 import EventModal from '../EventModal/EventModal';
+import { COLOR_TO_EVENT_TYPE, EVENT_TYPES, CALENDAR_DISPLAY_COLORS } from '@/config/constants';
 
 // Setup date-fns localizer for react-big-calendar
 const locales = {
@@ -19,7 +20,7 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
-const EventCalendar = ({ events, eventType }) => {
+const EventCalendar = ({ events, eventType, currentMonth, onMonthChange }) => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -45,10 +46,20 @@ const EventCalendar = ({ events, eventType }) => {
     });
   }, [events]);
 
-  // Event style getter - color code by type
-  const eventStyleGetter = () => {
+  // Event style getter - color code by categorized type
+  const eventStyleGetter = event => {
+    // Determine event category from the original event data using constants
+    const eventData = event.resource;
+    const category = eventData?.colorId
+      ? COLOR_TO_EVENT_TYPE[eventData.colorId] || EVENT_TYPES.OTHER
+      : EVENT_TYPES.OTHER;
+
+    // Get display color from constants, default to lesson color
+    const backgroundColor =
+      CALENDAR_DISPLAY_COLORS[category] || CALENDAR_DISPLAY_COLORS[EVENT_TYPES.LESSON];
+
     const style = {
-      backgroundColor: eventType === 'camps' ? '#ef4444' : '#3b82f6', // red for camps, blue for lessons
+      backgroundColor,
       borderRadius: '5px',
       opacity: 0.9,
       color: 'white',
@@ -72,17 +83,26 @@ const EventCalendar = ({ events, eventType }) => {
     setSelectedEvent(null);
   };
 
+  // Handle calendar navigation (month change)
+  const handleNavigate = date => {
+    if (onMonthChange) {
+      onMonthChange(date);
+    }
+  };
+
   return (
     <>
       <div className="calendar-container">
         <Calendar
           localizer={localizer}
           events={calendarEvents}
+          date={currentMonth}
+          defaultDate={currentMonth}
           startAccessor="start"
           endAccessor="end"
-          style={{ height: 700 }}
           eventPropGetter={eventStyleGetter}
           onSelectEvent={handleSelectEvent}
+          onNavigate={handleNavigate}
           views={['month', 'week', 'day']}
           defaultView="month"
           popup

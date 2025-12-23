@@ -1,21 +1,37 @@
 import { HiX, HiCalendar, HiClock, HiLocationMarker, HiCurrencyDollar } from 'react-icons/hi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { formatEventDateTime } from '@utils/eventCategorization';
+import { formatEventDateTime, categorizeEvent } from '@utils/eventCategorization';
 import {
   getFormattedPrice,
   getRegistrationButtonText,
   canRegister,
   getEventCustomText,
 } from '@/services/calendarService';
+import { isRegistrationEnabledForEventType } from '@/config/featureFlags';
 
-const EventModal = ({ isOpen, onClose, event, eventType }) => {
+const EventModal = ({ isOpen, onClose, event }) => {
   if (!event) return null;
+
+  // Determine actual event type from event data (not the passed eventType which might be 'all')
+  const actualEventType = categorizeEvent(event); // Returns: 'camp', 'lesson', 'at_home_training', or 'other'
+  const displayEventType =
+    actualEventType === 'at_home_training'
+      ? 'at-home'
+      : actualEventType === 'camp'
+        ? 'camps'
+        : 'lessons';
 
   const { date, time } = formatEventDateTime(event);
   const buttonText = getRegistrationButtonText(event);
   const eligible = canRegister(event);
   const customText = getEventCustomText(event);
+
+  // Check if registration is enabled for this event type
+  const registrationEnabled = isRegistrationEnabledForEventType(actualEventType);
+
+  // For At Home Training, navigate to dedicated page
+  const isAtHomeTraining = actualEventType === 'at_home_training';
 
   return (
     <AnimatePresence>
@@ -34,7 +50,7 @@ const EventModal = ({ isOpen, onClose, event, eventType }) => {
           <div className="fixed inset-0 z-50 overflow-y-auto">
             <div className="flex min-h-full items-center justify-center p-4">
               <motion.div
-                className="relative bg-primary-dark border border-neutral-dark rounded-lg shadow-2xl max-w-2xl w-full"
+                className="relative bg-primary-dark border border-neutral-dark rounded-lg shadow-2xl w-full max-w-2xl"
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -43,19 +59,29 @@ const EventModal = ({ isOpen, onClose, event, eventType }) => {
                 {/* Header */}
                 <div
                   className={`px-6 py-4 border-b border-neutral-dark flex items-start justify-between ${
-                    eventType === 'camps'
+                    displayEventType === 'camps'
                       ? 'bg-gradient-to-r from-red-500/20 to-red-700/20'
-                      : 'bg-gradient-to-r from-blue-500/20 to-blue-700/20'
+                      : displayEventType === 'at-home'
+                        ? 'bg-gradient-to-r from-orange-500/20 to-orange-700/20'
+                        : 'bg-gradient-to-r from-blue-500/20 to-blue-700/20'
                   }`}
                 >
                   <div>
                     <div className="mb-2">
                       <span
                         className={`inline-block px-3 py-1 rounded-full text-sm font-semibold text-white ${
-                          eventType === 'camps' ? 'bg-red-500' : 'bg-blue-500'
+                          displayEventType === 'camps'
+                            ? 'bg-red-500'
+                            : displayEventType === 'at-home'
+                              ? 'bg-orange-500'
+                              : 'bg-blue-500'
                         }`}
                       >
-                        {eventType === 'camps' ? 'Camp' : 'Lesson'}
+                        {displayEventType === 'camps'
+                          ? 'Camp'
+                          : displayEventType === 'at-home'
+                            ? 'At Home Training'
+                            : 'Lesson'}
                       </span>
                     </div>
                     <h2 className="text-2xl font-display font-bold text-white">
@@ -85,8 +111,8 @@ const EventModal = ({ isOpen, onClose, event, eventType }) => {
                     </div>
                   </div>
 
-                  {/* Location */}
-                  {event.location && (
+                  {/* Location - Hide for At Home Training */}
+                  {event.location && !isAtHomeTraining && (
                     <div className="flex items-start gap-3 text-neutral-light">
                       <HiLocationMarker className="text-teal-500 text-xl flex-shrink-0" />
                       <span className="font-medium">{event.location}</span>
@@ -97,7 +123,7 @@ const EventModal = ({ isOpen, onClose, event, eventType }) => {
                   {event.registrationData?.price && (
                     <div className="flex items-center gap-3 text-neutral-light">
                       <HiCurrencyDollar className="text-teal-500 text-xl flex-shrink-0" />
-                      <span className="font-medium">{getFormattedPrice(event)}</span>
+                      <span className="font-medium">{getFormattedPrice(event)} per player</span>
                     </div>
                   )}
 
@@ -117,10 +143,16 @@ const EventModal = ({ isOpen, onClose, event, eventType }) => {
                   >
                     Close
                   </button>
-                  {eligible ? (
+                  {eligible && registrationEnabled ? (
                     <Link
-                      to={`/register/${event.id}`}
-                      className="px-6 py-2 bg-gradient-to-r from-teal-500 to-teal-700 text-white font-semibold rounded-lg hover:from-teal-600 hover:to-teal-800 transition-all duration-300"
+                      to={
+                        isAtHomeTraining ? `/register/at-home/${event.id}` : `/register/${event.id}`
+                      }
+                      className={`px-6 py-2 bg-gradient-to-r ${
+                        isAtHomeTraining
+                          ? 'from-orange-500 to-orange-700 hover:from-orange-600 hover:to-orange-800'
+                          : 'from-teal-500 to-teal-700 hover:from-teal-600 hover:to-teal-800'
+                      } text-white font-semibold rounded-lg transition-all duration-300`}
                     >
                       {buttonText}
                     </Link>

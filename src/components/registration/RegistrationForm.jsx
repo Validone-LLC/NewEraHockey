@@ -1,286 +1,146 @@
 import { useState } from 'react';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
 import { motion } from 'framer-motion';
-import { HiUser, HiMail, HiPhone } from 'react-icons/hi';
+import { User, Mail, Phone } from 'lucide-react';
 import Card from '@components/common/Card/Card';
 import Select from '@components/common/Select';
 import { getFormattedPrice } from '@/services/calendarService';
+import { formatPhoneNumber } from '@/utils/formatters';
+import { PLAYER_LEVEL_OPTIONS } from '@/config/constants';
+
+// Yup validation schema - single source of truth for all validation rules
+const validationSchema = Yup.object({
+  // Player Information
+  playerFirstName: Yup.string().trim().required('Player first name is required'),
+  playerLastName: Yup.string().trim().required('Player last name is required'),
+  playerDateOfBirth: Yup.date().required('Date of birth is required'),
+  playerLevelOfPlay: Yup.string().trim().required('Level of play is required'),
+
+  // Parent/Guardian Information
+  guardianFirstName: Yup.string().trim().required('Guardian first name is required'),
+  guardianLastName: Yup.string().trim().required('Guardian last name is required'),
+  guardianEmail: Yup.string().trim().email('Invalid email format').required('Email is required'),
+  guardianPhone: Yup.string()
+    .required('Phone number is required')
+    .test('valid-phone', 'Invalid phone format (e.g., (555) 555-5555)', value => {
+      if (!value) return false;
+      const phoneDigits = value.replace(/[^\d]/g, '');
+      return phoneDigits.length === 10;
+    }),
+  guardianRelationship: Yup.string().default('Parent'),
+
+  // Emergency Contact
+  emergencyName: Yup.string().trim().required('Emergency contact name is required'),
+  emergencyPhone: Yup.string()
+    .required('Emergency contact phone is required')
+    .test('valid-phone', 'Invalid phone format (e.g., (555) 555-5555)', value => {
+      if (!value) return false;
+      const phoneDigits = value.replace(/[^\d]/g, '');
+      return phoneDigits.length === 10;
+    }),
+  emergencyRelationship: Yup.string().trim().required('Emergency contact relationship is required'),
+
+  // Additional
+  medicalNotes: Yup.string(),
+  waiverAccepted: Yup.boolean()
+    .oneOf([true], 'You must accept the waiver to continue')
+    .required('You must accept the waiver to continue'),
+});
 
 const RegistrationForm = ({ event }) => {
-  const [formData, setFormData] = useState({
-    // Player Information
-    playerFirstName: '',
-    playerLastName: '',
-    playerDateOfBirth: '',
-    playerAge: '',
-    playerLevelOfPlay: '',
+  const [submitError, setSubmitError] = useState(null);
 
-    // Parent/Guardian Information
-    guardianFirstName: '',
-    guardianLastName: '',
-    guardianEmail: '',
-    guardianPhone: '',
-    guardianRelationship: 'Parent',
+  const formik = useFormik({
+    initialValues: {
+      // Player Information
+      playerFirstName: '',
+      playerLastName: '',
+      playerDateOfBirth: '',
+      playerAge: '',
+      playerLevelOfPlay: '',
 
-    // Emergency Contact
-    emergencyName: '',
-    emergencyPhone: '',
-    emergencyRelationship: '',
+      // Parent/Guardian Information
+      guardianFirstName: '',
+      guardianLastName: '',
+      guardianEmail: '',
+      guardianPhone: '',
+      guardianRelationship: 'Parent',
 
-    // Additional
-    medicalNotes: '',
-    waiverAccepted: false,
+      // Emergency Contact
+      emergencyName: '',
+      emergencyPhone: '',
+      emergencyRelationship: '',
+
+      // Additional
+      medicalNotes: '',
+      waiverAccepted: false,
+    },
+    validationSchema,
+    onSubmit: async values => {
+      setSubmitError(null);
+
+      try {
+        // Determine event type from title or color
+        const eventTitle = (event.summary || '').toLowerCase();
+        const eventType = eventTitle.includes('camp')
+          ? 'camp'
+          : eventTitle.includes('lesson') || eventTitle.includes('training')
+            ? 'lesson'
+            : 'other';
+
+        // Create Stripe Checkout session
+        const response = await fetch('/.netlify/functions/create-checkout-session', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            event: {
+              id: event.id,
+              summary: event.summary,
+              price: event.registrationData?.price,
+              eventType, // Include event type for capacity defaults
+              start: event.start,
+              end: event.end,
+              location: event.location,
+            },
+            formData: values,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || 'Failed to create checkout session');
+        }
+
+        // Redirect to Stripe Checkout
+        window.location.href = data.url;
+      } catch (error) {
+        console.error('Registration error:', error);
+        setSubmitError(error.message || 'Failed to process registration. Please try again.');
+      }
+    },
   });
 
-  const [errors, setErrors] = useState({});
-  const [touched, setTouched] = useState({});
-  const [submitting, setSubmitting] = useState(false);
+  // Helper to get field error state
+  const getFieldError = fieldName =>
+    formik.touched[fieldName] && formik.errors[fieldName] ? formik.errors[fieldName] : null;
 
-  // Phone number formatting helper
-  const formatPhoneNumber = value => {
-    if (!value) return value;
-
-    // Remove all non-numeric characters
-    const phoneNumber = value.replace(/[^\d]/g, '');
-
-    // Format as (XXX) XXX-XXXX
-    if (phoneNumber.length < 4) return phoneNumber;
-    if (phoneNumber.length < 7) {
-      return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3)}`;
-    }
-    return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`;
-  };
-
-  const handleChange = e => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
-
-    // Mark field as touched
-    setTouched(prev => ({ ...prev, [name]: true }));
-
-    // Validate field in real-time
-    validateField(name, type === 'checkbox' ? checked : value);
-  };
-
-  const handleBlur = e => {
-    const { name } = e.target;
-    // Mark field as touched on blur
-    setTouched(prev => ({ ...prev, [name]: true }));
-    // Validate field on blur
-    validateField(name, formData[name]);
-  };
-
-  const validateField = (fieldName, value) => {
-    let error = '';
-
-    switch (fieldName) {
-      case 'playerFirstName':
-        if (!value.trim()) error = 'Player first name is required';
-        break;
-      case 'playerLastName':
-        if (!value.trim()) error = 'Player last name is required';
-        break;
-      case 'playerDateOfBirth':
-        if (!value) error = 'Date of birth is required';
-        break;
-      case 'playerLevelOfPlay':
-        if (!value.trim()) error = 'Level of play is required';
-        break;
-      case 'guardianFirstName':
-        if (!value.trim()) error = 'Guardian first name is required';
-        break;
-      case 'guardianLastName':
-        if (!value.trim()) error = 'Guardian last name is required';
-        break;
-      case 'guardianEmail':
-        if (!value.trim()) {
-          error = 'Email is required';
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-          error = 'Invalid email format';
-        }
-        break;
-      case 'guardianPhone':
-        if (!value.trim()) {
-          error = 'Phone number is required';
-        } else {
-          const phoneDigits = value.replace(/[^\d]/g, '');
-          if (phoneDigits.length !== 10) {
-            error = 'Invalid phone format (e.g., (555) 555-5555)';
-          }
-        }
-        break;
-      case 'emergencyName':
-        if (!value.trim()) error = 'Emergency contact name is required';
-        break;
-      case 'emergencyPhone':
-        if (!value.trim()) {
-          error = 'Emergency contact phone is required';
-        } else {
-          const phoneDigits = value.replace(/[^\d]/g, '');
-          if (phoneDigits.length !== 10) {
-            error = 'Invalid phone format (e.g., (555) 555-5555)';
-          }
-        }
-        break;
-      case 'emergencyRelationship':
-        if (!value.trim()) error = 'Emergency contact relationship is required';
-        break;
-      case 'waiverAccepted':
-        if (!value) error = 'You must accept the waiver to continue';
-        break;
-      default:
-        break;
-    }
-
-    setErrors(prev => ({ ...prev, [fieldName]: error }));
-  };
-
-  const validateForm = () => {
-    const newErrors = {};
-
-    // Player validation
-    if (!formData.playerFirstName.trim()) {
-      newErrors.playerFirstName = 'Player first name is required';
-    }
-    if (!formData.playerLastName.trim()) {
-      newErrors.playerLastName = 'Player last name is required';
-    }
-    if (!formData.playerDateOfBirth) {
-      newErrors.playerDateOfBirth = 'Date of birth is required';
-    }
-    if (!formData.playerLevelOfPlay.trim()) {
-      newErrors.playerLevelOfPlay = 'Level of play is required';
-    }
-
-    // Guardian validation
-    if (!formData.guardianFirstName.trim()) {
-      newErrors.guardianFirstName = 'Guardian first name is required';
-    }
-    if (!formData.guardianLastName.trim()) {
-      newErrors.guardianLastName = 'Guardian last name is required';
-    }
-    if (!formData.guardianEmail.trim()) {
-      newErrors.guardianEmail = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.guardianEmail)) {
-      newErrors.guardianEmail = 'Invalid email format';
-    }
-    if (!formData.guardianPhone.trim()) {
-      newErrors.guardianPhone = 'Phone number is required';
-    } else {
-      const phoneDigits = formData.guardianPhone.replace(/[^\d]/g, '');
-      if (phoneDigits.length !== 10) {
-        newErrors.guardianPhone = 'Invalid phone format (e.g., (555) 555-5555)';
-      }
-    }
-
-    // Emergency contact validation
-    if (!formData.emergencyName.trim()) {
-      newErrors.emergencyName = 'Emergency contact name is required';
-    }
-    if (!formData.emergencyPhone.trim()) {
-      newErrors.emergencyPhone = 'Emergency contact phone is required';
-    } else {
-      const phoneDigits = formData.emergencyPhone.replace(/[^\d]/g, '');
-      if (phoneDigits.length !== 10) {
-        newErrors.emergencyPhone = 'Invalid phone format (e.g., (555) 555-5555)';
-      }
-    }
-    if (!formData.emergencyRelationship.trim()) {
-      newErrors.emergencyRelationship = 'Emergency contact relationship is required';
-    }
-
-    // Waiver validation
-    if (!formData.waiverAccepted) {
-      newErrors.waiverAccepted = 'You must accept the waiver to continue';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async e => {
-    e.preventDefault();
-
-    // Mark all fields as touched on submit
-    setTouched({
-      playerFirstName: true,
-      playerLastName: true,
-      playerDateOfBirth: true,
-      playerLevelOfPlay: true,
-      guardianFirstName: true,
-      guardianLastName: true,
-      guardianEmail: true,
-      guardianPhone: true,
-      emergencyName: true,
-      emergencyPhone: true,
-      emergencyRelationship: true,
-      waiverAccepted: true,
-    });
-
-    if (!validateForm()) {
-      // Scroll to first error
-      const firstError = document.querySelector('.text-red-400');
-      if (firstError) {
-        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-      return;
-    }
-
-    setSubmitting(true);
-
-    try {
-      // Determine event type from title or color
-      const eventTitle = (event.summary || '').toLowerCase();
-      const eventType = eventTitle.includes('camp')
-        ? 'camp'
-        : eventTitle.includes('lesson') || eventTitle.includes('training')
-          ? 'lesson'
-          : 'other';
-
-      // Create Stripe Checkout session
-      const response = await fetch('/.netlify/functions/create-checkout-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          event: {
-            id: event.id,
-            summary: event.summary,
-            price: event.registrationData?.price,
-            eventType, // Include event type for capacity defaults
-            start: event.start,
-            end: event.end,
-            location: event.location,
-          },
-          formData,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to create checkout session');
-      }
-
-      // Redirect to Stripe Checkout
-      window.location.href = data.url;
-    } catch (error) {
-      console.error('Registration error:', error);
-      setErrors({ submit: error.message || 'Failed to process registration. Please try again.' });
-      setSubmitting(false);
-    }
+  // Helper for phone field change with formatting
+  const handlePhoneChange = fieldName => e => {
+    const formatted = formatPhoneNumber(e.target.value);
+    formik.setFieldValue(fieldName, formatted);
   };
 
   return (
     <Card>
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={formik.handleSubmit} className="space-y-8">
         {/* Player Information */}
         <div>
           <h3 className="text-xl font-display font-bold text-white mb-4 flex items-center gap-2">
-            <HiUser className="text-teal-500" />
+            <User className="w-5 h-5 text-teal-500" />
             Player Information
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -295,18 +155,14 @@ const RegistrationForm = ({ event }) => {
                 type="text"
                 id="playerFirstName"
                 name="playerFirstName"
-                value={formData.playerFirstName}
-                onChange={handleChange}
-                onBlur={handleBlur}
+                {...formik.getFieldProps('playerFirstName')}
                 className={`w-full px-4 py-2 bg-neutral-bg border ${
-                  touched.playerFirstName && errors.playerFirstName
-                    ? 'border-red-500'
-                    : 'border-neutral-dark'
+                  getFieldError('playerFirstName') ? 'border-red-500' : 'border-neutral-dark'
                 } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors`}
                 placeholder="John"
               />
-              {touched.playerFirstName && errors.playerFirstName && (
-                <p className="text-red-400 text-sm mt-1">{errors.playerFirstName}</p>
+              {getFieldError('playerFirstName') && (
+                <p className="text-red-400 text-sm mt-1">{getFieldError('playerFirstName')}</p>
               )}
             </div>
 
@@ -321,18 +177,14 @@ const RegistrationForm = ({ event }) => {
                 type="text"
                 id="playerLastName"
                 name="playerLastName"
-                value={formData.playerLastName}
-                onChange={handleChange}
-                onBlur={handleBlur}
+                {...formik.getFieldProps('playerLastName')}
                 className={`w-full px-4 py-2 bg-neutral-bg border ${
-                  touched.playerLastName && errors.playerLastName
-                    ? 'border-red-500'
-                    : 'border-neutral-dark'
+                  getFieldError('playerLastName') ? 'border-red-500' : 'border-neutral-dark'
                 } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors`}
                 placeholder="Doe"
               />
-              {touched.playerLastName && errors.playerLastName && (
-                <p className="text-red-400 text-sm mt-1">{errors.playerLastName}</p>
+              {getFieldError('playerLastName') && (
+                <p className="text-red-400 text-sm mt-1">{getFieldError('playerLastName')}</p>
               )}
             </div>
 
@@ -347,17 +199,13 @@ const RegistrationForm = ({ event }) => {
                 type="date"
                 id="playerDateOfBirth"
                 name="playerDateOfBirth"
-                value={formData.playerDateOfBirth}
-                onChange={handleChange}
-                onBlur={handleBlur}
+                {...formik.getFieldProps('playerDateOfBirth')}
                 className={`w-full px-4 py-2 bg-neutral-bg border ${
-                  touched.playerDateOfBirth && errors.playerDateOfBirth
-                    ? 'border-red-500'
-                    : 'border-neutral-dark'
+                  getFieldError('playerDateOfBirth') ? 'border-red-500' : 'border-neutral-dark'
                 } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors`}
               />
-              {touched.playerDateOfBirth && errors.playerDateOfBirth && (
-                <p className="text-red-400 text-sm mt-1">{errors.playerDateOfBirth}</p>
+              {getFieldError('playerDateOfBirth') && (
+                <p className="text-red-400 text-sm mt-1">{getFieldError('playerDateOfBirth')}</p>
               )}
             </div>
 
@@ -371,29 +219,15 @@ const RegistrationForm = ({ event }) => {
               <Select
                 id="playerLevelOfPlay"
                 name="playerLevelOfPlay"
-                value={formData.playerLevelOfPlay}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                error={touched.playerLevelOfPlay && errors.playerLevelOfPlay}
+                value={formik.values.playerLevelOfPlay}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                error={getFieldError('playerLevelOfPlay')}
                 placeholder="Select level of play"
-                options={[
-                  { value: 'Mini Mite/U6: Ages 5-6', label: 'Mini Mite/U6: Ages 5-6' },
-                  { value: 'Mite/U8: Ages 7-8', label: 'Mite/U8: Ages 7-8' },
-                  { value: 'Squirt/U10: Ages 9-10', label: 'Squirt/U10: Ages 9-10' },
-                  { value: 'PeeWee/U12: Ages 11-12', label: 'PeeWee/U12: Ages 11-12' },
-                  { value: 'Bantam/U14: Ages 13-14', label: 'Bantam/U14: Ages 13-14' },
-                  {
-                    value: 'Midget U16 (Minor Midget): Ages 15-16',
-                    label: 'Midget U16 (Minor Midget): Ages 15-16',
-                  },
-                  {
-                    value: 'Midget U18 (Major Midget): Ages 15-18',
-                    label: 'Midget U18 (Major Midget): Ages 15-18',
-                  },
-                ]}
+                options={PLAYER_LEVEL_OPTIONS}
               />
-              {touched.playerLevelOfPlay && errors.playerLevelOfPlay && (
-                <p className="text-red-400 text-sm mt-1">{errors.playerLevelOfPlay}</p>
+              {getFieldError('playerLevelOfPlay') && (
+                <p className="text-red-400 text-sm mt-1">{getFieldError('playerLevelOfPlay')}</p>
               )}
             </div>
           </div>
@@ -402,7 +236,7 @@ const RegistrationForm = ({ event }) => {
         {/* Parent/Guardian Information */}
         <div className="border-t border-neutral-dark pt-6">
           <h3 className="text-xl font-display font-bold text-white mb-4 flex items-center gap-2">
-            <HiUser className="text-teal-500" />
+            <User className="w-5 h-5 text-teal-500" />
             Parent/Guardian Information
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -417,18 +251,14 @@ const RegistrationForm = ({ event }) => {
                 type="text"
                 id="guardianFirstName"
                 name="guardianFirstName"
-                value={formData.guardianFirstName}
-                onChange={handleChange}
-                onBlur={handleBlur}
+                {...formik.getFieldProps('guardianFirstName')}
                 className={`w-full px-4 py-2 bg-neutral-bg border ${
-                  touched.guardianFirstName && errors.guardianFirstName
-                    ? 'border-red-500'
-                    : 'border-neutral-dark'
+                  getFieldError('guardianFirstName') ? 'border-red-500' : 'border-neutral-dark'
                 } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors`}
                 placeholder="Jane"
               />
-              {touched.guardianFirstName && errors.guardianFirstName && (
-                <p className="text-red-400 text-sm mt-1">{errors.guardianFirstName}</p>
+              {getFieldError('guardianFirstName') && (
+                <p className="text-red-400 text-sm mt-1">{getFieldError('guardianFirstName')}</p>
               )}
             </div>
 
@@ -443,18 +273,14 @@ const RegistrationForm = ({ event }) => {
                 type="text"
                 id="guardianLastName"
                 name="guardianLastName"
-                value={formData.guardianLastName}
-                onChange={handleChange}
-                onBlur={handleBlur}
+                {...formik.getFieldProps('guardianLastName')}
                 className={`w-full px-4 py-2 bg-neutral-bg border ${
-                  touched.guardianLastName && errors.guardianLastName
-                    ? 'border-red-500'
-                    : 'border-neutral-dark'
+                  getFieldError('guardianLastName') ? 'border-red-500' : 'border-neutral-dark'
                 } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors`}
                 placeholder="Doe"
               />
-              {touched.guardianLastName && errors.guardianLastName && (
-                <p className="text-red-400 text-sm mt-1">{errors.guardianLastName}</p>
+              {getFieldError('guardianLastName') && (
+                <p className="text-red-400 text-sm mt-1">{getFieldError('guardianLastName')}</p>
               )}
             </div>
 
@@ -466,24 +292,20 @@ const RegistrationForm = ({ event }) => {
                 Email Address *
               </label>
               <div className="relative">
-                <HiMail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-light" />
+                <Mail className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-light" />
                 <input
                   type="email"
                   id="guardianEmail"
                   name="guardianEmail"
-                  value={formData.guardianEmail}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
+                  {...formik.getFieldProps('guardianEmail')}
                   className={`w-full pl-10 pr-4 py-2 bg-neutral-bg border ${
-                    touched.guardianEmail && errors.guardianEmail
-                      ? 'border-red-500'
-                      : 'border-neutral-dark'
+                    getFieldError('guardianEmail') ? 'border-red-500' : 'border-neutral-dark'
                   } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors`}
                   placeholder="jane@example.com"
                 />
               </div>
-              {touched.guardianEmail && errors.guardianEmail && (
-                <p className="text-red-400 text-sm mt-1">{errors.guardianEmail}</p>
+              {getFieldError('guardianEmail') && (
+                <p className="text-red-400 text-sm mt-1">{getFieldError('guardianEmail')}</p>
               )}
             </div>
 
@@ -495,32 +317,22 @@ const RegistrationForm = ({ event }) => {
                 Phone Number *
               </label>
               <div className="relative">
-                <HiPhone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-light" />
+                <Phone className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-light" />
                 <input
                   type="tel"
                   id="guardianPhone"
                   name="guardianPhone"
-                  value={formData.guardianPhone}
-                  onChange={e => {
-                    const formatted = formatPhoneNumber(e.target.value);
-                    setFormData(prev => ({ ...prev, guardianPhone: formatted }));
-                    setTouched(prev => ({ ...prev, guardianPhone: true }));
-                    validateField('guardianPhone', formatted);
-                  }}
-                  onBlur={e => {
-                    setTouched(prev => ({ ...prev, guardianPhone: true }));
-                    validateField('guardianPhone', e.target.value);
-                  }}
+                  value={formik.values.guardianPhone}
+                  onChange={handlePhoneChange('guardianPhone')}
+                  onBlur={formik.handleBlur}
                   className={`w-full pl-10 pr-4 py-2 bg-neutral-bg border ${
-                    touched.guardianPhone && errors.guardianPhone
-                      ? 'border-red-500'
-                      : 'border-neutral-dark'
+                    getFieldError('guardianPhone') ? 'border-red-500' : 'border-neutral-dark'
                   } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors`}
                   placeholder="(555) 555-5555"
                 />
               </div>
-              {touched.guardianPhone && errors.guardianPhone && (
-                <p className="text-red-400 text-sm mt-1">{errors.guardianPhone}</p>
+              {getFieldError('guardianPhone') && (
+                <p className="text-red-400 text-sm mt-1">{getFieldError('guardianPhone')}</p>
               )}
             </div>
 
@@ -534,8 +346,8 @@ const RegistrationForm = ({ event }) => {
               <Select
                 id="guardianRelationship"
                 name="guardianRelationship"
-                value={formData.guardianRelationship}
-                onChange={handleChange}
+                value={formik.values.guardianRelationship}
+                onChange={formik.handleChange}
                 placeholder="Select relationship"
                 options={[
                   { value: 'Parent', label: 'Parent' },
@@ -550,7 +362,7 @@ const RegistrationForm = ({ event }) => {
         {/* Emergency Contact */}
         <div className="border-t border-neutral-dark pt-6">
           <h3 className="text-xl font-display font-bold text-white mb-4 flex items-center gap-2">
-            <HiPhone className="text-teal-500" />
+            <Phone className="w-5 h-5 text-teal-500" />
             Emergency Contact
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -565,18 +377,14 @@ const RegistrationForm = ({ event }) => {
                 type="text"
                 id="emergencyName"
                 name="emergencyName"
-                value={formData.emergencyName}
-                onChange={handleChange}
-                onBlur={handleBlur}
+                {...formik.getFieldProps('emergencyName')}
                 className={`w-full px-4 py-2 bg-neutral-bg border ${
-                  touched.emergencyName && errors.emergencyName
-                    ? 'border-red-500'
-                    : 'border-neutral-dark'
+                  getFieldError('emergencyName') ? 'border-red-500' : 'border-neutral-dark'
                 } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors`}
                 placeholder="Emergency Contact Name"
               />
-              {touched.emergencyName && errors.emergencyName && (
-                <p className="text-red-400 text-sm mt-1">{errors.emergencyName}</p>
+              {getFieldError('emergencyName') && (
+                <p className="text-red-400 text-sm mt-1">{getFieldError('emergencyName')}</p>
               )}
             </div>
 
@@ -588,32 +396,22 @@ const RegistrationForm = ({ event }) => {
                 Phone Number *
               </label>
               <div className="relative">
-                <HiPhone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-light" />
+                <Phone className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-light" />
                 <input
                   type="tel"
                   id="emergencyPhone"
                   name="emergencyPhone"
-                  value={formData.emergencyPhone}
-                  onChange={e => {
-                    const formatted = formatPhoneNumber(e.target.value);
-                    setFormData(prev => ({ ...prev, emergencyPhone: formatted }));
-                    setTouched(prev => ({ ...prev, emergencyPhone: true }));
-                    validateField('emergencyPhone', formatted);
-                  }}
-                  onBlur={e => {
-                    setTouched(prev => ({ ...prev, emergencyPhone: true }));
-                    validateField('emergencyPhone', e.target.value);
-                  }}
+                  value={formik.values.emergencyPhone}
+                  onChange={handlePhoneChange('emergencyPhone')}
+                  onBlur={formik.handleBlur}
                   className={`w-full pl-10 pr-4 py-2 bg-neutral-bg border ${
-                    touched.emergencyPhone && errors.emergencyPhone
-                      ? 'border-red-500'
-                      : 'border-neutral-dark'
+                    getFieldError('emergencyPhone') ? 'border-red-500' : 'border-neutral-dark'
                   } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors`}
                   placeholder="(555) 555-5555"
                 />
               </div>
-              {touched.emergencyPhone && errors.emergencyPhone && (
-                <p className="text-red-400 text-sm mt-1">{errors.emergencyPhone}</p>
+              {getFieldError('emergencyPhone') && (
+                <p className="text-red-400 text-sm mt-1">{getFieldError('emergencyPhone')}</p>
               )}
             </div>
 
@@ -628,18 +426,16 @@ const RegistrationForm = ({ event }) => {
                 type="text"
                 id="emergencyRelationship"
                 name="emergencyRelationship"
-                value={formData.emergencyRelationship}
-                onChange={handleChange}
-                onBlur={handleBlur}
+                {...formik.getFieldProps('emergencyRelationship')}
                 className={`w-full px-4 py-2 bg-neutral-bg border ${
-                  touched.emergencyRelationship && errors.emergencyRelationship
-                    ? 'border-red-500'
-                    : 'border-neutral-dark'
+                  getFieldError('emergencyRelationship') ? 'border-red-500' : 'border-neutral-dark'
                 } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors`}
                 placeholder="e.g., Aunt, Uncle, Family Friend"
               />
-              {touched.emergencyRelationship && errors.emergencyRelationship && (
-                <p className="text-red-400 text-sm mt-1">{errors.emergencyRelationship}</p>
+              {getFieldError('emergencyRelationship') && (
+                <p className="text-red-400 text-sm mt-1">
+                  {getFieldError('emergencyRelationship')}
+                </p>
               )}
             </div>
           </div>
@@ -656,8 +452,7 @@ const RegistrationForm = ({ event }) => {
           <textarea
             id="medicalNotes"
             name="medicalNotes"
-            value={formData.medicalNotes}
-            onChange={handleChange}
+            {...formik.getFieldProps('medicalNotes')}
             rows="3"
             className="w-full px-4 py-2 bg-neutral-bg border border-neutral-dark rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors resize-none"
             placeholder="Any medical conditions, allergies, or special considerations we should know about..."
@@ -671,9 +466,9 @@ const RegistrationForm = ({ event }) => {
               type="checkbox"
               id="waiverAccepted"
               name="waiverAccepted"
-              checked={formData.waiverAccepted}
-              onChange={handleChange}
-              onBlur={handleBlur}
+              checked={formik.values.waiverAccepted}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
               className="mt-1 w-5 h-5 rounded border-neutral-dark bg-neutral-bg text-teal-500 focus:ring-teal-500 focus:ring-offset-0"
             />
             <label htmlFor="waiverAccepted" className="text-sm text-neutral-light">
@@ -689,15 +484,15 @@ const RegistrationForm = ({ event }) => {
               . I understand that hockey is a contact sport with inherent risks. *
             </label>
           </div>
-          {touched.waiverAccepted && errors.waiverAccepted && (
-            <p className="text-red-400 text-sm mt-2">{errors.waiverAccepted}</p>
+          {getFieldError('waiverAccepted') && (
+            <p className="text-red-400 text-sm mt-2">{getFieldError('waiverAccepted')}</p>
           )}
         </div>
 
         {/* Submit Error */}
-        {errors.submit && (
+        {submitError && (
           <div className="bg-red-500/20 border border-red-500 text-red-400 px-4 py-3 rounded-lg">
-            {errors.submit}
+            {submitError}
           </div>
         )}
 
@@ -705,16 +500,16 @@ const RegistrationForm = ({ event }) => {
         <div className="border-t border-neutral-dark pt-6">
           <motion.button
             type="submit"
-            disabled={submitting}
-            whileHover={{ scale: submitting ? 1 : 1.02 }}
-            whileTap={{ scale: submitting ? 1 : 0.98 }}
+            disabled={formik.isSubmitting}
+            whileHover={{ scale: formik.isSubmitting ? 1 : 1.02 }}
+            whileTap={{ scale: formik.isSubmitting ? 1 : 0.98 }}
             className={`w-full py-4 rounded-lg font-semibold text-lg transition-all duration-300 ${
-              submitting
+              formik.isSubmitting
                 ? 'bg-neutral-dark text-neutral-light cursor-not-allowed'
                 : 'bg-gradient-to-r from-teal-500 to-teal-700 text-white hover:from-teal-600 hover:to-teal-800 shadow-lg hover:shadow-xl'
             }`}
           >
-            {submitting ? (
+            {formik.isSubmitting ? (
               <span className="flex items-center justify-center gap-2">
                 <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
                 Processing...

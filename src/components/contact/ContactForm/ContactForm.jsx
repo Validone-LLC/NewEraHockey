@@ -2,9 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import PropTypes from 'prop-types';
-import { HiPaperAirplane } from 'react-icons/hi';
+import { Send } from 'lucide-react';
 import Button from '@components/common/Button/Button';
 import Modal from '@components/common/Modal/Modal';
+import { formatPhoneNumber } from '@/utils/formatters';
 
 const ContactForm = ({ initialMessage = '' }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -21,11 +22,6 @@ const ContactForm = ({ initialMessage = '' }) => {
   // Load Turnstile script and setup callback
   useEffect(() => {
     let currentWidgetId = null;
-
-    // Define callback for Turnstile success
-    window.onTurnstileSuccess = token => {
-      setTurnstileToken(token);
-    };
 
     // Render widget helper function
     const renderWidget = () => {
@@ -51,7 +47,7 @@ const ContactForm = ({ initialMessage = '' }) => {
         if (turnstileRef.current.children.length === 0) {
           const id = window.turnstile.render(turnstileRef.current, {
             sitekey: import.meta.env.VITE_TURNSTILE_SITE_KEY,
-            callback: 'onTurnstileSuccess',
+            callback: token => setTurnstileToken(token),
             theme: 'dark',
           });
           currentWidgetId = id;
@@ -92,24 +88,8 @@ const ContactForm = ({ initialMessage = '' }) => {
           // Widget may already be removed, ignore
         }
       }
-      delete window.onTurnstileSuccess;
     };
   }, []);
-
-  // Phone number formatting helper
-  const formatPhoneNumber = value => {
-    if (!value) return value;
-
-    // Remove all non-numeric characters
-    const phoneNumber = value.replace(/[^\d]/g, '');
-
-    // Format as (XXX) XXX-XXXX
-    if (phoneNumber.length < 4) return phoneNumber;
-    if (phoneNumber.length < 7) {
-      return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3)}`;
-    }
-    return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`;
-  };
 
   const formik = useFormik({
     initialValues: {
@@ -215,11 +195,11 @@ const ContactForm = ({ initialMessage = '' }) => {
           aria-invalid={formik.touched.name && formik.errors.name ? 'true' : 'false'}
           aria-describedby={formik.touched.name && formik.errors.name ? 'name-error' : undefined}
           className={`w-full px-4 py-3 bg-primary border ${
-            formik.touched.name && formik.errors.name ? 'border-teal-500' : 'border-neutral-dark'
+            formik.touched.name && formik.errors.name ? 'border-red-500' : 'border-neutral-dark'
           } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors`}
         />
         {formik.touched.name && formik.errors.name && (
-          <p id="name-error" className="mt-1 text-sm text-teal-500" role="alert">
+          <p id="name-error" className="mt-1 text-sm text-red-400" role="alert">
             {formik.errors.name}
           </p>
         )}
@@ -244,11 +224,11 @@ const ContactForm = ({ initialMessage = '' }) => {
           aria-invalid={formik.touched.phone && formik.errors.phone ? 'true' : 'false'}
           aria-describedby={formik.touched.phone && formik.errors.phone ? 'phone-error' : undefined}
           className={`w-full px-4 py-3 bg-primary border ${
-            formik.touched.phone && formik.errors.phone ? 'border-teal-500' : 'border-neutral-dark'
+            formik.touched.phone && formik.errors.phone ? 'border-red-500' : 'border-neutral-dark'
           } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors`}
         />
         {formik.touched.phone && formik.errors.phone && (
-          <p id="phone-error" className="mt-1 text-sm text-teal-500" role="alert">
+          <p id="phone-error" className="mt-1 text-sm text-red-400" role="alert">
             {formik.errors.phone}
           </p>
         )}
@@ -268,11 +248,11 @@ const ContactForm = ({ initialMessage = '' }) => {
           aria-invalid={formik.touched.email && formik.errors.email ? 'true' : 'false'}
           aria-describedby={formik.touched.email && formik.errors.email ? 'email-error' : undefined}
           className={`w-full px-4 py-3 bg-primary border ${
-            formik.touched.email && formik.errors.email ? 'border-teal-500' : 'border-neutral-dark'
+            formik.touched.email && formik.errors.email ? 'border-red-500' : 'border-neutral-dark'
           } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors`}
         />
         {formik.touched.email && formik.errors.email && (
-          <p id="email-error" className="mt-1 text-sm text-teal-500" role="alert">
+          <p id="email-error" className="mt-1 text-sm text-red-400" role="alert">
             {formik.errors.email}
           </p>
         )}
@@ -296,12 +276,12 @@ const ContactForm = ({ initialMessage = '' }) => {
           }
           className={`w-full px-4 py-3 bg-primary border ${
             formik.touched.message && formik.errors.message
-              ? 'border-teal-500'
+              ? 'border-red-500'
               : 'border-neutral-dark'
           } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors resize-none`}
         />
         {formik.touched.message && formik.errors.message && (
-          <p id="message-error" className="mt-1 text-sm text-teal-500" role="alert">
+          <p id="message-error" className="mt-1 text-sm text-red-400" role="alert">
             {formik.errors.message}
           </p>
         )}
@@ -329,7 +309,7 @@ const ContactForm = ({ initialMessage = '' }) => {
         type="submit"
         variant="primary"
         disabled={isSubmitting}
-        icon={HiPaperAirplane}
+        icon={Send}
         className="w-full"
       >
         {isSubmitting ? 'Sending...' : 'Send Message'}

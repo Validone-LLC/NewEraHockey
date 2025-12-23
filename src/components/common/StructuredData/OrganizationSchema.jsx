@@ -12,16 +12,13 @@ const OrganizationSchema = () => {
     name: 'New Era Hockey',
     alternateName: 'NEH',
     url: 'https://newerahockeytraining.com',
-    logo: 'https://newerahockeytraining.com/assets/logo.png',
+    logo: 'https://newerahockeytraining.com/assets/images/logo/neh-logo.png',
     description:
       'New Era Hockey provides premier hockey training and development programs in the DMV area, led by experienced coach Will Pasko.',
     email: 'coachwill@newerahockeytraining.com',
-    telephone: '+1-XXX-XXX-XXXX', // TODO: Add actual phone
-    sameAs: [
-      'https://www.instagram.com/newerahockey',
-      // Add other social profiles
-    ],
-    foundingDate: '2020', // TODO: Update with actual founding date
+    telephone: '+1-571-274-4691',
+    sameAs: ['https://www.instagram.com/NewEraHockeyDMV'],
+    foundingDate: '2021',
     founders: [
       {
         '@type': 'Person',
@@ -30,7 +27,7 @@ const OrganizationSchema = () => {
     ],
     contactPoint: {
       '@type': 'ContactPoint',
-      telephone: '+1-XXX-XXX-XXXX', // TODO: Add actual phone
+      telephone: '+1-571-274-4691',
       contactType: 'Customer Service',
       email: 'coachwill@newerahockeytraining.com',
       areaServed: ['VA', 'MD', 'DC'],

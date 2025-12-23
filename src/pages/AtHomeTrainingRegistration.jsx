@@ -1,30 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import {
-  HiCalendar,
-  HiClock,
-  HiLocationMarker,
-  HiCurrencyDollar,
-  HiUserGroup,
-  HiArrowLeft,
-  HiCheckCircle,
-} from 'react-icons/hi';
+import { HiCalendar, HiClock, HiCurrencyDollar, HiArrowLeft, HiCheckCircle } from 'react-icons/hi';
 import { fetchEventById } from '@/services/calendarService';
-import SEO from '@components/common/SEO/SEO';
-import {
-  canRegister,
-  getFormattedPrice,
-  isSoldOut,
-  getRegistrationStatus,
-} from '@/services/calendarService';
+import { canRegister, getFormattedPrice, isSoldOut } from '@/services/calendarService';
 import { formatEventDateTime } from '@utils/eventCategorization';
 import Card from '@components/common/Card/Card';
 import Button from '@components/common/Button/Button';
 import SoldOutBadge from '@components/registration/SoldOutBadge';
-import RegistrationForm from '@components/registration/RegistrationForm';
+import AtHomeTrainingForm from '@components/registration/AtHomeTrainingForm';
 
-const EventRegistration = () => {
+const AtHomeTrainingRegistration = () => {
   const { eventId } = useParams();
 
   const [event, setEvent] = useState(null);
@@ -63,7 +49,7 @@ const EventRegistration = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-teal-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-orange-500 mx-auto mb-4"></div>
           <p className="text-neutral-light">Loading event details...</p>
         </div>
       </div>
@@ -94,24 +80,9 @@ const EventRegistration = () => {
   const { date, time } = formatEventDateTime(event);
   const soldOut = isSoldOut(event);
   const eligible = canRegister(event);
-  const status = getRegistrationStatus(event);
-
-  // Dynamic SEO meta based on event
-  const eventTitle = event?.summary || 'Event Registration';
-  const eventDescription = event?.description
-    ? event.description.substring(0, 160)
-    : `Register for ${eventTitle} with New Era Hockey. Expert hockey training in the DMV area.`;
 
   return (
     <div className="min-h-screen">
-      <SEO
-        pageKey="event-registration"
-        customMeta={{
-          title: `${eventTitle} | Register | New Era Hockey`,
-          description: eventDescription,
-          url: `https://newerahockeytraining.com/register/${eventId}`,
-        }}
-      />
       {/* Header */}
       <section className="relative bg-gradient-to-br from-primary via-primary-dark to-neutral-bg py-12">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -123,17 +94,19 @@ const EventRegistration = () => {
             {/* Back button */}
             <Link
               to="/event-registration"
-              className="inline-flex items-center gap-2 text-teal-400 hover:text-teal-300 mb-6 transition-colors"
+              className="inline-flex items-center gap-2 text-orange-400 hover:text-orange-300 mb-6 transition-colors"
             >
               <HiArrowLeft className="w-5 h-5" />
               <span>Back to Event Registration</span>
             </Link>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold mb-2">
-              <span className="gradient-text">Event Registration</span>
+              <span className="bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent">
+                At Home Training Registration
+              </span>
             </h1>
             <p className="text-lg text-neutral-light">
-              Complete the form below to register for this event
+              Book your personalized at-home training session
             </p>
           </motion.div>
         </div>
@@ -147,21 +120,21 @@ const EventRegistration = () => {
               {/* Event Details Card */}
               <Card>
                 <h2 className="text-xl font-display font-bold text-white mb-6 pb-4 border-b border-neutral-dark">
-                  Event Details
+                  Session Details
                 </h2>
 
                 {/* Event Name */}
-                <div className="mb-6 bg-gradient-to-r from-teal-500/10 to-transparent p-4 rounded-lg border-l-4 border-teal-500">
+                <div className="mb-6 bg-gradient-to-r from-orange-500/10 to-transparent p-4 rounded-lg border-l-4 border-orange-500">
                   <h3 className="text-xl font-display font-bold text-white leading-tight">
-                    {event.summary || 'Untitled Event'}
+                    {event.summary || 'At Home Training Session'}
                   </h3>
                 </div>
 
                 {/* Date & Time */}
                 <div className="space-y-4 mb-6">
                   <div className="flex items-start gap-3 p-3 rounded-lg bg-neutral-bg/50 hover:bg-neutral-bg transition-colors">
-                    <div className="p-2 bg-teal-500/20 rounded-lg">
-                      <HiCalendar className="text-teal-400 w-5 h-5" />
+                    <div className="p-2 bg-orange-500/20 rounded-lg">
+                      <HiCalendar className="text-orange-400 w-5 h-5" />
                     </div>
                     <div className="flex-1">
                       <p className="text-xs uppercase tracking-wide text-neutral-light mb-1">
@@ -172,8 +145,8 @@ const EventRegistration = () => {
                   </div>
 
                   <div className="flex items-start gap-3 p-3 rounded-lg bg-neutral-bg/50 hover:bg-neutral-bg transition-colors">
-                    <div className="p-2 bg-teal-500/20 rounded-lg">
-                      <HiClock className="text-teal-400 w-5 h-5" />
+                    <div className="p-2 bg-orange-500/20 rounded-lg">
+                      <HiClock className="text-orange-400 w-5 h-5" />
                     </div>
                     <div className="flex-1">
                       <p className="text-xs uppercase tracking-wide text-neutral-light mb-1">
@@ -182,70 +155,22 @@ const EventRegistration = () => {
                       <p className="text-white font-semibold">{time}</p>
                     </div>
                   </div>
-
-                  {event.location && (
-                    <div className="flex items-start gap-3 p-3 rounded-lg bg-neutral-bg/50 hover:bg-neutral-bg transition-colors">
-                      <div className="p-2 bg-teal-500/20 rounded-lg">
-                        <HiLocationMarker className="text-teal-400 w-5 h-5" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-xs uppercase tracking-wide text-neutral-light mb-1">
-                          Location
-                        </p>
-                        <p className="text-white font-semibold">{event.location}</p>
-                      </div>
-                    </div>
-                  )}
                 </div>
 
-                {/* Price & Capacity */}
+                {/* Price */}
                 <div className="border-t border-neutral-dark pt-6 space-y-4">
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-teal-500/10 to-transparent">
-                    <div className="p-2 bg-teal-500/20 rounded-lg">
-                      <HiCurrencyDollar className="text-teal-400 w-5 h-5" />
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-orange-500/10 to-transparent">
+                    <div className="p-2 bg-orange-500/20 rounded-lg">
+                      <HiCurrencyDollar className="text-orange-400 w-5 h-5" />
                     </div>
                     <div className="flex-1">
                       <p className="text-xs uppercase tracking-wide text-neutral-light mb-1">
                         Price
                       </p>
-                      <p className="text-2xl font-bold text-teal-400">{getFormattedPrice(event)}</p>
+                      <p className="text-2xl font-bold text-orange-400">
+                        {getFormattedPrice(event)}
+                      </p>
                     </div>
-                  </div>
-
-                  {event.registrationData?.hasCapacityInfo && (
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-neutral-bg/50">
-                      <div className="p-2 bg-teal-500/20 rounded-lg">
-                        <HiUserGroup className="text-teal-400 w-5 h-5" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-xs uppercase tracking-wide text-neutral-light mb-1">
-                          Capacity
-                        </p>
-                        <p className="text-white font-semibold">
-                          {event.registrationData.maxCapacity} spots
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Status */}
-                <div className="border-t border-neutral-dark pt-6 mt-6">
-                  <div
-                    className={`p-4 rounded-lg text-center ${
-                      soldOut
-                        ? 'bg-red-500/10 border border-red-500/30'
-                        : 'bg-teal-500/10 border border-teal-500/30'
-                    }`}
-                  >
-                    <p className="text-xs uppercase tracking-wide text-neutral-light mb-2">
-                      Status
-                    </p>
-                    <p
-                      className={`text-lg font-bold ${soldOut ? 'text-red-400' : 'text-teal-400'}`}
-                    >
-                      {status}
-                    </p>
                   </div>
                 </div>
               </Card>
@@ -253,25 +178,27 @@ const EventRegistration = () => {
               {/* Important Info */}
               <Card>
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="p-2 bg-teal-500/20 rounded-lg">
-                    <HiCheckCircle className="text-teal-400 w-6 h-6" />
+                  <div className="p-2 bg-orange-500/20 rounded-lg">
+                    <HiCheckCircle className="text-orange-400 w-6 h-6" />
                   </div>
-                  <h3 className="text-lg font-display font-bold text-white">
-                    Important Information
-                  </h3>
+                  <h3 className="text-lg font-display font-bold text-white">What to Expect</h3>
                 </div>
                 <ul className="space-y-3">
                   <li className="flex items-start gap-3 text-sm text-neutral-light p-2 rounded hover:bg-neutral-bg/30 transition-colors">
-                    <span className="text-teal-400 mt-0.5">•</span>
+                    <span className="text-orange-400 mt-0.5">•</span>
+                    <span>Personalized one-on-one training session</span>
+                  </li>
+                  <li className="flex items-start gap-3 text-sm text-neutral-light p-2 rounded hover:bg-neutral-bg/30 transition-colors">
+                    <span className="text-orange-400 mt-0.5">•</span>
+                    <span>Coach travels to your location</span>
+                  </li>
+                  <li className="flex items-start gap-3 text-sm text-neutral-light p-2 rounded hover:bg-neutral-bg/30 transition-colors">
+                    <span className="text-orange-400 mt-0.5">•</span>
                     <span>Payment processed securely via Stripe</span>
                   </li>
                   <li className="flex items-start gap-3 text-sm text-neutral-light p-2 rounded hover:bg-neutral-bg/30 transition-colors">
-                    <span className="text-teal-400 mt-0.5">•</span>
-                    <span>Confirmation email sent after registration</span>
-                  </li>
-                  <li className="flex items-start gap-3 text-sm text-neutral-light p-2 rounded hover:bg-neutral-bg/30 transition-colors">
-                    <span className="text-teal-400 mt-0.5">•</span>
-                    <span>Cancellation policy applies</span>
+                    <span className="text-orange-400 mt-0.5">•</span>
+                    <span>Confirmation email sent after booking</span>
                   </li>
                 </ul>
               </Card>
@@ -284,15 +211,15 @@ const EventRegistration = () => {
                   <div className="text-center py-12">
                     <SoldOutBadge large />
                     <h2 className="text-2xl font-display font-bold text-white mb-4 mt-6">
-                      This Event is Sold Out
+                      This Time Slot is Booked
                     </h2>
                     <p className="text-neutral-light mb-6">
-                      Unfortunately, this event has reached maximum capacity. Check back for future
-                      events or contact us about waitlist options.
+                      Unfortunately, this time slot has already been reserved. Please choose another
+                      available time slot from the calendar.
                     </p>
                     <div className="flex gap-4 justify-center">
                       <Button to="/event-registration" variant="secondary">
-                        View Other Events
+                        View Available Slots
                       </Button>
                       <Button to="/contact" variant="primary">
                         Contact Us
@@ -304,14 +231,14 @@ const EventRegistration = () => {
                 <Card>
                   <div className="text-center py-12">
                     <h2 className="text-2xl font-display font-bold text-white mb-4">
-                      Registration Not Available
+                      Booking Not Available
                     </h2>
                     <p className="text-neutral-light mb-6">
-                      Registration is currently closed for this event. Please contact us for more
-                      information.
+                      This time slot is currently not available for booking. Please contact us for
+                      more information.
                     </p>
                     <div className="flex gap-4 justify-center">
-                      <Button to="/schedule" variant="secondary">
+                      <Button to="/event-registration" variant="secondary">
                         Back to Schedule
                       </Button>
                       <Button to="/contact" variant="primary">
@@ -321,7 +248,7 @@ const EventRegistration = () => {
                   </div>
                 </Card>
               ) : (
-                <RegistrationForm event={event} />
+                <AtHomeTrainingForm event={event} />
               )}
             </div>
           </div>
@@ -331,4 +258,4 @@ const EventRegistration = () => {
   );
 };
 
-export default EventRegistration;
+export default AtHomeTrainingRegistration;

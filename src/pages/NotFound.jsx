@@ -1,10 +1,15 @@
 import { motion } from 'framer-motion';
+import { Helmet } from 'react-helmet-async';
 import { Home } from 'lucide-react';
 import Button from '@components/common/Button/Button';
 
 const NotFound = () => {
   return (
     <div className="min-h-screen flex items-center justify-center">
+      <Helmet>
+        <meta name="robots" content="noindex, nofollow" />
+        <title>Page Not Found | New Era Hockey</title>
+      </Helmet>
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}

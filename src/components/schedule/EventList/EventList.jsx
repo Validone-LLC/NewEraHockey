@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { HiCalendar, HiClock, HiLocationMarker, HiCurrencyDollar } from 'react-icons/hi';
+import { Calendar, Clock, MapPin, DollarSign } from 'lucide-react';
 import { formatEventDateTime, isUpcoming } from '@utils/eventCategorization';
 import {
   canRegister,
@@ -69,16 +69,16 @@ const EventCard = ({ event, eventType }) => {
           {/* Date & Time */}
           <div className="flex flex-wrap gap-4 text-neutral-light mb-2">
             <div className="flex items-center gap-2">
-              <HiCalendar className="text-teal-500 mb-0.5" />
+              <Calendar className="w-4 h-4 text-teal-500" />
               <span>{date}</span>
             </div>
             <div className="flex items-center gap-2">
-              <HiClock className="text-teal-500 mb-0.5" />
+              <Clock className="w-4 h-4 text-teal-500" />
               <span>{time}</span>
             </div>
             {event.registrationData?.price && (
               <div className="flex items-center gap-2">
-                <HiCurrencyDollar className="text-teal-500 mb-0.5" />
+                <DollarSign className="w-4 h-4 text-teal-500" />
                 <span className="text-white">{price}</span>
               </div>
             )}
@@ -87,7 +87,7 @@ const EventCard = ({ event, eventType }) => {
           {/* Location */}
           {event.location && (
             <div className="flex items-start gap-2 text-neutral-light mb-3">
-              <HiLocationMarker className="text-teal-500 mt-1 flex-shrink-0 mb-0.5" />
+              <MapPin className="w-4 h-4 text-teal-500 mt-1 flex-shrink-0" />
               <span>{event.location}</span>
             </div>
           )}

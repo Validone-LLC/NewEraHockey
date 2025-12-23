@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HiX, HiCheckCircle, HiExclamationCircle } from 'react-icons/hi';
+import { X, CheckCircle, AlertCircle } from 'lucide-react';
 
 const Modal = ({
   isOpen,
@@ -67,7 +67,7 @@ const Modal = ({
     };
   }, [isOpen]);
 
-  const icon = type === 'success' ? HiCheckCircle : HiExclamationCircle;
+  const icon = type === 'success' ? CheckCircle : AlertCircle;
   const iconColor = type === 'success' ? 'text-teal-500' : 'text-orange-500';
   const progressColor = type === 'success' ? 'bg-teal-500' : 'bg-orange-500';
   const Icon = icon;
@@ -106,7 +106,7 @@ const Modal = ({
                 className="absolute top-4 right-4 text-neutral-text hover:text-white transition-colors p-1 rounded-lg hover:bg-primary-light"
                 aria-label="Close modal"
               >
-                <HiX className="w-6 h-6" />
+                <X className="w-6 h-6" />
               </button>
 
               {/* Content */}

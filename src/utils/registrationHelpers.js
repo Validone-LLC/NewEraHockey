@@ -15,6 +15,15 @@ import { isRegistrationEnabledForEventType } from '@/config/featureFlags';
  */
 export const isRegistrationEnabled = event => {
   if (!event) return false;
+
+  // For At Home Training, check if it has a price (auto-enabled)
+  const eventType = categorizeEvent(event);
+  if (eventType === 'at_home_training') {
+    const price = getEventPrice(event);
+    return price !== null && price > 0;
+  }
+
+  // For camps/lessons, check registrationData
   return event.registrationData?.registrationEnabled === true;
 };
 
@@ -38,13 +47,19 @@ export const isDescriptionMarkedFull = event => {
 export const isSoldOut = event => {
   if (!event) return false;
 
+  const eventType = categorizeEvent(event);
+
+  // For At Home Training, yellow color (#5) = booked/sold out
+  if (eventType === 'at_home_training') {
+    return event.colorId === '5';
+  }
+
   // Check registration data sold out flag
   if (event.registrationData?.isSoldOut === true) {
     return true;
   }
 
   // For camps only, check description for "Spots: FULL"
-  const eventType = categorizeEvent(event);
   if (eventType.toLowerCase() === 'camp' || eventType.toLowerCase() === 'camps') {
     return isDescriptionMarkedFull(event);
   }
@@ -224,6 +239,10 @@ export const getRegistrationStatus = event => {
 export const getEventCustomText = event => {
   if (!event?.description) return null;
 
-  const match = event.description.match(/Text:\s*(.+?)(?:\n|$)/i);
-  return match ? match[1].trim() : null;
+  const match = event.description.match(/Text:\s*(.+?)(?:\n|<|$)/i);
+  if (!match) return null;
+
+  // Strip any HTML tags that might be in the text
+  const text = match[1].replace(/<[^>]*>/g, '').trim();
+  return text || null;
 };
