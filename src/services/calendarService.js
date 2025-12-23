@@ -2,7 +2,7 @@
  * Calendar Service
  *
  * Provides API for fetching calendar events from Netlify function
- * with support for incremental sync, automatic polling, and 6-hour caching
+ * with support for incremental sync, automatic polling, and 60-second caching
  */
 
 import {
@@ -352,6 +352,53 @@ export const isCached = eventType => {
  */
 export const filterVisibleEvents = (events, eventType) => {
   return events.filter(event => !shouldHideEvent(event, eventType));
+};
+
+/**
+ * Filter out booked At Home Training events
+ * Yellow color (#5) = booked, hide from public view
+ * @param {Array} events - Array of calendar events
+ * @returns {Array} - Only available (non-booked) events
+ */
+export const filterAvailableAtHomeTraining = events => {
+  return events.filter(event => {
+    // Yellow (#5) = booked slot, filter out
+    if (event.colorId === '5') return false;
+    return true;
+  });
+};
+
+/**
+ * Fetch At Home Training events for a specific month
+ * @param {number} year - Year (e.g., 2026)
+ * @param {number} month - Month (1-12)
+ * @returns {Promise<Object>} - { events: [], total: number, timestamp: string }
+ */
+export const fetchAtHomeTrainingByMonth = async (year, month) => {
+  try {
+    const url = new URL('/.netlify/functions/calendar-events', window.location.origin);
+    url.searchParams.set('type', 'at_home_training');
+    url.searchParams.set('year', year);
+    url.searchParams.set('month', month);
+
+    const response = await fetch(url.toString());
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Failed to fetch events: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    // Cache the month data
+    const cacheKey = `at_home_training_${year}_${month}`;
+    localStorage.setItem(cacheKey, JSON.stringify({ data, timestamp: Date.now() }));
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching At Home Training events by month:', error);
+    throw error;
+  }
 };
 
 /**

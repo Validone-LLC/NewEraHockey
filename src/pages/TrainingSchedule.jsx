@@ -1,105 +1,207 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
-import {
-  HiCalendar,
-  HiViewList,
-  HiRefresh,
-  HiUserGroup,
-  HiHome,
-  HiVideoCamera,
-  HiArrowRight,
-  HiInformationCircle,
-} from 'react-icons/hi';
+import { HiRefresh, HiHome } from 'react-icons/hi';
 import SEO from '@components/common/SEO/SEO';
 import EventList from '@components/schedule/EventList/EventList';
 import EventCalendar from '@components/schedule/EventCalendar/EventCalendar';
 import {
   fetchCamps,
   fetchLessons,
+  fetchAtHomeTrainingByMonth,
   startPolling,
   filterVisibleEvents,
+  filterAvailableAtHomeTraining,
   refreshEvents,
 } from '@services/calendarService';
 import { sortEventsByDate } from '@utils/eventCategorization';
 
 const TrainingSchedule = () => {
-  const [eventType, setEventType] = useState('camps'); // 'camps' or 'lessons'
-  const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // List view state (Camps/Lessons tabs)
+  const [listType, setListType] = useState('camps'); // 'camps' or 'lessons'
+  const [campsEvents, setCampsEvents] = useState([]);
+  const [lessonsEvents, setLessonsEvents] = useState([]);
+  const [listLoading, setListLoading] = useState(true);
+  const [listError, setListError] = useState(null);
+
+  // Calendar view state (all three event types combined)
+  const [calendarEvents, setCalendarEvents] = useState([]);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [calendarLoading, setCalendarLoading] = useState(true);
+  const [calendarError, setCalendarError] = useState(null);
+
   const [lastUpdated, setLastUpdated] = useState(null);
+  // eslint-disable-next-line no-unused-vars
+  const [monthCache, setMonthCache] = useState({}); // Cache for at-home training by month (accessed via setter)
+  const monthCacheRef = useRef({}); // Ref for synchronous cache access (prevents loading flicker)
 
-  const loadEvents = useCallback(async () => {
+  // Load camps and lessons for list view (fetch all events)
+  const loadListEvents = useCallback(async () => {
     try {
-      setLoading(true);
-      setError(null);
+      setListLoading(true);
+      setListError(null);
 
-      const fetchFn = eventType === 'camps' ? fetchCamps : fetchLessons;
-      const data = await fetchFn();
+      // Fetch camps and lessons in parallel
+      const [campsData, lessonsData] = await Promise.all([fetchCamps(), fetchLessons()]);
 
-      // Filter out sold-out lessons (camps show with badge)
-      const visibleEvents = filterVisibleEvents(data.events, eventType);
+      // Filter visible events (camps show all, lessons hide sold-out)
+      const visibleCamps = filterVisibleEvents(campsData.events, 'camps');
+      const visibleLessons = filterVisibleEvents(lessonsData.events, 'lessons');
 
-      setEvents(sortEventsByDate(visibleEvents));
+      setCampsEvents(sortEventsByDate(visibleCamps));
+      setLessonsEvents(sortEventsByDate(visibleLessons));
       setLastUpdated(new Date());
     } catch (err) {
-      console.error('Failed to load events:', err);
-      setError(err.message || 'Failed to load training schedule');
+      console.error('Failed to load list events:', err);
+      setListError(err.message || 'Failed to load camps/lessons');
     } finally {
-      setLoading(false);
+      setListLoading(false);
     }
-  }, [eventType]);
+  }, []);
 
-  // Fetch events when type changes
+  // Load calendar events (camps + lessons + at-home for current month)
+  const loadCalendarEvents = useCallback(async () => {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth() + 1;
+    const cacheKey = `${year}-${month}`;
+
+    // Check cache synchronously via ref - skip loading state if cached
+    const cachedData = monthCacheRef.current[cacheKey];
+    const isCached = !!cachedData;
+
+    try {
+      // Only show loading for uncached months (prevents flicker on navigation)
+      if (!isCached) {
+        setCalendarLoading(true);
+      }
+      setCalendarError(null);
+
+      let atHomeData;
+
+      if (isCached) {
+        atHomeData = cachedData;
+      } else {
+        atHomeData = await fetchAtHomeTrainingByMonth(year, month);
+        // Update both ref and state
+        monthCacheRef.current[cacheKey] = atHomeData;
+        setMonthCache(prev => ({ ...prev, [cacheKey]: atHomeData }));
+      }
+
+      // Filter available at-home training slots (hide booked)
+      const visibleAtHome = filterAvailableAtHomeTraining(atHomeData.events);
+
+      // Combine all events for calendar (use already loaded camps/lessons + at-home for month)
+      const allCalendarEvents = [...campsEvents, ...lessonsEvents, ...visibleAtHome];
+
+      setCalendarEvents(sortEventsByDate(allCalendarEvents));
+      setLastUpdated(new Date());
+    } catch (err) {
+      console.error('Failed to load calendar events:', err);
+      setCalendarError(err.message || 'Failed to load calendar');
+    } finally {
+      setCalendarLoading(false);
+    }
+  }, [currentMonth, campsEvents, lessonsEvents]);
+
+  // Initial load: Fetch list events on mount
   useEffect(() => {
-    loadEvents();
-  }, [eventType, loadEvents]);
+    loadListEvents();
+  }, [loadListEvents]);
 
-  // Set up automatic polling
+  // Load calendar events when list events are ready or month changes
+  // Always load calendar events (even if no camps/lessons) to show at-home training
   useEffect(() => {
-    // Map plural state to singular API parameter
-    const pollType = eventType === 'camps' ? 'camp' : 'lesson';
+    // Wait for initial list load to complete before loading calendar
+    if (!listLoading) {
+      loadCalendarEvents();
+    }
+  }, [listLoading, currentMonth, loadCalendarEvents]);
 
-    const stopPollingFn = startPolling(
+  // Set up automatic polling for camps and lessons (updates both list and calendar)
+  useEffect(() => {
+    const stopCampsPolling = startPolling(
       updatedEvents => {
-        // Filter out sold-out lessons (camps show with badge)
-        const visibleEvents = filterVisibleEvents(updatedEvents, eventType);
-        setEvents(sortEventsByDate(visibleEvents));
+        const visibleCamps = filterVisibleEvents(updatedEvents, 'camps');
+        setCampsEvents(sortEventsByDate(visibleCamps));
         setLastUpdated(new Date());
       },
-      pollType,
+      'camp',
       300000, // 5 minutes
-      true // Skip initial fetch - loadEvents() already fetched
+      true // Skip initial fetch
     );
 
-    return () => stopPollingFn();
-  }, [eventType]);
+    const stopLessonsPolling = startPolling(
+      updatedEvents => {
+        const visibleLessons = filterVisibleEvents(updatedEvents, 'lessons');
+        setLessonsEvents(sortEventsByDate(visibleLessons));
+        setLastUpdated(new Date());
+      },
+      'lesson',
+      300000, // 5 minutes
+      true // Skip initial fetch
+    );
+
+    return () => {
+      stopCampsPolling();
+      stopLessonsPolling();
+    };
+  }, []);
 
   const handleRefresh = async () => {
     try {
-      setLoading(true);
-      setError(null);
+      setListLoading(true);
+      setCalendarLoading(true);
+      setListError(null);
+      setCalendarError(null);
 
-      // Map plural state to singular API parameter
-      const pollType = eventType === 'camps' ? 'camp' : 'lesson';
+      // Refresh list events (camps and lessons)
+      const [campsData, lessonsData] = await Promise.all([
+        refreshEvents('camp'),
+        refreshEvents('lesson'),
+      ]);
 
-      // Force refresh - invalidates cache and fetches fresh data
-      const data = await refreshEvents(pollType);
+      const visibleCamps = filterVisibleEvents(campsData.events, 'camps');
+      const visibleLessons = filterVisibleEvents(lessonsData.events, 'lessons');
 
-      // Filter out sold-out lessons (camps show with badge)
-      const visibleEvents = filterVisibleEvents(data.events, eventType);
+      setCampsEvents(sortEventsByDate(visibleCamps));
+      setLessonsEvents(sortEventsByDate(visibleLessons));
 
-      setEvents(sortEventsByDate(visibleEvents));
+      // Refresh at-home training for current month (clear cache)
+      const year = currentMonth.getFullYear();
+      const month = currentMonth.getMonth() + 1;
+      const cacheKey = `${year}-${month}`;
+
+      // Clear cache (both ref and state)
+      delete monthCacheRef.current[cacheKey];
+      setMonthCache(prev => {
+        const newCache = { ...prev };
+        delete newCache[cacheKey];
+        return newCache;
+      });
+
+      const atHomeData = await fetchAtHomeTrainingByMonth(year, month);
+      // Update both ref and state
+      monthCacheRef.current[cacheKey] = atHomeData;
+      setMonthCache(prev => ({ ...prev, [cacheKey]: atHomeData }));
+
+      const visibleAtHome = filterAvailableAtHomeTraining(atHomeData.events);
+      const allCalendarEvents = [...visibleCamps, ...visibleLessons, ...visibleAtHome];
+
+      setCalendarEvents(sortEventsByDate(allCalendarEvents));
       setLastUpdated(new Date());
     } catch (err) {
       console.error('Failed to refresh events:', err);
-      setError(err.message || 'Failed to refresh training schedule');
+      setListError(err.message || 'Failed to refresh events');
+      setCalendarError(err.message || 'Failed to refresh events');
     } finally {
-      setLoading(false);
+      setListLoading(false);
+      setCalendarLoading(false);
     }
   };
+
+  // Handle calendar month navigation
+  const handleMonthChange = useCallback(newDate => {
+    setCurrentMonth(newDate);
+  }, []);
 
   return (
     <div className="min-h-screen">
@@ -122,142 +224,47 @@ const TrainingSchedule = () => {
         </div>
       </section>
 
-      {/* Additional Services Info */}
+      {/* Upcoming Events List Section */}
       <section className="section-container">
-        <motion.div
-          className="card bg-primary/50 border-neutral-dark mb-8 max-w-3xl mx-auto"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <h2 className="text-xl font-display font-bold mb-4 text-center gradient-text">
-            Additional Training Services
-          </h2>
-          <p className="text-neutral-light text-center mb-4">
-            For the following services, contact Coach Will directly:
-          </p>
-          <div className="space-y-2">
-            <Link
-              to={`/contact?service=${encodeURIComponent('1-on-1 training sessions')}`}
-              className="flex items-center justify-between gap-3 p-4 rounded-lg bg-primary/30 border border-neutral-dark hover:border-teal-500 hover:bg-primary transition-all group"
-            >
-              <div className="flex items-center gap-3">
-                <HiUserGroup className="text-2xl text-teal-500 group-hover:text-teal-400 transition-colors flex-shrink-0" />
-                <span className="text-neutral-light group-hover:text-white transition-colors">
-                  1-on-1 training sessions
-                </span>
-              </div>
-              <HiArrowRight className="text-lg text-neutral-light group-hover:text-teal-400 transition-colors flex-shrink-0" />
-            </Link>
-            <Link
-              to={`/contact?service=${encodeURIComponent('At-home stick handling & shooting sessions')}`}
-              className="flex items-center justify-between gap-3 p-4 rounded-lg bg-primary/30 border border-neutral-dark hover:border-teal-500 hover:bg-primary transition-all group"
-            >
-              <div className="flex items-center gap-3">
-                <HiHome className="text-2xl text-teal-500 group-hover:text-teal-400 transition-colors flex-shrink-0" />
-                <span className="text-neutral-light group-hover:text-white transition-colors">
-                  At-home stick handling & shooting
-                </span>
-              </div>
-              <HiArrowRight className="text-lg text-neutral-light group-hover:text-teal-400 transition-colors flex-shrink-0" />
-            </Link>
-            <Link
-              to={`/contact?service=${encodeURIComponent('Film analysis services')}`}
-              className="flex items-center justify-between gap-3 p-4 rounded-lg bg-primary/30 border border-neutral-dark hover:border-teal-500 hover:bg-primary transition-all group"
-            >
-              <div className="flex items-center gap-3">
-                <HiVideoCamera className="text-2xl text-teal-500 group-hover:text-teal-400 transition-colors flex-shrink-0" />
-                <span className="text-neutral-light group-hover:text-white transition-colors">
-                  Film analysis services
-                </span>
-              </div>
-              <HiArrowRight className="text-lg text-neutral-light group-hover:text-teal-400 transition-colors flex-shrink-0" />
-            </Link>
-          </div>
-        </motion.div>
+        <div className="flex flex-col lg:flex-row gap-4 justify-between items-center mb-6">
+          <h2 className="text-2xl font-display font-bold gradient-text">Upcoming Events</h2>
 
-        {/* Cabin John Info Pill */}
-        <motion.div
-          className="flex items-center justify-center gap-2 max-w-3xl mx-auto px-4 py-3 rounded-full bg-blue-500/10 border border-blue-500/30"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          <HiInformationCircle className="text-blue-400 text-xl flex-shrink-0" />
-          <span className="text-sm text-blue-300 text-center">
-            Cabin John Ice Rink events coming soon!
-          </span>
-        </motion.div>
-      </section>
-
-      {/* Controls */}
-      <section className="section-container pt-0">
-        <div className="flex flex-col lg:flex-row gap-4 justify-between items-center mb-8">
-          {/* Event Type Toggle */}
-          <div className="flex gap-2 bg-primary rounded-lg p-1 border border-neutral-dark">
-            <ToggleButton
-              label="Camps"
-              active={eventType === 'camps'}
-              onClick={() => setEventType('camps')}
+          {/* Refresh Button */}
+          <button
+            onClick={handleRefresh}
+            disabled={listLoading || calendarLoading}
+            className="flex items-center gap-2 px-4 py-2 bg-primary border border-neutral-dark rounded-lg text-neutral-light hover:border-teal-500 transition-colors disabled:opacity-50"
+            aria-label="Refresh events"
+          >
+            <HiRefresh
+              className={`text-xl ${listLoading || calendarLoading ? 'animate-spin' : ''}`}
             />
-            <ToggleButton
-              label="Lessons"
-              active={eventType === 'lessons'}
-              onClick={() => setEventType('lessons')}
-            />
-          </div>
-
-          {/* View Mode & Refresh */}
-          <div className="flex gap-4 items-center">
-            {/* View Mode Toggle */}
-            <div className="flex gap-2 bg-primary rounded-lg p-1 border border-neutral-dark">
-              <ViewButton
-                icon={HiViewList}
-                label="List"
-                active={viewMode === 'list'}
-                onClick={() => setViewMode('list')}
-              />
-              <ViewButton
-                icon={HiCalendar}
-                label="Calendar"
-                active={viewMode === 'calendar'}
-                onClick={() => setViewMode('calendar')}
-              />
-            </div>
-
-            {/* Refresh Button */}
-            <button
-              onClick={handleRefresh}
-              disabled={loading}
-              className="flex items-center gap-2 px-4 py-2 bg-primary border border-neutral-dark rounded-lg text-neutral-light hover:border-teal-500 transition-colors disabled:opacity-50"
-              aria-label="Refresh events"
-            >
-              <HiRefresh className={`text-xl ${loading ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">Refresh</span>
-            </button>
-          </div>
+            <span className="hidden sm:inline">Refresh</span>
+          </button>
         </div>
 
-        {/* Last Updated */}
-        {lastUpdated && !loading && (
-          <motion.p
-            className="text-sm text-neutral-light text-center mb-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
-            Last updated:{' '}
-            {lastUpdated.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
-          </motion.p>
-        )}
+        {/* List Tabs */}
+        <div className="inline-flex gap-2 bg-primary rounded-lg p-1 border border-neutral-dark mb-6">
+          <ToggleButton
+            label="Camps"
+            active={listType === 'camps'}
+            onClick={() => setListType('camps')}
+          />
+          <ToggleButton
+            label="Lessons"
+            active={listType === 'lessons'}
+            onClick={() => setListType('lessons')}
+          />
+        </div>
 
-        {/* Error State */}
-        {error && (
+        {/* List Error State */}
+        {listError && (
           <motion.div
-            className="card bg-red-900/20 border-red-500 text-center mb-8"
+            className="card bg-red-900/20 border-red-500 text-center mb-6"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <p className="text-red-400 mb-4">{error}</p>
+            <p className="text-red-400 mb-4">{listError}</p>
             <button
               onClick={handleRefresh}
               className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
@@ -267,43 +274,162 @@ const TrainingSchedule = () => {
           </motion.div>
         )}
 
-        {/* Loading State */}
-        {loading && (
+        {/* List Loading State */}
+        {listLoading && (
           <motion.div
-            className="flex flex-col items-center justify-center py-20"
+            className="flex flex-col items-center justify-center py-12"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
-            <div className="w-16 h-16 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mb-4" />
-            <p className="text-neutral-light">Loading {eventType}...</p>
+            <div className="w-12 h-12 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mb-4" />
+            <p className="text-neutral-light">Loading events...</p>
           </motion.div>
         )}
 
-        {/* Content */}
-        {!loading && !error && (
-          <>
-            {viewMode === 'list' ? (
-              <EventList events={events} eventType={eventType} />
-            ) : (
-              <EventCalendar events={events} eventType={eventType} />
-            )}
+        {/* List Content with max height and scroll */}
+        {!listLoading && !listError && (
+          <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-teal-500 scrollbar-track-primary">
+            <EventList
+              events={listType === 'camps' ? campsEvents : lessonsEvents}
+              eventType={listType}
+            />
 
             {/* No Events Message */}
-            {events.length === 0 && (
+            {((listType === 'camps' && campsEvents.length === 0) ||
+              (listType === 'lessons' && lessonsEvents.length === 0)) && (
               <motion.div
-                className="text-center py-20"
+                className="text-center py-12"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
               >
-                <p className="text-2xl text-neutral-light mb-4">
-                  No upcoming {eventType} scheduled
-                </p>
-                <p className="text-neutral-light">
+                <p className="text-xl text-neutral-light mb-2">No upcoming {listType} scheduled</p>
+                <p className="text-neutral-light text-sm">
                   Check back soon for new training opportunities!
                 </p>
               </motion.div>
             )}
-          </>
+          </div>
+        )}
+
+        {/* Last Updated */}
+        {lastUpdated && !listLoading && !calendarLoading && (
+          <motion.p
+            className="text-xs text-neutral-light text-center mt-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            Last updated:{' '}
+            {lastUpdated.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+          </motion.p>
+        )}
+      </section>
+
+      {/* Additional Training Services Info */}
+      <section className="section-container pt-0">
+        <motion.div
+          className="flex items-center gap-3 p-4 rounded-lg bg-orange-500/10 border border-orange-500/30 max-w-2xl mx-auto"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <HiHome className="text-2xl text-orange-400 flex-shrink-0" />
+          <p className="text-sm text-orange-200">
+            <span className="font-semibold">
+              1-on-1 training, stick handling, shooting, and film analysis
+            </span>{' '}
+            — book an <span className="text-orange-400 font-semibold">At Home Training</span>{' '}
+            appointment in the calendar below.
+          </p>
+        </motion.div>
+      </section>
+
+      {/* Calendar Section */}
+      <section className="section-container pt-0">
+        <div className="flex flex-col lg:flex-row gap-4 justify-between items-center mb-4">
+          <h2 className="text-2xl font-display font-bold gradient-text">Training Calendar</h2>
+
+          {/* Refresh Button */}
+          <button
+            onClick={handleRefresh}
+            disabled={listLoading || calendarLoading}
+            className="flex items-center gap-2 px-4 py-2 bg-primary border border-neutral-dark rounded-lg text-neutral-light hover:border-teal-500 transition-colors disabled:opacity-50"
+            aria-label="Refresh calendar"
+          >
+            <HiRefresh
+              className={`text-xl ${listLoading || calendarLoading ? 'animate-spin' : ''}`}
+            />
+            <span className="hidden sm:inline">Refresh</span>
+          </button>
+        </div>
+
+        {/* Calendar Legend */}
+        <div className="flex flex-wrap justify-center gap-4 text-sm mb-6">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded bg-red-500" />
+            <span className="text-neutral-light">Camps</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded bg-blue-500" />
+            <span className="text-neutral-light">Lessons</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded bg-orange-500" />
+            <span className="text-neutral-light">At Home</span>
+          </div>
+        </div>
+
+        {/* Calendar Error State */}
+        {calendarError && (
+          <motion.div
+            className="card bg-red-900/20 border-red-500 text-center mb-6"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <p className="text-red-400 mb-4">{calendarError}</p>
+            <button
+              onClick={handleRefresh}
+              className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+            >
+              Try Again
+            </button>
+          </motion.div>
+        )}
+
+        {/* Calendar Container */}
+        {!calendarError && (
+          <div className="relative">
+            {/* Loading Overlay */}
+            {calendarLoading && (
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-primary/80 rounded-lg">
+                <div className="w-12 h-12 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mb-4" />
+                <p className="text-neutral-light">Loading calendar...</p>
+              </div>
+            )}
+
+            {/* Calendar Content - Always rendered to maintain dimensions */}
+            <div className={calendarLoading ? 'opacity-30 pointer-events-none' : ''}>
+              <EventCalendar
+                events={calendarEvents}
+                eventType="all"
+                currentMonth={currentMonth}
+                onMonthChange={handleMonthChange}
+              />
+            </div>
+
+            {/* No Events Message */}
+            {!calendarLoading && calendarEvents.length === 0 && (
+              <motion.div
+                className="text-center py-12"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+              >
+                <p className="text-xl text-neutral-light mb-2">No events scheduled this month</p>
+                <p className="text-neutral-light text-sm">
+                  Check back soon for new training opportunities!
+                </p>
+              </motion.div>
+            )}
+          </div>
         )}
       </section>
     </div>
@@ -321,23 +447,6 @@ const ToggleButton = ({ label, active, onClick }) => {
       }`}
     >
       {label}
-    </button>
-  );
-};
-
-const ViewButton = ({ icon: Icon, label, active, onClick }) => {
-  return (
-    <button
-      onClick={onClick}
-      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all duration-300 ${
-        active
-          ? 'bg-gradient-to-r from-teal-500 to-teal-700 text-white'
-          : 'text-neutral-light hover:text-white'
-      }`}
-      aria-label={`Switch to ${label} view`}
-    >
-      <Icon className="text-xl" />
-      <span className="hidden sm:inline">{label}</span>
     </button>
   );
 };

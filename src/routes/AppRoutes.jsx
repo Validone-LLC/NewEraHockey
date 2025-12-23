@@ -10,6 +10,7 @@ import Gallery from '@pages/Gallery';
 import Contact from '@pages/Contact';
 import FAQ from '@pages/FAQ';
 import EventRegistration from '@pages/EventRegistration';
+import AtHomeTrainingRegistration from '@pages/AtHomeTrainingRegistration';
 import RegistrationSuccess from '@pages/RegistrationSuccess';
 import RegistrationCancel from '@pages/RegistrationCancel';
 import TrainingSchedule from '@pages/TrainingSchedule';
@@ -34,6 +35,7 @@ const AppRoutes = () => {
           <Route path="/faq" element={<FAQ />} />
           <Route path="/event-registration" element={<TrainingSchedule />} />
           <Route path="/register/:eventId" element={<EventRegistration />} />
+          <Route path="/register/at-home/:eventId" element={<AtHomeTrainingRegistration />} />
           <Route path="/register/success" element={<RegistrationSuccess />} />
           <Route path="/register/cancel" element={<RegistrationCancel />} />
           <Route path="/terms-and-conditions" element={<TermsAndConditions />} />

@@ -5,49 +5,49 @@
  * using a three-tier approach: Extended Properties → Color Coding → Keyword Detection
  */
 
+import { COLOR_TO_EVENT_TYPE, EVENT_TYPES } from '@/config/constants';
+
 /**
  * Categorize a single calendar event
  * @param {Object} event - Google Calendar event object
- * @returns {string} - 'camp', 'lesson', or 'other'
+ * @returns {string} - 'camp', 'lesson', 'at_home_training', or 'other'
  */
 export const categorizeEvent = event => {
-  if (!event) return 'other';
+  if (!event) return EVENT_TYPES.OTHER;
 
   // Method 1: Extended Properties (most reliable - requires manual setup)
   const eventType = event.extendedProperties?.shared?.eventType;
   if (eventType) {
     const normalized = eventType.toLowerCase();
-    if (normalized === 'camp' || normalized === 'lesson') {
+    if (
+      normalized === EVENT_TYPES.CAMP ||
+      normalized === EVENT_TYPES.LESSON ||
+      normalized === EVENT_TYPES.AT_HOME_TRAINING
+    ) {
       return normalized;
     }
   }
 
   // Method 2: Color-based categorization (easiest for Coach Will)
-  // Red (#11) = Camps, Blue (#9) = Lessons
-  const colorMap = {
-    11: 'camp', // Red
-    9: 'lesson', // Blue
-  };
-
-  if (event.colorId && colorMap[event.colorId]) {
-    return colorMap[event.colorId];
+  // Uses centralized COLOR_TO_EVENT_TYPE mapping from constants
+  if (event.colorId && COLOR_TO_EVENT_TYPE[event.colorId]) {
+    return COLOR_TO_EVENT_TYPE[event.colorId];
   }
 
   // Method 3: Keyword detection in title (automatic fallback)
   const title = (event.summary || '').toLowerCase();
 
-  if (title.includes('camp')) return 'camp';
-  if (title.includes('lesson')) {
-    return 'lesson';
-  }
+  if (title.includes('camp')) return EVENT_TYPES.CAMP;
+  if (title.includes('lesson')) return EVENT_TYPES.LESSON;
+  if (title.includes('at home') || title.includes('training')) return EVENT_TYPES.AT_HOME_TRAINING;
 
-  return 'other';
+  return EVENT_TYPES.OTHER;
 };
 
 /**
  * Filter events by type
  * @param {Array} events - Array of Google Calendar event objects
- * @param {string} type - 'camp', 'lesson', or 'all'
+ * @param {string} type - 'camp', 'lesson', 'at_home_training', or 'all'
  * @returns {Array} - Filtered events
  */
 export const filterEventsByType = (events, type) => {
@@ -61,11 +61,11 @@ export const filterEventsByType = (events, type) => {
 /**
  * Group events by category
  * @param {Array} events - Array of Google Calendar event objects
- * @returns {Object} - { camps: [], lessons: [], other: [] }
+ * @returns {Object} - { camps: [], lessons: [], atHomeTraining: [], other: [] }
  */
 export const groupEventsByType = events => {
   if (!events || !Array.isArray(events)) {
-    return { camps: [], lessons: [], other: [] };
+    return { camps: [], lessons: [], atHomeTraining: [], other: [] };
   }
 
   return events.reduce(
@@ -75,23 +75,25 @@ export const groupEventsByType = events => {
         grouped.camps.push(event);
       } else if (category === 'lesson') {
         grouped.lessons.push(event);
+      } else if (category === 'at_home_training') {
+        grouped.atHomeTraining.push(event);
       } else {
         grouped.other.push(event);
       }
       return grouped;
     },
-    { camps: [], lessons: [], other: [] }
+    { camps: [], lessons: [], atHomeTraining: [], other: [] }
   );
 };
 
 /**
  * Get count of events by type
  * @param {Array} events - Array of Google Calendar event objects
- * @returns {Object} - { camps: 0, lessons: 0, other: 0, total: 0 }
+ * @returns {Object} - { camps: 0, lessons: 0, atHomeTraining: 0, other: 0, total: 0 }
  */
 export const getEventCounts = events => {
   if (!events || !Array.isArray(events)) {
-    return { camps: 0, lessons: 0, other: 0, total: 0 };
+    return { camps: 0, lessons: 0, atHomeTraining: 0, other: 0, total: 0 };
   }
 
   const grouped = groupEventsByType(events);
@@ -99,6 +101,7 @@ export const getEventCounts = events => {
   return {
     camps: grouped.camps.length,
     lessons: grouped.lessons.length,
+    atHomeTraining: grouped.atHomeTraining.length,
     other: grouped.other.length,
     total: events.length,
   };

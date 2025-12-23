@@ -1,4 +1,5 @@
 import { useSearchParams, Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { HiXCircle, HiArrowLeft, HiQuestionMarkCircle } from 'react-icons/hi';
 import Card from '@components/common/Card/Card';
@@ -10,6 +11,10 @@ const RegistrationCancel = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary via-primary-dark to-neutral-bg">
+      <Helmet>
+        <meta name="robots" content="noindex, nofollow" />
+        <title>Registration Cancelled | New Era Hockey</title>
+      </Helmet>
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <Card>
           <motion.div

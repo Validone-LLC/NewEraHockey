@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { HiChevronRight } from 'react-icons/hi';
+import { ChevronRight } from 'lucide-react';
 import Card from '@components/common/Card/Card';
 import SEO from '@components/common/SEO/SEO';
 import privacyPolicyData from '@data/privacyPolicy.json';
@@ -74,7 +74,7 @@ const PrivacyPolicy = () => {
                           {index + 1}.
                         </span>
                         <span className="text-sm flex-1">{section.title}</span>
-                        <HiChevronRight
+                        <ChevronRight
                           className={`w-4 h-4 flex-shrink-0 transition-transform ${
                             activeSection === section.id ? 'text-teal-500' : 'text-neutral-dark'
                           } group-hover:translate-x-1`}
@@ -123,7 +123,7 @@ const PrivacyPolicy = () => {
                   className="inline-flex items-center gap-2 text-teal-500 hover:text-teal-400 transition-colors font-semibold"
                 >
                   Back to Top
-                  <HiChevronRight className="w-4 h-4 rotate-[-90deg]" />
+                  <ChevronRight className="w-4 h-4 rotate-[-90deg]" />
                 </button>
               </div>
 

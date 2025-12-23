@@ -16,12 +16,36 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
  * }
  */
 
+// Allowed origins for CORS
+const ALLOWED_ORIGINS = [
+  'https://newerahockeytraining.com',
+  'https://www.newerahockeytraining.com',
+  'https://newerahockey.netlify.app',
+];
+
+// Check if origin is allowed (includes deploy preview URLs)
+function isAllowedOrigin(origin) {
+  if (!origin) return false;
+  // Allow exact matches
+  if (ALLOWED_ORIGINS.includes(origin)) return true;
+  // Allow Netlify deploy previews and branch deploys
+  if (origin.match(/^https:\/\/[a-z0-9-]+--newerahockey\.netlify\.app$/)) return true;
+  // Allow localhost for development
+  if (origin.match(/^http:\/\/localhost:\d+$/)) return true;
+  if (origin.match(/^http:\/\/127\.0\.0\.1:\d+$/)) return true;
+  return false;
+}
+
 exports.handler = async (event, context) => {
-  // CORS headers
+  const origin = event.headers.origin || event.headers.Origin || '';
+  const allowedOrigin = isAllowedOrigin(origin) ? origin : ALLOWED_ORIGINS[0];
+
+  // CORS headers - restrict to specific origins
   const headers = {
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': allowedOrigin,
     'Access-Control-Allow-Headers': 'Content-Type',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Credentials': 'true',
     'Content-Type': 'application/json',
   };
 
@@ -66,6 +90,11 @@ exports.handler = async (event, context) => {
       };
     }
 
+    // For At Home Training: validate player count and calculate total
+    const isAtHomeTraining = calendarEvent.eventType === 'at_home_training';
+    const playerCount = isAtHomeTraining && formData.players ? formData.players.length : 1;
+    const totalPrice = isAtHomeTraining ? calendarEvent.price * playerCount : calendarEvent.price;
+
     // Validate Stripe configuration
     if (!process.env.STRIPE_SECRET_KEY) {
       console.error('STRIPE_SECRET_KEY not configured');
@@ -88,10 +117,15 @@ exports.handler = async (event, context) => {
     console.log('Checkout session baseUrl:', baseUrl, '(context:', process.env.CONTEXT, ')');
 
     // Convert price to cents (Stripe uses smallest currency unit)
-    const amountInCents = Math.round(calendarEvent.price * 100);
+    const amountInCents = Math.round(totalPrice * 100);
 
     // Logo URL - using the deployed site's logo
     const logoUrl = `${baseUrl}/assets/images/logo/neh-logo.png`;
+
+    // Build product name with player count for At Home Training
+    const productName = isAtHomeTraining
+      ? `${calendarEvent.summary || 'At Home Training'} (${playerCount} player${playerCount > 1 ? 's' : ''})`
+      : calendarEvent.summary || 'Event Registration';
 
     // Create Stripe Checkout session
     const session = await stripe.checkout.sessions.create({
@@ -103,7 +137,7 @@ exports.handler = async (event, context) => {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: calendarEvent.summary || 'Event Registration',
+              name: productName,
               images: [logoUrl],
             },
             unit_amount: amountInCents,
@@ -120,16 +154,38 @@ exports.handler = async (event, context) => {
       metadata: {
         // Event information
         eventId: calendarEvent.id,
-        eventType: calendarEvent.eventType, // 'camp' or 'lesson' for capacity defaults
+        eventType: calendarEvent.eventType, // 'camp', 'lesson', or 'at_home_training'
         eventSummary: calendarEvent.summary || '',
         eventPrice: calendarEvent.price.toString(),
+        playerCount: playerCount.toString(),
+        totalPrice: totalPrice.toString(),
 
-        // Player information
-        playerFirstName: formData.playerFirstName,
-        playerLastName: formData.playerLastName,
-        playerDateOfBirth: formData.playerDateOfBirth,
-        playerAge: formData.playerAge || '',
-        playerLevelOfPlay: formData.playerLevelOfPlay || '',
+        // At Home Training specific
+        ...(isAtHomeTraining && {
+          slotDate: calendarEvent.slotDate || '',
+          slotTime: calendarEvent.slotTime || '',
+          addressStreet: formData.addressStreet || '',
+          addressUnit: formData.addressUnit || '',
+          addressCity: formData.addressCity || '',
+          addressState: formData.addressState || '',
+          addressZip: formData.addressZip || '',
+          addressCountry: formData.addressCountry || 'USA',
+        }),
+
+        // Player information (backwards compatible)
+        // For single player (camps/lessons): use formData fields directly
+        // For multi-player (at home): serialize players array to JSON
+        ...(isAtHomeTraining
+          ? {
+              playersData: JSON.stringify(formData.players),
+            }
+          : {
+              playerFirstName: formData.playerFirstName,
+              playerLastName: formData.playerLastName,
+              playerDateOfBirth: formData.playerDateOfBirth,
+              playerAge: formData.playerAge || '',
+              playerLevelOfPlay: formData.playerLevelOfPlay || '',
+            }),
 
         // Guardian information
         guardianFirstName: formData.guardianFirstName,
@@ -139,9 +195,9 @@ exports.handler = async (event, context) => {
         guardianRelationship: formData.guardianRelationship,
 
         // Emergency contact
-        emergencyName: formData.emergencyName,
-        emergencyPhone: formData.emergencyPhone,
-        emergencyRelationship: formData.emergencyRelationship,
+        emergencyName: formData.emergencyName || '',
+        emergencyPhone: formData.emergencyPhone || '',
+        emergencyRelationship: formData.emergencyRelationship || '',
 
         // Additional notes
         medicalNotes: formData.medicalNotes || '',

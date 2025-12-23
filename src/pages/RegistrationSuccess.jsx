@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import Confetti from 'react-confetti';
 import { HiCheckCircle, HiMail } from 'react-icons/hi';
@@ -45,6 +46,10 @@ const RegistrationSuccess = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary via-primary-dark to-neutral-bg">
+      <Helmet>
+        <meta name="robots" content="noindex, nofollow" />
+        <title>Registration Complete | New Era Hockey</title>
+      </Helmet>
       {/* Confetti Animation */}
       {showConfetti && (
         <Confetti
@@ -144,8 +149,8 @@ const RegistrationSuccess = () => {
               transition={{ delay: 0.8 }}
               className="flex flex-col sm:flex-row gap-4 justify-center"
             >
-              <Button to="/schedule" variant="primary">
-                View Schedule
+              <Button to="/event-registration" variant="primary">
+                View Events
               </Button>
               <Button to="/" variant="secondary">
                 Back to Home

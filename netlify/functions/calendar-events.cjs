@@ -44,8 +44,10 @@ exports.handler = async (event, context) => {
   try {
     // Parse query parameters
     const params = event.queryStringParameters || {};
-    const eventType = params.type; // 'camp', 'lesson', or null for all
+    const eventType = params.type; // 'camp', 'lesson', 'at_home_training', or null for all
     const syncToken = params.syncToken; // For incremental sync
+    const month = params.month; // 'YYYY-MM' format for month filtering
+    const year = params.year; // Year for month filtering
 
     // Calendar ID (used for both authentication subject and API calls)
     const calendarId = process.env.CALENDAR_ID || 'coachwill@newerahockeytraining.com';
@@ -103,6 +105,20 @@ exports.handler = async (event, context) => {
     // Use sync token for incremental updates if provided
     if (syncToken) {
       listParams.syncToken = syncToken;
+    } else if (month && year) {
+      // Month-based filtering for At Home Training
+      // Parse month (1-12) and year
+      const monthNum = parseInt(month);
+      const yearNum = parseInt(year);
+
+      // Start of month (first day, 00:00:00)
+      const timeMin = new Date(yearNum, monthNum - 1, 1, 0, 0, 0);
+
+      // End of month (last day, 23:59:59)
+      const timeMax = new Date(yearNum, monthNum, 0, 23, 59, 59);
+
+      listParams.timeMin = timeMin.toISOString();
+      listParams.timeMax = timeMax.toISOString();
     } else {
       // Initial fetch: get events from now onwards
       listParams.timeMin = new Date().toISOString();
@@ -113,15 +129,19 @@ exports.handler = async (event, context) => {
 
     let events = response.data.items || [];
 
-    // Enrich events with registration metadata (async)
-    events = await Promise.all(events.map(event => enrichEventWithRegistrationData(event)));
-
     // Filter by event type if specified
     if (eventType) {
       events = events.filter(event => {
         const category = categorizeEvent(event);
         return category === eventType.toLowerCase();
       });
+    }
+
+    // Enrich events with registration metadata (async)
+    // Skip enrichment for At Home Training (uses calendar colors, not blob storage)
+    const shouldEnrich = eventType !== 'at_home_training';
+    if (shouldEnrich) {
+      events = await Promise.all(events.map(event => enrichEventWithRegistrationData(event)));
     }
 
     // Return response with short cache TTL
@@ -168,29 +188,38 @@ exports.handler = async (event, context) => {
 /**
  * Categorize calendar event based on extended properties, color, or keywords
  * @param {Object} event - Google Calendar event object
- * @returns {string} - 'camp', 'lesson', or 'other'
+ * @returns {string} - 'camp', 'lesson', 'at_home_training', or 'other'
  */
 function categorizeEvent(event) {
-  // Method 1: Extended Properties (most reliable)
+  if (!event) return 'other';
+
+  // Method 1: Extended Properties (most reliable - requires manual setup)
   const eventType = event.extendedProperties?.shared?.eventType;
   if (eventType) {
-    return eventType.toLowerCase();
+    const normalized = eventType.toLowerCase();
+    if (normalized === 'camp' || normalized === 'lesson' || normalized === 'at_home_training') {
+      return normalized;
+    }
   }
 
-  // Method 2: Color-based categorization
+  // Method 2: Color-based categorization (easiest for Coach Will)
+  // Red (#11) = Camps, Blue (#9) = Lessons, Orange (#6) = At Home Training (available), Yellow (#5) = At Home Training (booked)
   const colorMap = {
     '11': 'camp', // Red
     '9': 'lesson', // Blue
+    '6': 'at_home_training', // Orange (Tangerine) - available slots
+    '5': 'at_home_training', // Yellow (Banana) - booked slots
   };
 
   if (event.colorId && colorMap[event.colorId]) {
     return colorMap[event.colorId];
   }
 
-  // Method 3: Keyword detection in title
+  // Method 3: Keyword detection in title (automatic fallback)
   const title = (event.summary || '').toLowerCase();
   if (title.includes('camp')) return 'camp';
   if (title.includes('lesson')) return 'lesson';
+  if (title.includes('at home') || title.includes('training')) return 'at_home_training';
 
   return 'other';
 }
