@@ -8,8 +8,9 @@
 
 [build.environment]
   NODE_ENV = "development"
-  # Turnstile site key is PUBLIC (not a secret) - safe to bundle in frontend
-  SECRETS_SCAN_OMIT_KEYS = "TURNSTILE_SITE_KEY,VITE_TURNSTILE_SITE_KEY"
+  # Public keys (not secrets) - safe to bundle in frontend
+  # Google Places API key should have domain restrictions in Google Cloud Console
+  SECRETS_SCAN_OMIT_KEYS = "TURNSTILE_SITE_KEY,VITE_TURNSTILE_SITE_KEY,VITE_GOOGLE_PLACES_API_KEY"
 
 # Branch deploy settings
 [context.branch-deploy]
