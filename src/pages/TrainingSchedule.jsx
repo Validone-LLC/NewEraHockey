@@ -225,7 +225,7 @@ const TrainingSchedule = () => {
       </section>
 
       {/* Upcoming Events List Section */}
-      <section className="section-container">
+      <section className="section-container pb-12">
         <div className="flex flex-col lg:flex-row gap-4 justify-between items-center mb-6">
           <h2 className="text-2xl font-display font-bold gradient-text">Upcoming Events</h2>
 
@@ -288,7 +288,7 @@ const TrainingSchedule = () => {
 
         {/* List Content with max height and scroll */}
         {!listLoading && !listError && (
-          <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-teal-500 scrollbar-track-primary">
+          <div className="max-h-[28rem] sm:max-h-96 overflow-y-auto custom-scrollbar pb-4">
             <EventList
               events={listType === 'camps' ? campsEvents : lessonsEvents}
               eventType={listType}
