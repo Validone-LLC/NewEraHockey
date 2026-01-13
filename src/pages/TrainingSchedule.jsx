@@ -288,7 +288,7 @@ const TrainingSchedule = () => {
 
         {/* List Content with max height and scroll */}
         {!listLoading && !listError && (
-          <div className="max-h-[28rem] sm:max-h-96 overflow-y-auto custom-scrollbar pb-4">
+          <div className="max-h-[36rem] sm:max-h-[32rem] overflow-y-auto custom-scrollbar pb-4">
             <EventList
               events={listType === 'camps' ? campsEvents : lessonsEvents}
               eventType={listType}

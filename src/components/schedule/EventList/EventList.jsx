@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Calendar, Clock, MapPin, DollarSign } from 'lucide-react';
-import { formatEventDateTime, isUpcoming } from '@utils/eventCategorization';
+import { formatEventDateTime, isUpcoming, getMultiDateDisplay } from '@utils/eventCategorization';
 import {
   canRegister,
   isSoldOut,
@@ -28,6 +28,7 @@ const EventList = ({ events, eventType }) => {
 
 const EventCard = ({ event, eventType }) => {
   const { date, time } = formatEventDateTime(event);
+  const multiDateData = getMultiDateDisplay(event);
   const upcoming = isUpcoming(event);
   const soldOut = isSoldOut(event);
   const eligible = canRegister(event);
@@ -67,22 +68,56 @@ const EventCard = ({ event, eventType }) => {
           </div>
 
           {/* Date & Time */}
-          <div className="flex flex-wrap gap-4 text-neutral-light mb-2">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-teal-500" />
-              <span>{date}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-teal-500" />
-              <span>{time}</span>
-            </div>
-            {event.registrationData?.price && (
-              <div className="flex items-center gap-2">
-                <DollarSign className="w-4 h-4 text-teal-500" />
-                <span className="text-white">{price}</span>
+          {multiDateData ? (
+            <div className="mb-3">
+              {/* Multi-date header */}
+              <div className="flex items-center gap-2 text-neutral-light mb-2">
+                <Calendar className="w-4 h-4 text-teal-500" />
+                <span className="text-white font-medium">{multiDateData.dateRange}</span>
+                <span className="text-xs text-neutral-light">
+                  ({multiDateData.sessionCount} sessions)
+                </span>
+                {event.registrationData?.price && (
+                  <>
+                    <span className="text-neutral-dark">•</span>
+                    <DollarSign className="w-4 h-4 text-teal-500" />
+                    <span className="text-white">{price}</span>
+                  </>
+                )}
               </div>
-            )}
-          </div>
+              {/* Session schedule */}
+              <div className="pl-6 space-y-1 border-l-2 border-neutral-dark ml-2">
+                {multiDateData.sessions.map((session, idx) => (
+                  <div key={idx} className="flex items-center gap-2 text-sm">
+                    <span className="text-teal-400 font-medium w-8">{session.dayOfWeek}</span>
+                    <span className="text-neutral-light">{session.date}</span>
+                    <span className="text-neutral-dark">—</span>
+                    <Clock className="w-3 h-3 text-teal-500" />
+                    <span className="text-neutral-light">
+                      {session.startTime} - {session.endTime}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-4 text-neutral-light mb-2">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-teal-500" />
+                <span>{date}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-teal-500" />
+                <span>{time}</span>
+              </div>
+              {event.registrationData?.price && (
+                <div className="flex items-center gap-2">
+                  <DollarSign className="w-4 h-4 text-teal-500" />
+                  <span className="text-white">{price}</span>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Location */}
           {event.location && (
