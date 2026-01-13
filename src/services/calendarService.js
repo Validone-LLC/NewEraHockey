@@ -20,6 +20,7 @@ import {
   canRegister,
   getRegistrationStatus,
   getEventCustomText,
+  getEventWarningText,
 } from '../utils/registrationHelpers';
 
 let syncToken = null;
@@ -471,4 +472,5 @@ export {
   canRegister,
   getRegistrationStatus,
   getEventCustomText,
+  getEventWarningText,
 };

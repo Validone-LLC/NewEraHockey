@@ -246,3 +246,20 @@ export const getEventCustomText = event => {
   const text = match[1].replace(/<[^>]*>/g, '').trim();
   return text || null;
 };
+
+/**
+ * Extract warning text from event description
+ * Looks for "Warning: " prefix in description and returns the text after it
+ * @param {Object} event - Calendar event object
+ * @returns {string|null} - Warning text or null if not found
+ */
+export const getEventWarningText = event => {
+  if (!event?.description) return null;
+
+  const match = event.description.match(/Warning:\s*(.+?)(?:\n|<|$)/i);
+  if (!match) return null;
+
+  // Strip any HTML tags that might be in the text
+  const text = match[1].replace(/<[^>]*>/g, '').trim();
+  return text || null;
+};

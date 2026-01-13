@@ -9,6 +9,7 @@ import {
   getRemainingSpots,
   getRegistrationButtonText,
   getEventCustomText,
+  getEventWarningText,
 } from '@/services/calendarService';
 import SoldOutBadge from '@components/registration/SoldOutBadge';
 
@@ -36,6 +37,7 @@ const EventCard = ({ event, eventType }) => {
   const price = getFormattedPrice(event);
   const buttonText = getRegistrationButtonText(event);
   const customText = getEventCustomText(event);
+  const warningText = getEventWarningText(event);
 
   return (
     <motion.div
@@ -129,6 +131,14 @@ const EventCard = ({ event, eventType }) => {
 
           {/* Custom Text */}
           {customText && <div className="text-neutral-light text-sm mb-3 italic">{customText}</div>}
+
+          {/* Warning Text (Camps only) */}
+          {warningText && eventType === 'camps' && (
+            <div className="flex items-start gap-2 text-amber-400 text-sm mb-3">
+              <span className="font-semibold">⚠️</span>
+              <span>{warningText}</span>
+            </div>
+          )}
 
           {/* Registration Status */}
           {upcoming && remaining !== null && remaining <= 5 && !soldOut && (

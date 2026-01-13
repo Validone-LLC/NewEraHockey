@@ -11,6 +11,7 @@ import {
   getRegistrationButtonText,
   canRegister,
   getEventCustomText,
+  getEventWarningText,
 } from '@/services/calendarService';
 import { isRegistrationEnabledForEventType } from '@/config/featureFlags';
 
@@ -31,6 +32,7 @@ const EventModal = ({ isOpen, onClose, event }) => {
   const buttonText = getRegistrationButtonText(event);
   const eligible = canRegister(event);
   const customText = getEventCustomText(event);
+  const warningText = getEventWarningText(event);
 
   // Check if registration is enabled for this event type
   const registrationEnabled = isRegistrationEnabledForEventType(actualEventType);
@@ -164,6 +166,16 @@ const EventModal = ({ isOpen, onClose, event }) => {
                   {customText && (
                     <div className="pt-4 border-t border-neutral-dark/50">
                       <p className="text-neutral-light text-sm italic">{customText}</p>
+                    </div>
+                  )}
+
+                  {/* Warning Text (Camps only) */}
+                  {warningText && displayEventType === 'camps' && (
+                    <div className={`pt-4 ${!customText ? 'border-t border-neutral-dark/50' : ''}`}>
+                      <div className="flex items-start gap-2 text-amber-400 text-sm">
+                        <span className="font-semibold">⚠️</span>
+                        <span>{warningText}</span>
+                      </div>
                     </div>
                   )}
                 </div>
