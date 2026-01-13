@@ -226,3 +226,108 @@ export const sortEventsByDate = events => {
     return new Date(aStart) - new Date(bStart);
   });
 };
+
+/**
+ * Parse multi-date/time format from event description
+ * Format: "Date & Times: [3/13 - 4:45pm - 6pm] [3/14 - 7:30am - 8:45am]"
+ * @param {string} description - Event description text
+ * @param {number} year - Year to use for dates (defaults to current year, adjusts if date is past)
+ * @returns {Object|null} - { sessions: [{ date, dayOfWeek, startTime, endTime, fullDate }] } or null
+ */
+export const parseMultiDateTimes = (description, year = new Date().getFullYear()) => {
+  if (!description) return null;
+
+  // Match "Date & Times:" or "Dates & Times:" followed by bracketed sessions
+  const headerMatch = description.match(/Dates?\s*&\s*Times?\s*:\s*((?:\[.*?\]\s*)+)/i);
+  if (!headerMatch) return null;
+
+  const sessionsStr = headerMatch[1];
+  // Pattern: [MM/DD - startTime - endTime]
+  // Time formats: 4:45pm, 7:30am, 6pm, 8:45am (with or without minutes)
+  const sessionPattern =
+    /\[(\d{1,2})\/(\d{1,2})\s*-\s*(\d{1,2}(?::\d{2})?(?:am|pm)?)\s*-\s*(\d{1,2}(?::\d{2})?(?:am|pm)?)\]/gi;
+
+  const sessions = [];
+  let match;
+
+  while ((match = sessionPattern.exec(sessionsStr)) !== null) {
+    const [, month, day, startTimeRaw, endTimeRaw] = match;
+
+    // Create date object to get day of week
+    let sessionYear = year;
+    let sessionDate = new Date(sessionYear, parseInt(month) - 1, parseInt(day));
+
+    // If date is in the past, use next year
+    const now = new Date();
+    if (sessionDate < now) {
+      sessionYear = year + 1;
+      sessionDate = new Date(sessionYear, parseInt(month) - 1, parseInt(day));
+    }
+
+    const dayOfWeek = sessionDate.toLocaleDateString('en-US', { weekday: 'short' });
+    const monthName = sessionDate.toLocaleDateString('en-US', { month: 'short' });
+
+    // Normalize time format (add :00 if no minutes, uppercase AM/PM)
+    const normalizeTime = timeStr => {
+      let time = timeStr.toLowerCase();
+      // If no colon, add :00 before am/pm
+      if (!time.includes(':')) {
+        time = time.replace(/(am|pm)/, ':00$1');
+      }
+      // Format to standard time display
+      const timeMatch = time.match(/(\d{1,2}):(\d{2})(am|pm)/);
+      if (timeMatch) {
+        let [, hours, mins, period] = timeMatch;
+        hours = parseInt(hours);
+        return `${hours}:${mins} ${period.toUpperCase()}`;
+      }
+      return timeStr;
+    };
+
+    sessions.push({
+      date: `${monthName} ${parseInt(day)}`,
+      dayOfWeek,
+      startTime: normalizeTime(startTimeRaw),
+      endTime: normalizeTime(endTimeRaw),
+      fullDate: sessionDate,
+    });
+  }
+
+  if (sessions.length === 0) return null;
+
+  return { sessions };
+};
+
+/**
+ * Check if event has multi-date format in description
+ * @param {Object} event - Google Calendar event object
+ * @returns {boolean}
+ */
+export const hasMultiDateFormat = event => {
+  if (!event?.description) return false;
+  return /Dates?\s*&\s*Times?\s*:/i.test(event.description);
+};
+
+/**
+ * Get formatted multi-date display data
+ * @param {Object} event - Google Calendar event object
+ * @returns {Object|null} - { sessions: [...], dateRange: 'Mar 13 - Mar 15' } or null
+ */
+export const getMultiDateDisplay = event => {
+  if (!event?.description) return null;
+
+  const parsed = parseMultiDateTimes(event.description);
+  if (!parsed || parsed.sessions.length === 0) return null;
+
+  // Calculate date range for header display
+  const firstSession = parsed.sessions[0];
+  const lastSession = parsed.sessions[parsed.sessions.length - 1];
+  const dateRange =
+    parsed.sessions.length > 1 ? `${firstSession.date} - ${lastSession.date}` : firstSession.date;
+
+  return {
+    sessions: parsed.sessions,
+    dateRange,
+    sessionCount: parsed.sessions.length,
+  };
+};

@@ -18,7 +18,7 @@ import {
   isSoldOut,
   getRegistrationStatus,
 } from '@/services/calendarService';
-import { formatEventDateTime } from '@utils/eventCategorization';
+import { formatEventDateTime, getMultiDateDisplay } from '@utils/eventCategorization';
 import Card from '@components/common/Card/Card';
 import Button from '@components/common/Button/Button';
 import SoldOutBadge from '@components/registration/SoldOutBadge';
@@ -92,6 +92,7 @@ const EventRegistration = () => {
   }
 
   const { date, time } = formatEventDateTime(event);
+  const multiDateData = getMultiDateDisplay(event);
   const soldOut = isSoldOut(event);
   const eligible = canRegister(event);
   const status = getRegistrationStatus(event);
@@ -159,29 +160,75 @@ const EventRegistration = () => {
 
                 {/* Date & Time */}
                 <div className="space-y-4 mb-6">
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-neutral-bg/50 hover:bg-neutral-bg transition-colors">
-                    <div className="p-2 bg-teal-500/20 rounded-lg">
-                      <HiCalendar className="text-teal-400 w-5 h-5" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs uppercase tracking-wide text-neutral-light mb-1">
-                        Date
-                      </p>
-                      <p className="text-white font-semibold">{date}</p>
-                    </div>
-                  </div>
+                  {multiDateData ? (
+                    <>
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-neutral-bg/50 hover:bg-neutral-bg transition-colors">
+                        <div className="p-2 bg-teal-500/20 rounded-lg">
+                          <HiCalendar className="text-teal-400 w-5 h-5" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-xs uppercase tracking-wide text-neutral-light mb-1">
+                            Dates
+                          </p>
+                          <p className="text-white font-semibold">{multiDateData.dateRange}</p>
+                          <p className="text-sm text-neutral-light">
+                            {multiDateData.sessionCount} sessions
+                          </p>
+                        </div>
+                      </div>
 
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-neutral-bg/50 hover:bg-neutral-bg transition-colors">
-                    <div className="p-2 bg-teal-500/20 rounded-lg">
-                      <HiClock className="text-teal-400 w-5 h-5" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs uppercase tracking-wide text-neutral-light mb-1">
-                        Time
-                      </p>
-                      <p className="text-white font-semibold">{time}</p>
-                    </div>
-                  </div>
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-neutral-bg/50">
+                        <div className="p-2 bg-teal-500/20 rounded-lg">
+                          <HiClock className="text-teal-400 w-5 h-5" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-xs uppercase tracking-wide text-neutral-light mb-2">
+                            Schedule
+                          </p>
+                          <div className="space-y-2">
+                            {multiDateData.sessions.map((session, idx) => (
+                              <div key={idx} className="flex items-center gap-2 text-sm">
+                                <span className="text-teal-400 font-semibold w-10">
+                                  {session.dayOfWeek}
+                                </span>
+                                <span className="text-neutral-light">{session.date}</span>
+                                <span className="text-neutral-dark">—</span>
+                                <span className="text-white font-medium">
+                                  {session.startTime} - {session.endTime}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-neutral-bg/50 hover:bg-neutral-bg transition-colors">
+                        <div className="p-2 bg-teal-500/20 rounded-lg">
+                          <HiCalendar className="text-teal-400 w-5 h-5" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-xs uppercase tracking-wide text-neutral-light mb-1">
+                            Date
+                          </p>
+                          <p className="text-white font-semibold">{date}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-neutral-bg/50 hover:bg-neutral-bg transition-colors">
+                        <div className="p-2 bg-teal-500/20 rounded-lg">
+                          <HiClock className="text-teal-400 w-5 h-5" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-xs uppercase tracking-wide text-neutral-light mb-1">
+                            Time
+                          </p>
+                          <p className="text-white font-semibold">{time}</p>
+                        </div>
+                      </div>
+                    </>
+                  )}
 
                   {event.location && (
                     <div className="flex items-start gap-3 p-3 rounded-lg bg-neutral-bg/50 hover:bg-neutral-bg transition-colors">

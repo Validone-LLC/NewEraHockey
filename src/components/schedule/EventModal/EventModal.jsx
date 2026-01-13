@@ -1,7 +1,11 @@
 import { HiX, HiCalendar, HiClock, HiLocationMarker, HiCurrencyDollar } from 'react-icons/hi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { formatEventDateTime, categorizeEvent } from '@utils/eventCategorization';
+import {
+  formatEventDateTime,
+  categorizeEvent,
+  getMultiDateDisplay,
+} from '@utils/eventCategorization';
 import {
   getFormattedPrice,
   getRegistrationButtonText,
@@ -23,6 +27,7 @@ const EventModal = ({ isOpen, onClose, event }) => {
         : 'lessons';
 
   const { date, time } = formatEventDateTime(event);
+  const multiDateData = getMultiDateDisplay(event);
   const buttonText = getRegistrationButtonText(event);
   const eligible = canRegister(event);
   const customText = getEventCustomText(event);
@@ -100,16 +105,44 @@ const EventModal = ({ isOpen, onClose, event }) => {
                 {/* Content */}
                 <div className="px-6 py-6 space-y-4">
                   {/* Date & Time */}
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-3 text-neutral-light">
-                      <HiCalendar className="text-teal-500 text-xl flex-shrink-0" />
-                      <span className="font-medium">{date}</span>
+                  {multiDateData ? (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3 text-neutral-light">
+                        <HiCalendar className="text-teal-500 text-xl flex-shrink-0" />
+                        <span className="font-medium text-white">{multiDateData.dateRange}</span>
+                        <span className="text-sm text-neutral-light">
+                          ({multiDateData.sessionCount} sessions)
+                        </span>
+                      </div>
+                      {/* Session schedule */}
+                      <div className="pl-8 space-y-2 border-l-2 border-neutral-dark ml-2">
+                        {multiDateData.sessions.map((session, idx) => (
+                          <div key={idx} className="flex items-center gap-3 text-sm">
+                            <span className="text-teal-400 font-semibold w-10">
+                              {session.dayOfWeek}
+                            </span>
+                            <span className="text-neutral-light">{session.date}</span>
+                            <span className="text-neutral-dark">—</span>
+                            <HiClock className="text-teal-500 text-sm" />
+                            <span className="text-neutral-light">
+                              {session.startTime} - {session.endTime}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3 text-neutral-light">
-                      <HiClock className="text-teal-500 text-xl flex-shrink-0" />
-                      <span className="font-medium">{time}</span>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3 text-neutral-light">
+                        <HiCalendar className="text-teal-500 text-xl flex-shrink-0" />
+                        <span className="font-medium">{date}</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-neutral-light">
+                        <HiClock className="text-teal-500 text-xl flex-shrink-0" />
+                        <span className="font-medium">{time}</span>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Location - Hide for At Home Training */}
                   {event.location && !isAtHomeTraining && (
