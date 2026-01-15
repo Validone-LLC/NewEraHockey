@@ -124,8 +124,9 @@ async function addRegistration(eventId, eventType, registrationData) {
     data = await initializeEventRegistrations(eventId, eventType);
   }
 
-  // Check if already sold out
-  if (data.currentRegistrations >= data.maxCapacity) {
+  // Check if already sold out (skip for camps - unlimited capacity)
+  // Note: Camps have unlimited spots as of Jan 2026
+  if (eventType !== 'camp' && data.currentRegistrations >= data.maxCapacity) {
     throw new Error('Event is sold out');
   }
 
