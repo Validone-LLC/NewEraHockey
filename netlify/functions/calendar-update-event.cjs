@@ -5,9 +5,9 @@ const { google } = require('googleapis');
  * Calendar Update Event - Netlify Function
  *
  * Handles post-booking calendar operations:
- * 1. Update booked event color (Orange #6 → Yellow #5)
+ * 1. Update booked event color (Orange #6 → Yellow #5 for At Home Training, Basil #10 → Yellow #5 for Mt Vernon Skating)
  * 2. Append booking details to event description
- * 3. Find and delete paired time slot on same day
+ * 3. Find and delete paired time slot on same day (At Home Training only)
  */
 
 /**
@@ -249,9 +249,10 @@ exports.handler = async (event) => {
 
     console.log(`Updated event ${eventId} to Yellow with booking details`);
 
-    // 4. Find and delete paired time slot
+    // 4. Find and delete paired time slot (At Home Training only - not for Mt Vernon Skating)
     let pairedEventDeleted = false;
-    if (slotDate && slotTime) {
+    const isAtHomeTraining = eventType === 'at_home_training';
+    if (isAtHomeTraining && slotDate && slotTime) {
       const pairedEventId = await findPairedSlot(calendar, calendarId, eventId, slotDate, slotTime);
 
       if (pairedEventId) {

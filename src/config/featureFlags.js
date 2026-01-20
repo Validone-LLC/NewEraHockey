@@ -6,7 +6,7 @@
 
 /**
  * Check if a feature is enabled
- * @param {string} feature - Feature name ('campRegistration' | 'lessonRegistration' | 'atHomeTrainingRegistration')
+ * @param {string} feature - Feature name ('campRegistration' | 'lessonRegistration' | 'atHomeTrainingRegistration' | 'mtVernonSkatingRegistration')
  * @returns {boolean}
  */
 export const isFeatureEnabled = feature => {
@@ -15,6 +15,8 @@ export const isFeatureEnabled = feature => {
     lessonRegistration: import.meta.env.VITE_ENABLE_LESSON_REGISTRATION === 'true',
     atHomeTrainingRegistration:
       import.meta.env.VITE_ENABLE_AT_HOME_TRAINING_REGISTRATION === 'true',
+    mtVernonSkatingRegistration:
+      import.meta.env.VITE_ENABLE_MT_VERNON_SKATING_REGISTRATION !== 'true',
   };
 
   return flags[feature] ?? false;
@@ -22,7 +24,7 @@ export const isFeatureEnabled = feature => {
 
 /**
  * Get feature flag for specific event type
- * @param {string} eventType - 'camp' | 'camps' | 'lesson' | 'lessons' | 'at_home_training' | 'at-home'
+ * @param {string} eventType - 'camp' | 'camps' | 'lesson' | 'lessons' | 'at_home_training' | 'at-home' | 'mt_vernon_skating' | 'skating'
  * @returns {boolean}
  */
 export const isRegistrationEnabledForEventType = eventType => {
@@ -40,6 +42,10 @@ export const isRegistrationEnabledForEventType = eventType => {
 
   if (normalized === 'at_home_training' || normalized === 'at-home') {
     return isFeatureEnabled('atHomeTrainingRegistration');
+  }
+
+  if (normalized === 'mt_vernon_skating' || normalized === 'skating') {
+    return isFeatureEnabled('mtVernonSkatingRegistration');
   }
 
   return false;

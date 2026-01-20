@@ -18,7 +18,11 @@ import {
   isSoldOut,
   getRegistrationStatus,
 } from '@/services/calendarService';
-import { formatEventDateTime, getMultiDateDisplay } from '@utils/eventCategorization';
+import {
+  formatEventDateTime,
+  getMultiDateDisplay,
+  categorizeEvent,
+} from '@utils/eventCategorization';
 import Card from '@components/common/Card/Card';
 import Button from '@components/common/Button/Button';
 import SoldOutBadge from '@components/registration/SoldOutBadge';
@@ -97,6 +101,10 @@ const EventRegistration = () => {
   const eligible = canRegister(event);
   const status = getRegistrationStatus(event);
 
+  // Determine event type for color theming
+  const eventType = categorizeEvent(event);
+  const isMtVernonSkating = eventType === 'mt_vernon_skating';
+
   // Dynamic SEO meta based on event
   const eventTitle = event?.summary || 'Event Registration';
   const eventDescription = event?.description
@@ -124,7 +132,11 @@ const EventRegistration = () => {
             {/* Back button */}
             <Link
               to="/event-registration"
-              className="inline-flex items-center gap-2 text-teal-400 hover:text-teal-300 mb-6 transition-colors"
+              className={`inline-flex items-center gap-2 mb-6 transition-colors ${
+                isMtVernonSkating
+                  ? 'text-green-400 hover:text-green-300'
+                  : 'text-teal-400 hover:text-teal-300'
+              }`}
             >
               <HiArrowLeft className="w-5 h-5" />
               <span>Back to Event Registration</span>
@@ -152,7 +164,13 @@ const EventRegistration = () => {
                 </h2>
 
                 {/* Event Name */}
-                <div className="mb-6 bg-gradient-to-r from-teal-500/10 to-transparent p-4 rounded-lg border-l-4 border-teal-500">
+                <div
+                  className={`mb-6 bg-gradient-to-r ${
+                    isMtVernonSkating ? 'from-green-500/10' : 'from-teal-500/10'
+                  } to-transparent p-4 rounded-lg border-l-4 ${
+                    isMtVernonSkating ? 'border-green-500' : 'border-teal-500'
+                  }`}
+                >
                   <h3 className="text-xl font-display font-bold text-white leading-tight">
                     {event.summary || 'Untitled Event'}
                   </h3>
@@ -163,8 +181,12 @@ const EventRegistration = () => {
                   {multiDateData ? (
                     <>
                       <div className="flex items-start gap-3 p-3 rounded-lg bg-neutral-bg/50 hover:bg-neutral-bg transition-colors">
-                        <div className="p-2 bg-teal-500/20 rounded-lg">
-                          <HiCalendar className="text-teal-400 w-5 h-5" />
+                        <div
+                          className={`p-2 rounded-lg ${isMtVernonSkating ? 'bg-green-500/20' : 'bg-teal-500/20'}`}
+                        >
+                          <HiCalendar
+                            className={`w-5 h-5 ${isMtVernonSkating ? 'text-green-400' : 'text-teal-400'}`}
+                          />
                         </div>
                         <div className="flex-1">
                           <p className="text-xs uppercase tracking-wide text-neutral-light mb-1">
@@ -178,8 +200,12 @@ const EventRegistration = () => {
                       </div>
 
                       <div className="flex items-start gap-3 p-3 rounded-lg bg-neutral-bg/50">
-                        <div className="p-2 bg-teal-500/20 rounded-lg">
-                          <HiClock className="text-teal-400 w-5 h-5" />
+                        <div
+                          className={`p-2 rounded-lg ${isMtVernonSkating ? 'bg-green-500/20' : 'bg-teal-500/20'}`}
+                        >
+                          <HiClock
+                            className={`w-5 h-5 ${isMtVernonSkating ? 'text-green-400' : 'text-teal-400'}`}
+                          />
                         </div>
                         <div className="flex-1">
                           <p className="text-xs uppercase tracking-wide text-neutral-light mb-2">
@@ -188,7 +214,9 @@ const EventRegistration = () => {
                           <div className="space-y-2">
                             {multiDateData.sessions.map((session, idx) => (
                               <div key={idx} className="flex items-center gap-2 text-sm">
-                                <span className="text-teal-400 font-semibold w-10">
+                                <span
+                                  className={`font-semibold w-10 ${isMtVernonSkating ? 'text-green-400' : 'text-teal-400'}`}
+                                >
                                   {session.dayOfWeek}
                                 </span>
                                 <span className="text-neutral-light">{session.date}</span>
@@ -205,8 +233,12 @@ const EventRegistration = () => {
                   ) : (
                     <>
                       <div className="flex items-start gap-3 p-3 rounded-lg bg-neutral-bg/50 hover:bg-neutral-bg transition-colors">
-                        <div className="p-2 bg-teal-500/20 rounded-lg">
-                          <HiCalendar className="text-teal-400 w-5 h-5" />
+                        <div
+                          className={`p-2 rounded-lg ${isMtVernonSkating ? 'bg-green-500/20' : 'bg-teal-500/20'}`}
+                        >
+                          <HiCalendar
+                            className={`w-5 h-5 ${isMtVernonSkating ? 'text-green-400' : 'text-teal-400'}`}
+                          />
                         </div>
                         <div className="flex-1">
                           <p className="text-xs uppercase tracking-wide text-neutral-light mb-1">
@@ -217,8 +249,12 @@ const EventRegistration = () => {
                       </div>
 
                       <div className="flex items-start gap-3 p-3 rounded-lg bg-neutral-bg/50 hover:bg-neutral-bg transition-colors">
-                        <div className="p-2 bg-teal-500/20 rounded-lg">
-                          <HiClock className="text-teal-400 w-5 h-5" />
+                        <div
+                          className={`p-2 rounded-lg ${isMtVernonSkating ? 'bg-green-500/20' : 'bg-teal-500/20'}`}
+                        >
+                          <HiClock
+                            className={`w-5 h-5 ${isMtVernonSkating ? 'text-green-400' : 'text-teal-400'}`}
+                          />
                         </div>
                         <div className="flex-1">
                           <p className="text-xs uppercase tracking-wide text-neutral-light mb-1">
@@ -232,8 +268,12 @@ const EventRegistration = () => {
 
                   {event.location && (
                     <div className="flex items-start gap-3 p-3 rounded-lg bg-neutral-bg/50 hover:bg-neutral-bg transition-colors">
-                      <div className="p-2 bg-teal-500/20 rounded-lg">
-                        <HiLocationMarker className="text-teal-400 w-5 h-5" />
+                      <div
+                        className={`p-2 rounded-lg ${isMtVernonSkating ? 'bg-green-500/20' : 'bg-teal-500/20'}`}
+                      >
+                        <HiLocationMarker
+                          className={`w-5 h-5 ${isMtVernonSkating ? 'text-green-400' : 'text-teal-400'}`}
+                        />
                       </div>
                       <div className="flex-1">
                         <p className="text-xs uppercase tracking-wide text-neutral-light mb-1">
@@ -247,22 +287,38 @@ const EventRegistration = () => {
 
                 {/* Price & Capacity */}
                 <div className="border-t border-neutral-dark pt-6 space-y-4">
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-teal-500/10 to-transparent">
-                    <div className="p-2 bg-teal-500/20 rounded-lg">
-                      <HiCurrencyDollar className="text-teal-400 w-5 h-5" />
+                  <div
+                    className={`flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r ${
+                      isMtVernonSkating ? 'from-green-500/10' : 'from-teal-500/10'
+                    } to-transparent`}
+                  >
+                    <div
+                      className={`p-2 rounded-lg ${isMtVernonSkating ? 'bg-green-500/20' : 'bg-teal-500/20'}`}
+                    >
+                      <HiCurrencyDollar
+                        className={`w-5 h-5 ${isMtVernonSkating ? 'text-green-400' : 'text-teal-400'}`}
+                      />
                     </div>
                     <div className="flex-1">
                       <p className="text-xs uppercase tracking-wide text-neutral-light mb-1">
                         Price
                       </p>
-                      <p className="text-2xl font-bold text-teal-400">{getFormattedPrice(event)}</p>
+                      <p
+                        className={`text-2xl font-bold ${isMtVernonSkating ? 'text-green-400' : 'text-teal-400'}`}
+                      >
+                        {getFormattedPrice(event)}
+                      </p>
                     </div>
                   </div>
 
                   {event.registrationData?.hasCapacityInfo && (
                     <div className="flex items-center gap-3 p-3 rounded-lg bg-neutral-bg/50">
-                      <div className="p-2 bg-teal-500/20 rounded-lg">
-                        <HiUserGroup className="text-teal-400 w-5 h-5" />
+                      <div
+                        className={`p-2 rounded-lg ${isMtVernonSkating ? 'bg-green-500/20' : 'bg-teal-500/20'}`}
+                      >
+                        <HiUserGroup
+                          className={`w-5 h-5 ${isMtVernonSkating ? 'text-green-400' : 'text-teal-400'}`}
+                        />
                       </div>
                       <div className="flex-1">
                         <p className="text-xs uppercase tracking-wide text-neutral-light mb-1">
@@ -282,14 +338,22 @@ const EventRegistration = () => {
                     className={`p-4 rounded-lg text-center ${
                       soldOut
                         ? 'bg-red-500/10 border border-red-500/30'
-                        : 'bg-teal-500/10 border border-teal-500/30'
+                        : isMtVernonSkating
+                          ? 'bg-green-500/10 border border-green-500/30'
+                          : 'bg-teal-500/10 border border-teal-500/30'
                     }`}
                   >
                     <p className="text-xs uppercase tracking-wide text-neutral-light mb-2">
                       Status
                     </p>
                     <p
-                      className={`text-lg font-bold ${soldOut ? 'text-red-400' : 'text-teal-400'}`}
+                      className={`text-lg font-bold ${
+                        soldOut
+                          ? 'text-red-400'
+                          : isMtVernonSkating
+                            ? 'text-green-400'
+                            : 'text-teal-400'
+                      }`}
                     >
                       {status}
                     </p>
@@ -300,8 +364,12 @@ const EventRegistration = () => {
               {/* Important Info */}
               <Card>
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="p-2 bg-teal-500/20 rounded-lg">
-                    <HiCheckCircle className="text-teal-400 w-6 h-6" />
+                  <div
+                    className={`p-2 rounded-lg ${isMtVernonSkating ? 'bg-green-500/20' : 'bg-teal-500/20'}`}
+                  >
+                    <HiCheckCircle
+                      className={`w-6 h-6 ${isMtVernonSkating ? 'text-green-400' : 'text-teal-400'}`}
+                    />
                   </div>
                   <h3 className="text-lg font-display font-bold text-white">
                     Important Information
@@ -309,15 +377,27 @@ const EventRegistration = () => {
                 </div>
                 <ul className="space-y-3">
                   <li className="flex items-start gap-3 text-sm text-neutral-light p-2 rounded hover:bg-neutral-bg/30 transition-colors">
-                    <span className="text-teal-400 mt-0.5">•</span>
+                    <span
+                      className={`mt-0.5 ${isMtVernonSkating ? 'text-green-400' : 'text-teal-400'}`}
+                    >
+                      •
+                    </span>
                     <span>Payment processed securely via Stripe</span>
                   </li>
                   <li className="flex items-start gap-3 text-sm text-neutral-light p-2 rounded hover:bg-neutral-bg/30 transition-colors">
-                    <span className="text-teal-400 mt-0.5">•</span>
+                    <span
+                      className={`mt-0.5 ${isMtVernonSkating ? 'text-green-400' : 'text-teal-400'}`}
+                    >
+                      •
+                    </span>
                     <span>Confirmation email sent after registration</span>
                   </li>
                   <li className="flex items-start gap-3 text-sm text-neutral-light p-2 rounded hover:bg-neutral-bg/30 transition-colors">
-                    <span className="text-teal-400 mt-0.5">•</span>
+                    <span
+                      className={`mt-0.5 ${isMtVernonSkating ? 'text-green-400' : 'text-teal-400'}`}
+                    >
+                      •
+                    </span>
                     <span>Cancellation policy applies</span>
                   </li>
                 </ul>

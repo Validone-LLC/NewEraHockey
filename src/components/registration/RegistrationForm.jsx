@@ -8,6 +8,7 @@ import Select from '@components/common/Select';
 import { getFormattedPrice } from '@/services/calendarService';
 import { formatPhoneNumber } from '@/utils/formatters';
 import { PLAYER_LEVEL_OPTIONS } from '@/config/constants';
+import { categorizeEvent } from '@/utils/eventCategorization';
 
 // Yup validation schema - single source of truth for all validation rules
 const validationSchema = Yup.object({
@@ -81,13 +82,8 @@ const RegistrationForm = ({ event }) => {
       setSubmitError(null);
 
       try {
-        // Determine event type from title or color
-        const eventTitle = (event.summary || '').toLowerCase();
-        const eventType = eventTitle.includes('camp')
-          ? 'camp'
-          : eventTitle.includes('lesson') || eventTitle.includes('training')
-            ? 'lesson'
-            : 'other';
+        // Use centralized categorization (handles color, title, and extended properties)
+        const eventType = categorizeEvent(event);
 
         // Create Stripe Checkout session
         const response = await fetch('/.netlify/functions/create-checkout-session', {

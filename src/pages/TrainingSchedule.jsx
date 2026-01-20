@@ -7,19 +7,22 @@ import EventCalendar from '@components/schedule/EventCalendar/EventCalendar';
 import {
   fetchCamps,
   fetchLessons,
+  fetchMtVernonSkating,
   fetchAtHomeTrainingByMonth,
   startPolling,
   filterVisibleEvents,
   filterAvailableAtHomeTraining,
+  filterAvailableMtVernonSkating,
   refreshEvents,
 } from '@services/calendarService';
 import { sortEventsByDate } from '@utils/eventCategorization';
 
 const TrainingSchedule = () => {
-  // List view state (Camps/Lessons tabs)
-  const [listType, setListType] = useState('camps'); // 'camps' or 'lessons'
+  // List view state (Camps/Lessons/Mt Vernon Skating tabs)
+  const [listType, setListType] = useState('camps'); // 'camps', 'lessons', or 'skating'
   const [campsEvents, setCampsEvents] = useState([]);
   const [lessonsEvents, setLessonsEvents] = useState([]);
+  const [skatingEvents, setSkatingEvents] = useState([]);
   const [listLoading, setListLoading] = useState(true);
   const [listError, setListError] = useState(null);
 
@@ -34,25 +37,31 @@ const TrainingSchedule = () => {
   const [monthCache, setMonthCache] = useState({}); // Cache for at-home training by month (accessed via setter)
   const monthCacheRef = useRef({}); // Ref for synchronous cache access (prevents loading flicker)
 
-  // Load camps and lessons for list view (fetch all events)
+  // Load camps, lessons, and skating events for list view (fetch all events)
   const loadListEvents = useCallback(async () => {
     try {
       setListLoading(true);
       setListError(null);
 
-      // Fetch camps and lessons in parallel
-      const [campsData, lessonsData] = await Promise.all([fetchCamps(), fetchLessons()]);
+      // Fetch camps, lessons, and skating in parallel
+      const [campsData, lessonsData, skatingData] = await Promise.all([
+        fetchCamps(),
+        fetchLessons(),
+        fetchMtVernonSkating(),
+      ]);
 
-      // Filter visible events (camps show all, lessons hide sold-out)
+      // Filter visible events (camps show all, lessons hide sold-out, skating hide registered)
       const visibleCamps = filterVisibleEvents(campsData.events, 'camps');
       const visibleLessons = filterVisibleEvents(lessonsData.events, 'lessons');
+      const visibleSkating = filterAvailableMtVernonSkating(skatingData.events);
 
       setCampsEvents(sortEventsByDate(visibleCamps));
       setLessonsEvents(sortEventsByDate(visibleLessons));
+      setSkatingEvents(sortEventsByDate(visibleSkating));
       setLastUpdated(new Date());
     } catch (err) {
       console.error('Failed to load list events:', err);
-      setListError(err.message || 'Failed to load camps/lessons');
+      setListError(err.message || 'Failed to load events');
     } finally {
       setListLoading(false);
     }
@@ -89,8 +98,13 @@ const TrainingSchedule = () => {
       // Filter available at-home training slots (hide booked)
       const visibleAtHome = filterAvailableAtHomeTraining(atHomeData.events);
 
-      // Combine all events for calendar (use already loaded camps/lessons + at-home for month)
-      const allCalendarEvents = [...campsEvents, ...lessonsEvents, ...visibleAtHome];
+      // Combine all events for calendar (use already loaded camps/lessons/skating + at-home for month)
+      const allCalendarEvents = [
+        ...campsEvents,
+        ...lessonsEvents,
+        ...skatingEvents,
+        ...visibleAtHome,
+      ];
 
       setCalendarEvents(sortEventsByDate(allCalendarEvents));
       setLastUpdated(new Date());
@@ -100,7 +114,7 @@ const TrainingSchedule = () => {
     } finally {
       setCalendarLoading(false);
     }
-  }, [currentMonth, campsEvents, lessonsEvents]);
+  }, [currentMonth, campsEvents, lessonsEvents, skatingEvents]);
 
   // Initial load: Fetch list events on mount
   useEffect(() => {
@@ -116,7 +130,7 @@ const TrainingSchedule = () => {
     }
   }, [listLoading, currentMonth, loadCalendarEvents]);
 
-  // Set up automatic polling for camps and lessons (updates both list and calendar)
+  // Set up automatic polling for camps, lessons, and skating (updates both list and calendar)
   useEffect(() => {
     const stopCampsPolling = startPolling(
       updatedEvents => {
@@ -140,9 +154,21 @@ const TrainingSchedule = () => {
       true // Skip initial fetch
     );
 
+    const stopSkatingPolling = startPolling(
+      updatedEvents => {
+        const visibleSkating = filterAvailableMtVernonSkating(updatedEvents);
+        setSkatingEvents(sortEventsByDate(visibleSkating));
+        setLastUpdated(new Date());
+      },
+      'mt_vernon_skating',
+      300000, // 5 minutes
+      true // Skip initial fetch
+    );
+
     return () => {
       stopCampsPolling();
       stopLessonsPolling();
+      stopSkatingPolling();
     };
   }, []);
 
@@ -153,17 +179,20 @@ const TrainingSchedule = () => {
       setListError(null);
       setCalendarError(null);
 
-      // Refresh list events (camps and lessons)
-      const [campsData, lessonsData] = await Promise.all([
+      // Refresh list events (camps, lessons, and skating)
+      const [campsData, lessonsData, skatingData] = await Promise.all([
         refreshEvents('camp'),
         refreshEvents('lesson'),
+        refreshEvents('mt_vernon_skating'),
       ]);
 
       const visibleCamps = filterVisibleEvents(campsData.events, 'camps');
       const visibleLessons = filterVisibleEvents(lessonsData.events, 'lessons');
+      const visibleSkating = filterAvailableMtVernonSkating(skatingData.events);
 
       setCampsEvents(sortEventsByDate(visibleCamps));
       setLessonsEvents(sortEventsByDate(visibleLessons));
+      setSkatingEvents(sortEventsByDate(visibleSkating));
 
       // Refresh at-home training for current month (clear cache)
       const year = currentMonth.getFullYear();
@@ -184,7 +213,12 @@ const TrainingSchedule = () => {
       setMonthCache(prev => ({ ...prev, [cacheKey]: atHomeData }));
 
       const visibleAtHome = filterAvailableAtHomeTraining(atHomeData.events);
-      const allCalendarEvents = [...visibleCamps, ...visibleLessons, ...visibleAtHome];
+      const allCalendarEvents = [
+        ...visibleCamps,
+        ...visibleLessons,
+        ...visibleSkating,
+        ...visibleAtHome,
+      ];
 
       setCalendarEvents(sortEventsByDate(allCalendarEvents));
       setLastUpdated(new Date());
@@ -255,6 +289,11 @@ const TrainingSchedule = () => {
             active={listType === 'lessons'}
             onClick={() => setListType('lessons')}
           />
+          <ToggleButton
+            label="Mt Vernon Skating"
+            active={listType === 'skating'}
+            onClick={() => setListType('skating')}
+          />
         </div>
 
         {/* List Error State */}
@@ -290,19 +329,29 @@ const TrainingSchedule = () => {
         {!listLoading && !listError && (
           <div className="max-h-[36rem] sm:max-h-[32rem] overflow-y-auto custom-scrollbar pb-4">
             <EventList
-              events={listType === 'camps' ? campsEvents : lessonsEvents}
+              events={
+                listType === 'camps'
+                  ? campsEvents
+                  : listType === 'lessons'
+                    ? lessonsEvents
+                    : skatingEvents
+              }
               eventType={listType}
             />
 
             {/* No Events Message */}
             {((listType === 'camps' && campsEvents.length === 0) ||
-              (listType === 'lessons' && lessonsEvents.length === 0)) && (
+              (listType === 'lessons' && lessonsEvents.length === 0) ||
+              (listType === 'skating' && skatingEvents.length === 0)) && (
               <motion.div
                 className="text-center py-12"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
               >
-                <p className="text-xl text-neutral-light mb-2">No upcoming {listType} scheduled</p>
+                <p className="text-xl text-neutral-light mb-2">
+                  No upcoming {listType === 'skating' ? 'Mt Vernon Skating sessions' : listType}{' '}
+                  scheduled
+                </p>
                 <p className="text-neutral-light text-sm">
                   Check back soon for new training opportunities!
                 </p>
@@ -371,6 +420,10 @@ const TrainingSchedule = () => {
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded bg-blue-500" />
             <span className="text-neutral-light">Lessons</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded bg-green-500" />
+            <span className="text-neutral-light">Mt Vernon Skating</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded bg-orange-500" />

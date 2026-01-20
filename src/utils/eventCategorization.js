@@ -10,7 +10,7 @@ import { COLOR_TO_EVENT_TYPE, EVENT_TYPES } from '@/config/constants';
 /**
  * Categorize a single calendar event
  * @param {Object} event - Google Calendar event object
- * @returns {string} - 'camp', 'lesson', 'at_home_training', or 'other'
+ * @returns {string} - 'camp', 'lesson', 'at_home_training', 'mt_vernon_skating', or 'other'
  */
 export const categorizeEvent = event => {
   if (!event) return EVENT_TYPES.OTHER;
@@ -22,21 +22,27 @@ export const categorizeEvent = event => {
     if (
       normalized === EVENT_TYPES.CAMP ||
       normalized === EVENT_TYPES.LESSON ||
-      normalized === EVENT_TYPES.AT_HOME_TRAINING
+      normalized === EVENT_TYPES.AT_HOME_TRAINING ||
+      normalized === EVENT_TYPES.MT_VERNON_SKATING
     ) {
       return normalized;
     }
   }
 
-  // Method 2: Color-based categorization (easiest for Coach Will)
+  // Method 2: Title-based detection (check before color for Mt Vernon Skating)
+  // This is needed because registered Mt Vernon Skating events use yellow (same as AT_HOME_BOOKED)
+  const title = (event.summary || '').toLowerCase();
+  if (title.includes('mount vernon skating') || title.includes('mt vernon skating')) {
+    return EVENT_TYPES.MT_VERNON_SKATING;
+  }
+
+  // Method 3: Color-based categorization (easiest for Coach Will)
   // Uses centralized COLOR_TO_EVENT_TYPE mapping from constants
   if (event.colorId && COLOR_TO_EVENT_TYPE[event.colorId]) {
     return COLOR_TO_EVENT_TYPE[event.colorId];
   }
 
-  // Method 3: Keyword detection in title (automatic fallback)
-  const title = (event.summary || '').toLowerCase();
-
+  // Method 4: Keyword detection in title (automatic fallback)
   if (title.includes('camp')) return EVENT_TYPES.CAMP;
   if (title.includes('lesson')) return EVENT_TYPES.LESSON;
   if (title.includes('at home') || title.includes('training')) return EVENT_TYPES.AT_HOME_TRAINING;
@@ -61,11 +67,11 @@ export const filterEventsByType = (events, type) => {
 /**
  * Group events by category
  * @param {Array} events - Array of Google Calendar event objects
- * @returns {Object} - { camps: [], lessons: [], atHomeTraining: [], other: [] }
+ * @returns {Object} - { camps: [], lessons: [], atHomeTraining: [], mtVernonSkating: [], other: [] }
  */
 export const groupEventsByType = events => {
   if (!events || !Array.isArray(events)) {
-    return { camps: [], lessons: [], atHomeTraining: [], other: [] };
+    return { camps: [], lessons: [], atHomeTraining: [], mtVernonSkating: [], other: [] };
   }
 
   return events.reduce(
@@ -77,23 +83,25 @@ export const groupEventsByType = events => {
         grouped.lessons.push(event);
       } else if (category === 'at_home_training') {
         grouped.atHomeTraining.push(event);
+      } else if (category === 'mt_vernon_skating') {
+        grouped.mtVernonSkating.push(event);
       } else {
         grouped.other.push(event);
       }
       return grouped;
     },
-    { camps: [], lessons: [], atHomeTraining: [], other: [] }
+    { camps: [], lessons: [], atHomeTraining: [], mtVernonSkating: [], other: [] }
   );
 };
 
 /**
  * Get count of events by type
  * @param {Array} events - Array of Google Calendar event objects
- * @returns {Object} - { camps: 0, lessons: 0, atHomeTraining: 0, other: 0, total: 0 }
+ * @returns {Object} - { camps: 0, lessons: 0, atHomeTraining: 0, mtVernonSkating: 0, other: 0, total: 0 }
  */
 export const getEventCounts = events => {
   if (!events || !Array.isArray(events)) {
-    return { camps: 0, lessons: 0, atHomeTraining: 0, other: 0, total: 0 };
+    return { camps: 0, lessons: 0, atHomeTraining: 0, mtVernonSkating: 0, other: 0, total: 0 };
   }
 
   const grouped = groupEventsByType(events);
@@ -102,6 +110,7 @@ export const getEventCounts = events => {
     camps: grouped.camps.length,
     lessons: grouped.lessons.length,
     atHomeTraining: grouped.atHomeTraining.length,
+    mtVernonSkating: grouped.mtVernonSkating.length,
     other: grouped.other.length,
     total: events.length,
   };

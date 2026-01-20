@@ -17,6 +17,7 @@ const { getStore } = require('@netlify/blobs');
 const DEFAULT_CAPACITY = {
   camp: 20,
   lesson: 10,
+  mt_vernon_skating: 1, // Each skating slot is typically for one person
   other: 15,
 };
 
