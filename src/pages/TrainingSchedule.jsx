@@ -290,7 +290,7 @@ const TrainingSchedule = () => {
             onClick={() => setListType('lessons')}
           />
           <ToggleButton
-            label="Mt Vernon Skating"
+            label="Mt Vernon Lessons"
             active={listType === 'skating'}
             onClick={() => setListType('skating')}
           />
