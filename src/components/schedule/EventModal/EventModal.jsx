@@ -19,13 +19,15 @@ const EventModal = ({ isOpen, onClose, event }) => {
   if (!event) return null;
 
   // Determine actual event type from event data (not the passed eventType which might be 'all')
-  const actualEventType = categorizeEvent(event); // Returns: 'camp', 'lesson', 'at_home_training', or 'other'
+  const actualEventType = categorizeEvent(event); // Returns: 'camp', 'lesson', 'at_home_training', 'mt_vernon_skating', or 'other'
   const displayEventType =
     actualEventType === 'at_home_training'
       ? 'at-home'
       : actualEventType === 'camp'
         ? 'camps'
-        : 'lessons';
+        : actualEventType === 'mt_vernon_skating'
+          ? 'skating'
+          : 'lessons';
 
   const { date, time } = formatEventDateTime(event);
   const multiDateData = getMultiDateDisplay(event);
@@ -70,7 +72,9 @@ const EventModal = ({ isOpen, onClose, event }) => {
                       ? 'bg-gradient-to-r from-red-500/20 to-red-700/20'
                       : displayEventType === 'at-home'
                         ? 'bg-gradient-to-r from-orange-500/20 to-orange-700/20'
-                        : 'bg-gradient-to-r from-blue-500/20 to-blue-700/20'
+                        : displayEventType === 'skating'
+                          ? 'bg-gradient-to-r from-green-500/20 to-green-700/20'
+                          : 'bg-gradient-to-r from-blue-500/20 to-blue-700/20'
                   }`}
                 >
                   <div>
@@ -81,14 +85,18 @@ const EventModal = ({ isOpen, onClose, event }) => {
                             ? 'bg-red-500'
                             : displayEventType === 'at-home'
                               ? 'bg-orange-500'
-                              : 'bg-blue-500'
+                              : displayEventType === 'skating'
+                                ? 'bg-green-500'
+                                : 'bg-blue-500'
                         }`}
                       >
                         {displayEventType === 'camps'
                           ? 'Camp'
                           : displayEventType === 'at-home'
                             ? 'At Home Training'
-                            : 'Lesson'}
+                            : displayEventType === 'skating'
+                              ? 'Mt Vernon Skating'
+                              : 'Lesson'}
                       </span>
                     </div>
                     <h2 className="text-2xl font-display font-bold text-white">
@@ -169,15 +177,18 @@ const EventModal = ({ isOpen, onClose, event }) => {
                     </div>
                   )}
 
-                  {/* Warning Text (Camps only) */}
-                  {warningText && displayEventType === 'camps' && (
-                    <div className={`pt-4 ${!customText ? 'border-t border-neutral-dark/50' : ''}`}>
-                      <div className="flex items-start gap-2 text-amber-400 text-sm">
-                        <span className="font-semibold">⚠️</span>
-                        <span>{warningText}</span>
+                  {/* Warning Text (Camps and Skating) */}
+                  {warningText &&
+                    (displayEventType === 'camps' || displayEventType === 'skating') && (
+                      <div
+                        className={`pt-4 ${!customText ? 'border-t border-neutral-dark/50' : ''}`}
+                      >
+                        <div className="flex items-start gap-2 text-amber-400 text-sm">
+                          <span className="font-semibold">⚠️</span>
+                          <span>{warningText}</span>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
                 </div>
 
                 {/* Footer */}

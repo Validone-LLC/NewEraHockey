@@ -180,6 +180,57 @@ exports.handler = async (event, context) => {
           }
         }
 
+        // For Mt Vernon Skating: Update calendar color (Basil green #10 → Banana yellow #5)
+        const isMtVernonSkating = eventType === 'mt_vernon_skating';
+        if (isMtVernonSkating) {
+          try {
+            const calendarUpdateUrl =
+              process.env.DEPLOY_URL || process.env.URL || 'http://localhost:8888';
+            const calendarFunctionUrl = `${calendarUpdateUrl}/.netlify/functions/calendar-update-event`;
+
+            // Construct formData for Mt Vernon Skating (similar to At Home Training but simpler)
+            const formDataForCalendar = {
+              players: [
+                {
+                  firstName: playerFirstName,
+                  lastName: playerLastName,
+                  dateOfBirth: playerDateOfBirth,
+                  levelOfPlay: playerLevelOfPlay,
+                },
+              ],
+              guardianFirstName,
+              guardianLastName,
+              guardianEmail,
+              guardianPhone,
+              guardianRelationship,
+              emergencyName,
+              emergencyPhone,
+              emergencyRelationship,
+              medicalNotes,
+            };
+
+            const calendarResponse = await fetch(calendarFunctionUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                eventId,
+                formData: formDataForCalendar,
+                eventType,
+              }),
+            });
+
+            if (!calendarResponse.ok) {
+              const errorText = await calendarResponse.text();
+              console.error('Calendar update failed for Mt Vernon Skating:', calendarResponse.status, errorText);
+            } else {
+              const calendarResult = await calendarResponse.json();
+              console.log('Mt Vernon Skating calendar updated successfully:', calendarResult);
+            }
+          } catch (calendarError) {
+            console.error('Failed to update Mt Vernon Skating calendar (non-blocking):', calendarError.message);
+          }
+        }
+
         // Send confirmation emails
         try {
           await sendRegistrationEmails({

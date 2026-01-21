@@ -13,6 +13,8 @@ export const GOOGLE_CALENDAR_COLORS = {
   LESSON: '9', // Blue (Blueberry)
   AT_HOME_AVAILABLE: '6', // Orange (Tangerine)
   AT_HOME_BOOKED: '5', // Yellow (Banana)
+  MT_VERNON_SKATING_AVAILABLE: '10', // Green (Basil) - available for registration
+  MT_VERNON_SKATING_REGISTERED: '5', // Yellow (Banana) - already registered
 };
 
 /**
@@ -22,17 +24,21 @@ export const EVENT_TYPES = {
   CAMP: 'camp',
   LESSON: 'lesson',
   AT_HOME_TRAINING: 'at_home_training',
+  MT_VERNON_SKATING: 'mt_vernon_skating',
   OTHER: 'other',
 };
 
 /**
  * Map color IDs to event types
+ * Note: Banana yellow (5) is shared between AT_HOME_BOOKED and MT_VERNON_SKATING_REGISTERED
+ * We use title matching to distinguish them
  */
 export const COLOR_TO_EVENT_TYPE = {
   [GOOGLE_CALENDAR_COLORS.CAMP]: EVENT_TYPES.CAMP,
   [GOOGLE_CALENDAR_COLORS.LESSON]: EVENT_TYPES.LESSON,
   [GOOGLE_CALENDAR_COLORS.AT_HOME_AVAILABLE]: EVENT_TYPES.AT_HOME_TRAINING,
   [GOOGLE_CALENDAR_COLORS.AT_HOME_BOOKED]: EVENT_TYPES.AT_HOME_TRAINING,
+  [GOOGLE_CALENDAR_COLORS.MT_VERNON_SKATING_AVAILABLE]: EVENT_TYPES.MT_VERNON_SKATING,
 };
 
 /**
@@ -42,6 +48,7 @@ export const CALENDAR_DISPLAY_COLORS = {
   [EVENT_TYPES.CAMP]: '#ef4444', // Red
   [EVENT_TYPES.LESSON]: '#3b82f6', // Blue
   [EVENT_TYPES.AT_HOME_TRAINING]: '#f97316', // Orange
+  [EVENT_TYPES.MT_VERNON_SKATING]: '#22c55e', // Green (Basil-like)
   [EVENT_TYPES.OTHER]: '#6b7280', // Gray
 };
 

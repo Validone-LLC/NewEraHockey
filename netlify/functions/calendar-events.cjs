@@ -139,6 +139,7 @@ exports.handler = async (event, context) => {
 
     // Enrich events with registration metadata (async)
     // Skip enrichment for At Home Training (uses calendar colors, not blob storage)
+    // Include Mt Vernon Skating in enrichment (it uses price/spots from description like camps)
     const shouldEnrich = eventType !== 'at_home_training';
     if (shouldEnrich) {
       events = await Promise.all(events.map(event => enrichEventWithRegistrationData(event)));
@@ -188,7 +189,7 @@ exports.handler = async (event, context) => {
 /**
  * Categorize calendar event based on extended properties, color, or keywords
  * @param {Object} event - Google Calendar event object
- * @returns {string} - 'camp', 'lesson', 'at_home_training', or 'other'
+ * @returns {string} - 'camp', 'lesson', 'at_home_training', 'mt_vernon_skating', or 'other'
  */
 function categorizeEvent(event) {
   if (!event) return 'other';
@@ -197,26 +198,34 @@ function categorizeEvent(event) {
   const eventType = event.extendedProperties?.shared?.eventType;
   if (eventType) {
     const normalized = eventType.toLowerCase();
-    if (normalized === 'camp' || normalized === 'lesson' || normalized === 'at_home_training') {
+    if (normalized === 'camp' || normalized === 'lesson' || normalized === 'at_home_training' || normalized === 'mt_vernon_skating') {
       return normalized;
     }
   }
 
-  // Method 2: Color-based categorization (easiest for Coach Will)
-  // Red (#11) = Camps, Blue (#9) = Lessons, Orange (#6) = At Home Training (available), Yellow (#5) = At Home Training (booked)
+  // Method 2: Title-based detection (check before color for Mt Vernon Skating)
+  // This is needed because registered Mt Vernon Skating events use yellow (same as AT_HOME_BOOKED)
+  const title = (event.summary || '').toLowerCase();
+  if (title.includes('mount vernon skating') || title.includes('mt vernon skating')) {
+    return 'mt_vernon_skating';
+  }
+
+  // Method 3: Color-based categorization (easiest for Coach Will)
+  // Red (#11) = Camps, Blue (#9) = Lessons, Orange (#6) = At Home Training (available),
+  // Yellow (#5) = At Home Training (booked), Green (#10) = Mt Vernon Skating (available)
   const colorMap = {
     '11': 'camp', // Red
     '9': 'lesson', // Blue
     '6': 'at_home_training', // Orange (Tangerine) - available slots
     '5': 'at_home_training', // Yellow (Banana) - booked slots
+    '10': 'mt_vernon_skating', // Green (Basil) - available for registration
   };
 
   if (event.colorId && colorMap[event.colorId]) {
     return colorMap[event.colorId];
   }
 
-  // Method 3: Keyword detection in title (automatic fallback)
-  const title = (event.summary || '').toLowerCase();
+  // Method 4: Keyword detection in title (automatic fallback)
   if (title.includes('camp')) return 'camp';
   if (title.includes('lesson')) return 'lesson';
   if (title.includes('at home') || title.includes('training')) return 'at_home_training';

@@ -204,6 +204,14 @@ export const fetchLessons = async () => {
 };
 
 /**
+ * Fetch only Mt Vernon Skating events
+ * @returns {Promise<Object>}
+ */
+export const fetchMtVernonSkating = async () => {
+  return fetchEvents('mt_vernon_skating');
+};
+
+/**
  * Fetch all events without filtering
  * @returns {Promise<Object>}
  */
@@ -365,6 +373,27 @@ export const filterAvailableAtHomeTraining = events => {
   return events.filter(event => {
     // Yellow (#5) = booked slot, filter out
     if (event.colorId === '5') return false;
+    return true;
+  });
+};
+
+/**
+ * Filter out registered and sold-out Mt Vernon Skating events
+ * Yellow color (#5) = already registered, hide from public view
+ * Green color (#10) = available for registration
+ * Also hides events marked as sold out via registrationData
+ * @param {Array} events - Array of calendar events
+ * @returns {Array} - Only available Mt Vernon Skating events
+ */
+export const filterAvailableMtVernonSkating = events => {
+  return events.filter(event => {
+    const title = (event.summary || '').toLowerCase();
+    if (title.includes('mount vernon skating') || title.includes('mt vernon skating')) {
+      // Hide registered events (yellow color)
+      if (event.colorId === '5') return false;
+      // Hide sold out events
+      if (isSoldOut(event)) return false;
+    }
     return true;
   });
 };

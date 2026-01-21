@@ -39,6 +39,34 @@ const EventCard = ({ event, eventType }) => {
   const customText = getEventCustomText(event);
   const warningText = getEventWarningText(event);
 
+  // Determine badge styling and label based on event type
+  const getBadgeStyles = () => {
+    switch (eventType) {
+      case 'camps':
+        return {
+          className: 'bg-gradient-to-r from-red-500 to-red-700',
+          label: 'Camp',
+        };
+      case 'lessons':
+        return {
+          className: 'bg-gradient-to-r from-blue-500 to-blue-700',
+          label: 'Lesson',
+        };
+      case 'skating':
+        return {
+          className: 'bg-gradient-to-r from-green-500 to-green-700',
+          label: 'Skating',
+        };
+      default:
+        return {
+          className: 'bg-gradient-to-r from-gray-500 to-gray-700',
+          label: 'Event',
+        };
+    }
+  };
+
+  const badgeStyles = getBadgeStyles();
+
   return (
     <motion.div
       className={`card hover:border-teal-500 transition-all duration-300 ${
@@ -49,13 +77,9 @@ const EventCard = ({ event, eventType }) => {
         {/* Event Type Badge */}
         <div className="flex-shrink-0">
           <div
-            className={`px-4 py-2 rounded-lg font-semibold text-white text-center ${
-              eventType === 'camps'
-                ? 'bg-gradient-to-r from-red-500 to-red-700'
-                : 'bg-gradient-to-r from-blue-500 to-blue-700'
-            }`}
+            className={`px-4 py-2 rounded-lg font-semibold text-white text-center ${badgeStyles.className}`}
           >
-            {eventType === 'camps' ? 'Camp' : 'Lesson'}
+            {badgeStyles.label}
           </div>
         </div>
 
@@ -66,7 +90,9 @@ const EventCard = ({ event, eventType }) => {
             <h3 className="text-xl font-display font-bold text-white">
               {event.summary || 'Untitled Event'}
             </h3>
-            {upcoming && soldOut && eventType === 'camps' && <SoldOutBadge />}
+            {upcoming && soldOut && (eventType === 'camps' || eventType === 'skating') && (
+              <SoldOutBadge />
+            )}
           </div>
 
           {/* Date & Time */}
@@ -132,8 +158,8 @@ const EventCard = ({ event, eventType }) => {
           {/* Custom Text */}
           {customText && <div className="text-neutral-light text-sm mb-3 italic">{customText}</div>}
 
-          {/* Warning Text (Camps only) */}
-          {warningText && eventType === 'camps' && (
+          {/* Warning Text (Camps and Skating) */}
+          {warningText && (eventType === 'camps' || eventType === 'skating') && (
             <div className="flex items-start gap-2 text-amber-400 text-sm mb-3">
               <span className="font-semibold">⚠️</span>
               <span>{warningText}</span>
