@@ -15,6 +15,7 @@ export const GOOGLE_CALENDAR_COLORS = {
   AT_HOME_BOOKED: '5', // Yellow (Banana)
   MT_VERNON_SKATING_AVAILABLE: '10', // Green (Basil) - available for registration
   MT_VERNON_SKATING_REGISTERED: '5', // Yellow (Banana) - already registered
+  DEV_ONLY: '8', // Graphite - dev-only events, hidden in production
 };
 
 /**

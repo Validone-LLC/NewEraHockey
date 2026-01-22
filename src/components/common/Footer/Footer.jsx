@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Mail, Phone } from 'lucide-react';
 import { FaInstagram } from 'react-icons/fa';
+import EmailSubscription from './EmailSubscription';
 
 const Footer = () => {
   const navLinks = [
@@ -16,6 +17,21 @@ const Footer = () => {
   return (
     <footer className="bg-primary border-t border-neutral-dark mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Email Subscription Section */}
+        <div className="mb-12">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 bg-primary-light rounded-xl p-6 md:p-8">
+            <div className="md:flex-shrink-0">
+              <h3 className="text-white font-semibold text-lg mb-1">Stay in the Loop</h3>
+              <p className="text-neutral-text text-sm">
+                Opt in to receive emails for future camps and other events
+              </p>
+            </div>
+            <div className="flex-1 md:max-w-lg">
+              <EmailSubscription />
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Brand */}
           <div>
@@ -85,7 +101,7 @@ const Footer = () => {
         {/* Copyright */}
         <div className="mt-12 pt-8 border-t border-neutral-dark">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-neutral-text text-sm">
-            <p>&copy; 2025 by New Era Hockey. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} by New Era Hockey. All rights reserved.</p>
             <div className="flex items-center gap-4">
               <Link to="/terms-and-conditions" className="hover:text-white transition-colors">
                 Terms & Conditions

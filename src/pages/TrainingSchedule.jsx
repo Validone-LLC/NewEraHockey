@@ -13,6 +13,7 @@ import {
   filterVisibleEvents,
   filterAvailableAtHomeTraining,
   filterAvailableMtVernonSkating,
+  filterTestEvents,
   refreshEvents,
 } from '@services/calendarService';
 import { sortEventsByDate } from '@utils/eventCategorization';
@@ -51,9 +52,10 @@ const TrainingSchedule = () => {
       ]);
 
       // Filter visible events (camps show all, lessons hide sold-out, skating hide registered)
-      const visibleCamps = filterVisibleEvents(campsData.events, 'camps');
-      const visibleLessons = filterVisibleEvents(lessonsData.events, 'lessons');
-      const visibleSkating = filterAvailableMtVernonSkating(skatingData.events);
+      // Also filter out [TEST] events unless VITE_SHOW_TEST_EVENTS=true
+      const visibleCamps = filterTestEvents(filterVisibleEvents(campsData.events, 'camps'));
+      const visibleLessons = filterTestEvents(filterVisibleEvents(lessonsData.events, 'lessons'));
+      const visibleSkating = filterTestEvents(filterAvailableMtVernonSkating(skatingData.events));
 
       setCampsEvents(sortEventsByDate(visibleCamps));
       setLessonsEvents(sortEventsByDate(visibleLessons));
@@ -95,8 +97,8 @@ const TrainingSchedule = () => {
         setMonthCache(prev => ({ ...prev, [cacheKey]: atHomeData }));
       }
 
-      // Filter available at-home training slots (hide booked)
-      const visibleAtHome = filterAvailableAtHomeTraining(atHomeData.events);
+      // Filter available at-home training slots (hide booked) and test events
+      const visibleAtHome = filterTestEvents(filterAvailableAtHomeTraining(atHomeData.events));
 
       // Combine all events for calendar (use already loaded camps/lessons/skating + at-home for month)
       const allCalendarEvents = [
@@ -134,7 +136,7 @@ const TrainingSchedule = () => {
   useEffect(() => {
     const stopCampsPolling = startPolling(
       updatedEvents => {
-        const visibleCamps = filterVisibleEvents(updatedEvents, 'camps');
+        const visibleCamps = filterTestEvents(filterVisibleEvents(updatedEvents, 'camps'));
         setCampsEvents(sortEventsByDate(visibleCamps));
         setLastUpdated(new Date());
       },
@@ -145,7 +147,7 @@ const TrainingSchedule = () => {
 
     const stopLessonsPolling = startPolling(
       updatedEvents => {
-        const visibleLessons = filterVisibleEvents(updatedEvents, 'lessons');
+        const visibleLessons = filterTestEvents(filterVisibleEvents(updatedEvents, 'lessons'));
         setLessonsEvents(sortEventsByDate(visibleLessons));
         setLastUpdated(new Date());
       },
@@ -156,7 +158,7 @@ const TrainingSchedule = () => {
 
     const stopSkatingPolling = startPolling(
       updatedEvents => {
-        const visibleSkating = filterAvailableMtVernonSkating(updatedEvents);
+        const visibleSkating = filterTestEvents(filterAvailableMtVernonSkating(updatedEvents));
         setSkatingEvents(sortEventsByDate(visibleSkating));
         setLastUpdated(new Date());
       },
@@ -186,9 +188,9 @@ const TrainingSchedule = () => {
         refreshEvents('mt_vernon_skating'),
       ]);
 
-      const visibleCamps = filterVisibleEvents(campsData.events, 'camps');
-      const visibleLessons = filterVisibleEvents(lessonsData.events, 'lessons');
-      const visibleSkating = filterAvailableMtVernonSkating(skatingData.events);
+      const visibleCamps = filterTestEvents(filterVisibleEvents(campsData.events, 'camps'));
+      const visibleLessons = filterTestEvents(filterVisibleEvents(lessonsData.events, 'lessons'));
+      const visibleSkating = filterTestEvents(filterAvailableMtVernonSkating(skatingData.events));
 
       setCampsEvents(sortEventsByDate(visibleCamps));
       setLessonsEvents(sortEventsByDate(visibleLessons));
@@ -212,7 +214,7 @@ const TrainingSchedule = () => {
       monthCacheRef.current[cacheKey] = atHomeData;
       setMonthCache(prev => ({ ...prev, [cacheKey]: atHomeData }));
 
-      const visibleAtHome = filterAvailableAtHomeTraining(atHomeData.events);
+      const visibleAtHome = filterTestEvents(filterAvailableAtHomeTraining(atHomeData.events));
       const allCalendarEvents = [
         ...visibleCamps,
         ...visibleLessons,

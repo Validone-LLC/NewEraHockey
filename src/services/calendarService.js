@@ -22,6 +22,8 @@ import {
   getEventCustomText,
   getEventWarningText,
 } from '../utils/registrationHelpers';
+import { shouldShowTestEvents } from '../config/featureFlags';
+import { GOOGLE_CALENDAR_COLORS } from '../config/constants';
 
 let syncToken = null;
 let pollingInterval = null;
@@ -393,6 +395,35 @@ export const filterAvailableMtVernonSkating = events => {
       if (event.colorId === '5') return false;
       // Hide sold out events
       if (isSoldOut(event)) return false;
+    }
+    return true;
+  });
+};
+
+/**
+ * Filter out dev-only events based on environment flag
+ * Dev-only events are identified by:
+ * - Graphite color (#8) in Google Calendar, OR
+ * - [DEV-ONLY] marker in title
+ * These are only visible when VITE_SHOW_TEST_EVENTS=true (local dev)
+ * @param {Array} events - Array of calendar events
+ * @returns {Array} - Events with dev-only events filtered based on environment
+ */
+export const filterTestEvents = events => {
+  // If flag is enabled, show all events including dev-only events
+  if (shouldShowTestEvents()) {
+    return events;
+  }
+  // Otherwise, filter out dev-only events (Graphite color OR [DEV-ONLY] in title)
+  return events.filter(event => {
+    // Check for Graphite color (dev-only marker)
+    if (event.colorId === GOOGLE_CALENDAR_COLORS.DEV_ONLY) {
+      return false;
+    }
+    // Check for [DEV-ONLY] in title
+    const title = (event.summary || '').toLowerCase();
+    if (title.includes('[dev-only]')) {
+      return false;
     }
     return true;
   });

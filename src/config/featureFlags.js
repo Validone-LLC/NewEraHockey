@@ -6,7 +6,7 @@
 
 /**
  * Check if a feature is enabled
- * @param {string} feature - Feature name ('campRegistration' | 'lessonRegistration' | 'atHomeTrainingRegistration' | 'mtVernonSkatingRegistration')
+ * @param {string} feature - Feature name ('campRegistration' | 'lessonRegistration' | 'atHomeTrainingRegistration' | 'mtVernonSkatingRegistration' | 'showTestEvents')
  * @returns {boolean}
  */
 export const isFeatureEnabled = feature => {
@@ -17,10 +17,18 @@ export const isFeatureEnabled = feature => {
       import.meta.env.VITE_ENABLE_AT_HOME_TRAINING_REGISTRATION === 'true',
     mtVernonSkatingRegistration:
       import.meta.env.VITE_ENABLE_MT_VERNON_SKATING_REGISTRATION !== 'true',
+    showTestEvents: import.meta.env.VITE_SHOW_TEST_EVENTS === 'true',
   };
 
   return flags[feature] ?? false;
 };
+
+/**
+ * Check if test events should be visible
+ * Test events have [TEST] prefix in title and are hidden in production
+ * @returns {boolean}
+ */
+export const shouldShowTestEvents = () => isFeatureEnabled('showTestEvents');
 
 /**
  * Get feature flag for specific event type
