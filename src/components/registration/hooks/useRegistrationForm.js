@@ -78,6 +78,8 @@ const useRegistrationForm = event => {
           axios
             .post(MAIL_SERVICE_API, {
               email: values.guardianEmail.trim().toLowerCase(),
+              firstName: values.guardianFirstName?.trim() || '',
+              lastName: values.guardianLastName?.trim() || '',
               listId: MASTER_LIST_ID,
             })
             .catch(err => {
