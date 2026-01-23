@@ -16,7 +16,7 @@ export const isFeatureEnabled = feature => {
     atHomeTrainingRegistration:
       import.meta.env.VITE_ENABLE_AT_HOME_TRAINING_REGISTRATION === 'true',
     mtVernonSkatingRegistration:
-      import.meta.env.VITE_ENABLE_MT_VERNON_SKATING_REGISTRATION !== 'true',
+      import.meta.env.VITE_ENABLE_MT_VERNON_SKATING_REGISTRATION === 'true',
     showTestEvents: import.meta.env.VITE_SHOW_TEST_EVENTS === 'true',
   };
 
