@@ -1,5 +1,4 @@
 const AWS = require('aws-sdk');
-const { v4: uuidv4 } = require('uuid');
 const { escapeHtml } = require('./lib/htmlUtils.cjs');
 
 // Initialize AWS SES
@@ -8,73 +7,6 @@ const ses = new AWS.SES({
   secretAccessKey: process.env.NEH_AWS_SECRET_ACCESS_KEY,
   region: process.env.NEH_AWS_REGION || 'us-east-1',
 });
-
-// Initialize DynamoDB
-const dynamodb = new AWS.DynamoDB.DocumentClient({
-  accessKeyId: process.env.NEH_AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.NEH_AWS_SECRET_ACCESS_KEY,
-  region: process.env.NEH_AWS_REGION || 'us-east-1',
-});
-
-const DYNAMODB_TABLE = process.env.DYNAMODB_TABLE_NAME;
-const RATE_LIMIT = 3; // Max submissions per hour
-const RATE_LIMIT_WINDOW = 3600000; // 1 hour in milliseconds
-
-// Helper: Log spam attempt to DynamoDB
-async function logSpamAttempt(type, ip, data) {
-  const now = Date.now();
-  const ttl = Math.floor(now / 1000) + 30 * 24 * 60 * 60; // 30 days from now
-
-  try {
-    await dynamodb
-      .put({
-        TableName: DYNAMODB_TABLE,
-        Item: {
-          id: uuidv4(),
-          timestamp: now,
-          type,
-          ip,
-          data,
-          ttl,
-        },
-      })
-      .promise();
-    console.log(`Spam logged: ${type} from ${ip}`);
-  } catch (error) {
-    console.error('Failed to log spam attempt:', error);
-    // Don't fail the request if logging fails
-  }
-}
-
-// Helper: Check rate limiting
-async function checkRateLimit(ip) {
-  const now = Date.now();
-  const oneHourAgo = now - RATE_LIMIT_WINDOW;
-
-  try {
-    // Query recent submissions from this IP
-    const result = await dynamodb
-      .query({
-        TableName: DYNAMODB_TABLE,
-        IndexName: 'ip-timestamp-index', // Note: This index needs to be created manually or we'll use scan
-        KeyConditionExpression: 'ip = :ip AND #ts > :oneHourAgo',
-        ExpressionAttributeNames: {
-          '#ts': 'timestamp',
-        },
-        ExpressionAttributeValues: {
-          ':ip': ip,
-          ':oneHourAgo': oneHourAgo,
-        },
-      })
-      .promise();
-
-    return result.Items.length >= RATE_LIMIT;
-  } catch (error) {
-    console.error('Rate limit check failed:', error);
-    // If check fails, allow the request (fail open)
-    return false;
-  }
-}
 
 // Helper: Verify Turnstile token
 async function verifyTurnstile(token, ip) {
@@ -151,7 +83,6 @@ exports.handler = async event => {
     // 🍯 PROTECTION 1: Honeypot Check
     if (website && website.trim() !== '') {
       console.log(`Honeypot triggered from IP: ${clientIp}`);
-      await logSpamAttempt('honeypot', clientIp, { name, email, message: message?.substring(0, 100) });
       // Silently reject - don't tell bot it was detected
       return {
         statusCode: 200,
@@ -172,24 +103,9 @@ exports.handler = async event => {
       };
     }
 
-    // ⏱️ PROTECTION 2: Rate Limiting
-    const isRateLimited = await checkRateLimit(clientIp);
-    if (isRateLimited) {
-      console.log(`Rate limit exceeded from IP: ${clientIp}`);
-      await logSpamAttempt('rate_limit', clientIp, { name, email, message: message?.substring(0, 100) });
-      return {
-        statusCode: 429,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          error: 'Too many submissions. Please try again later.',
-        }),
-      };
-    }
-
-    // ✅ PROTECTION 3: Turnstile Verification
+    // ✅ PROTECTION 2: Turnstile Verification
     if (!turnstileToken) {
       console.log(`Missing Turnstile token from IP: ${clientIp}`);
-      await logSpamAttempt('turnstile', clientIp, { name, email, message: message?.substring(0, 100) });
       return {
         statusCode: 400,
         headers: { 'Content-Type': 'application/json' },
@@ -200,7 +116,6 @@ exports.handler = async event => {
     const isTurnstileValid = await verifyTurnstile(turnstileToken, clientIp);
     if (!isTurnstileValid) {
       console.log(`Turnstile verification failed from IP: ${clientIp}`);
-      await logSpamAttempt('turnstile', clientIp, { name, email, message: message?.substring(0, 100) });
       return {
         statusCode: 400,
         headers: { 'Content-Type': 'application/json' },
@@ -208,10 +123,9 @@ exports.handler = async event => {
       };
     }
 
-    // 🔤 PROTECTION 4: Random Text Detection
+    // 🔤 PROTECTION 3: Random Text Detection
     if (isRandomText(name) || isRandomText(message)) {
       console.log(`Random text detected from IP: ${clientIp}`);
-      await logSpamAttempt('random_text', clientIp, { name, email, message: message?.substring(0, 100) });
       // Silently reject
       return {
         statusCode: 200,
