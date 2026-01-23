@@ -8,7 +8,7 @@ import { formatEventDateTime } from '@utils/eventCategorization';
 import Card from '@components/common/Card/Card';
 import Button from '@components/common/Button/Button';
 import SoldOutBadge from '@components/registration/SoldOutBadge';
-import AtHomeTrainingForm from '@components/registration/AtHomeTrainingForm';
+import UnifiedRegistrationForm from '@components/registration/UnifiedRegistrationForm';
 
 const AtHomeTrainingRegistration = () => {
   const { eventId } = useParams();
@@ -248,7 +248,7 @@ const AtHomeTrainingRegistration = () => {
                   </div>
                 </Card>
               ) : (
-                <AtHomeTrainingForm event={event} />
+                <UnifiedRegistrationForm event={event} />
               )}
             </div>
           </div>
