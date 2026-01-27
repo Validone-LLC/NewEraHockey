@@ -24,6 +24,9 @@ const Hero = () => {
             alt="New Era Hockey Logo"
             className="h-56 sm:h-40 lg:h-64 w-auto mx-auto drop-shadow-2xl"
           />
+          <p className="text-sm sm:text-base tracking-[0.25em] text-silver font-display uppercase mt-3">
+            Est. 2019
+          </p>
         </motion.div>
 
         <motion.div
