@@ -7,6 +7,7 @@ Allow: /
 # Exclude transactional/confirmation pages
 Disallow: /register/success
 Disallow: /register/cancel
+Disallow: /testimonials/submit-review
 
 # Sitemap location
 Sitemap: https://newerahockeytraining.com/sitemap.xml

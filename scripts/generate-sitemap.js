@@ -20,12 +20,6 @@ const routes = [
     priority: '0.8',
     changefreq: 'monthly',
   },
-  // Temporarily excluded - under development
-  // {
-  //   path: '/schedule',
-  //   priority: '0.9',
-  //   changefreq: 'weekly',
-  // },
   {
     path: '/register',
     priority: '0.9',
@@ -34,11 +28,6 @@ const routes = [
   {
     path: '/testimonials',
     priority: '0.7',
-    changefreq: 'monthly',
-  },
-  {
-    path: '/testimonials/submit-review',
-    priority: '0.5',
     changefreq: 'monthly',
   },
   {
@@ -70,6 +59,11 @@ const routes = [
     path: '/privacy-policy',
     priority: '0.3',
     changefreq: 'yearly',
+  },
+  {
+    path: '/event-registration',
+    priority: '0.9',
+    changefreq: 'weekly',
   },
 ];
 
