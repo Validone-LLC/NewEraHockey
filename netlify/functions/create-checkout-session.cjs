@@ -159,6 +159,9 @@ exports.handler = async (event, context) => {
         eventPrice: calendarEvent.price.toString(),
         playerCount: playerCount.toString(),
         totalPrice: totalPrice.toString(),
+        // Event date/time (from Google Calendar start/end)
+        eventStartDateTime: calendarEvent.start?.dateTime || calendarEvent.start?.date || '',
+        eventEndDateTime: calendarEvent.end?.dateTime || calendarEvent.end?.date || '',
 
         // At Home Training specific
         ...(isAtHomeTraining && {

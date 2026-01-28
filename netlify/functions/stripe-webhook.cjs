@@ -12,7 +12,7 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const AWS = require('aws-sdk');
 const { addRegistration } = require('./lib/registrationStore.cjs');
-const { escapeHtml, formatDate, calculateAge } = require('./lib/htmlUtils.cjs');
+const { escapeHtml, formatDate, formatEventDateTime, calculateAge } = require('./lib/htmlUtils.cjs');
 
 // Initialize AWS SES for email notifications
 const ses = new AWS.SES({
@@ -61,6 +61,9 @@ exports.handler = async (event, context) => {
           eventSummary,
           playerCount,
           totalPrice,
+          // Event date/time
+          eventStartDateTime,
+          eventEndDateTime,
           // At Home Training specific
           slotDate,
           slotTime,
@@ -237,6 +240,8 @@ exports.handler = async (event, context) => {
             eventSummary,
             eventId,
             eventType,
+            eventStartDateTime,
+            eventEndDateTime,
             guardianEmail,
             guardianFirstName,
             guardianLastName,
@@ -307,6 +312,8 @@ async function sendRegistrationEmails(data) {
     eventSummary,
     eventId,
     eventType,
+    eventStartDateTime,
+    eventEndDateTime,
     guardianEmail,
     guardianFirstName,
     guardianLastName,
@@ -374,6 +381,8 @@ async function sendRegistrationEmails(data) {
   // Format date for display
   const formattedDOB = formatDate(playerDateOfBirth);
   const formattedSlotDate = formatDate(slotDate);
+  const formattedEventStart = formatEventDateTime(eventStartDateTime);
+  const formattedEventEnd = formatEventDateTime(eventEndDateTime);
 
   const adminEmail = process.env.ADMIN_EMAIL;
   const fromEmail = process.env.SES_FROM_EMAIL || 'noreply@newerahockeytraining.com';
@@ -412,6 +421,7 @@ async function sendRegistrationEmails(data) {
                 <h3 style="color: #333; margin-top: 0;">Event Details</h3>
                 <p><strong>Event:</strong> ${safe.eventSummary}</p>
                 <p><strong>Event ID:</strong> ${safe.eventId}</p>
+                ${eventStartDateTime ? `<p><strong>Date &amp; Time:</strong> ${formattedEventStart}${eventEndDateTime && eventEndDateTime !== eventStartDateTime ? ` &ndash; ${formattedEventEnd}` : ''}</p>` : ''}
                 <p><strong>Amount Paid:</strong> $${amountPaid.toFixed(2)}</p>
               </div>
 
@@ -532,8 +542,7 @@ async function sendRegistrationEmails(data) {
                        <p><strong>Age:</strong> ${displayAge}</p>`
                 }
                 <p><strong>Event:</strong> ${safe.eventSummary}</p>
-                ${isAtHomeTraining && slotDate ? `<p><strong>Date:</strong> ${formattedSlotDate}</p>` : ''}
-                ${isAtHomeTraining && safe.slotTime ? `<p><strong>Time:</strong> ${safe.slotTime}</p>` : ''}
+                ${eventStartDateTime ? `<p><strong>Date &amp; Time:</strong> ${formattedEventStart}${eventEndDateTime && eventEndDateTime !== eventStartDateTime ? ` &ndash; ${formattedEventEnd}` : ''}</p>` : ''}
                 ${isAtHomeTraining && safe.addressStreet ? `<p><strong>Location:</strong> ${safe.addressStreet}, ${safe.addressCity}, ${safe.addressState}</p>` : ''}
                 <p><strong>Amount Paid:</strong> $${amountPaid.toFixed(2)}</p>
               </div>
