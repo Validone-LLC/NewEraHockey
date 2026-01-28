@@ -135,6 +135,21 @@ const useRegistrationForm = event => {
           throw new Error(data.message || 'Failed to create checkout session');
         }
 
+        // Store event info for the success page (e.g., "Add to Google Calendar" button)
+        try {
+          sessionStorage.setItem(
+            'neh_registered_event',
+            JSON.stringify({
+              summary: event.summary,
+              startDateTime: event.start?.dateTime || event.start?.date || '',
+              endDateTime: event.end?.dateTime || event.end?.date || '',
+              location: event.location || '',
+            })
+          );
+        } catch (e) {
+          // sessionStorage not available — non-blocking
+        }
+
         // Redirect to Stripe Checkout
         window.location.href = data.url;
       } catch (error) {
