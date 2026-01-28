@@ -3,15 +3,48 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import Confetti from 'react-confetti';
-import { HiCheckCircle, HiMail } from 'react-icons/hi';
+import { HiCheckCircle, HiMail, HiCalendar } from 'react-icons/hi';
 import Card from '@components/common/Card/Card';
 import Button from '@components/common/Button/Button';
 import { invalidateCache } from '../services/calendarService';
+
+/**
+ * Build a Google Calendar "Add Event" URL from event data
+ */
+function buildGoogleCalendarUrl({ summary, startDateTime, endDateTime, location }) {
+  if (!summary || !startDateTime) return null;
+
+  const formatForGCal = dateStr => {
+    if (!dateStr) return '';
+    const isDateOnly = !dateStr.includes('T');
+    if (isDateOnly) return dateStr.replace(/-/g, '');
+    const d = new Date(dateStr);
+    return d
+      .toISOString()
+      .replace(/[-:]/g, '')
+      .replace(/\.\d{3}/, '');
+  };
+
+  const start = formatForGCal(startDateTime);
+  const end = formatForGCal(endDateTime || startDateTime);
+
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: summary,
+    dates: `${start}/${end}`,
+  });
+
+  if (location) params.set('location', location);
+  params.set('details', `New Era Hockey Training - ${summary}`);
+
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
 
 const RegistrationSuccess = () => {
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get('session_id');
   const [showConfetti, setShowConfetti] = useState(true);
+  const [googleCalUrl, setGoogleCalUrl] = useState(null);
   const [windowDimensions, setWindowDimensions] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -20,6 +53,21 @@ const RegistrationSuccess = () => {
   // Invalidate cache immediately on mount to ensure fresh data
   useEffect(() => {
     invalidateCache(); // Clear all cached events to show updated capacity
+  }, []);
+
+  // Read stored event data for "Add to Google Calendar" button
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem('neh_registered_event');
+      if (stored) {
+        const eventData = JSON.parse(stored);
+        const url = buildGoogleCalendarUrl(eventData);
+        if (url) setGoogleCalUrl(url);
+        sessionStorage.removeItem('neh_registered_event');
+      }
+    } catch (e) {
+      // sessionStorage not available — non-blocking
+    }
   }, []);
 
   // Stop confetti after 5 seconds
@@ -141,6 +189,26 @@ const RegistrationSuccess = () => {
                 </div>
               </div>
             </motion.div>
+
+            {/* Add to Google Calendar */}
+            {googleCalUrl && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.75 }}
+                className="mb-8"
+              >
+                <a
+                  href={googleCalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-teal-500 hover:bg-teal-400 text-white font-semibold rounded-lg transition-colors"
+                >
+                  <HiCalendar className="w-5 h-5" />
+                  Add to Google Calendar
+                </a>
+              </motion.div>
+            )}
 
             {/* Action Buttons */}
             <motion.div

@@ -12,7 +12,7 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const AWS = require('aws-sdk');
 const { addRegistration } = require('./lib/registrationStore.cjs');
-const { escapeHtml, formatDate, formatEventDateTime, calculateAge } = require('./lib/htmlUtils.cjs');
+const { escapeHtml, formatDate, formatEventDateTime, buildGoogleCalendarUrl, calculateAge } = require('./lib/htmlUtils.cjs');
 
 // Initialize AWS SES for email notifications
 const ses = new AWS.SES({
@@ -384,6 +384,14 @@ async function sendRegistrationEmails(data) {
   const formattedEventStart = formatEventDateTime(eventStartDateTime);
   const formattedEventEnd = formatEventDateTime(eventEndDateTime);
 
+  // Build Google Calendar "Add Event" URL for user email
+  const googleCalendarUrl = buildGoogleCalendarUrl({
+    title: eventSummary,
+    startDateTime: eventStartDateTime,
+    endDateTime: eventEndDateTime,
+    description: `New Era Hockey Training - ${eventSummary}`,
+  });
+
   const adminEmail = process.env.ADMIN_EMAIL;
   const fromEmail = process.env.SES_FROM_EMAIL || 'noreply@newerahockeytraining.com';
 
@@ -564,6 +572,12 @@ async function sendRegistrationEmails(data) {
                   }
                 </ul>
               </div>
+
+              ${googleCalendarUrl ? `
+              <div style="text-align: center; margin: 20px 0;">
+                <a href="${googleCalendarUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background-color: #14b8a6; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; font-size: 14px;">&#128197; Add to Google Calendar</a>
+              </div>
+              ` : ''}
 
               <div style="background-color: #fff; padding: 15px; border-left: 4px solid #14b8a6; margin: 20px 0;">
                 <p style="margin: 0;"><strong>Questions?</strong> Contact Coach Will at <a href="mailto:coachwill@newerahockeytraining.com">coachwill@newerahockeytraining.com</a></p>

@@ -113,10 +113,51 @@ function formatEventDateTime(dateTimeString) {
   return date.toLocaleString('en-US', options);
 }
 
+/**
+ * Build a Google Calendar "Add Event" URL
+ * @param {Object} params
+ * @param {string} params.title - Event title
+ * @param {string} params.startDateTime - ISO datetime or YYYY-MM-DD
+ * @param {string} params.endDateTime - ISO datetime or YYYY-MM-DD
+ * @param {string} [params.location] - Event location
+ * @param {string} [params.description] - Event description
+ * @returns {string} - Google Calendar URL
+ */
+function buildGoogleCalendarUrl({ title, startDateTime, endDateTime, location, description }) {
+  if (!title || !startDateTime) return '';
+
+  const formatForGCal = (dateStr) => {
+    if (!dateStr) return '';
+    const isDateOnly = !dateStr.includes('T');
+    if (isDateOnly) {
+      // All-day event: YYYYMMDD format
+      return dateStr.replace(/-/g, '');
+    }
+    // DateTime: YYYYMMDDTHHmmssZ format
+    const d = new Date(dateStr);
+    return d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  };
+
+  const start = formatForGCal(startDateTime);
+  const end = formatForGCal(endDateTime || startDateTime);
+
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: title,
+    dates: `${start}/${end}`,
+  });
+
+  if (location) params.set('location', location);
+  if (description) params.set('details', description);
+
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
 module.exports = {
   escapeHtml,
   escapeHtmlObject,
   formatDate,
   formatEventDateTime,
+  buildGoogleCalendarUrl,
   calculateAge,
 };
