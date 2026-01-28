@@ -82,9 +82,41 @@ function calculateAge(dateOfBirth) {
   return age;
 }
 
+/**
+ * Format an event date/time string for display in emails
+ * Handles both date-only (YYYY-MM-DD) and ISO datetime (YYYY-MM-DDTHH:MM:SSZ) formats
+ * @param {string} dateTimeString - Date or datetime string
+ * @returns {string} - Formatted date/time or 'N/A' if invalid
+ */
+function formatEventDateTime(dateTimeString) {
+  if (!dateTimeString) return 'N/A';
+  const date = new Date(dateTimeString);
+  if (isNaN(date.getTime())) return escapeHtml(dateTimeString);
+
+  // Check if this is a date-only value (no time component)
+  const isDateOnly = !dateTimeString.includes('T');
+
+  const options = {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'America/New_York',
+  };
+
+  if (!isDateOnly) {
+    options.hour = 'numeric';
+    options.minute = '2-digit';
+    options.hour12 = true;
+  }
+
+  return date.toLocaleString('en-US', options);
+}
+
 module.exports = {
   escapeHtml,
   escapeHtmlObject,
   formatDate,
+  formatEventDateTime,
   calculateAge,
 };
