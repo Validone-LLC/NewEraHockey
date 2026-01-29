@@ -7,6 +7,7 @@
 import { formatPrice, getEventPrice } from './priceParser';
 import { categorizeEvent } from './eventCategorization';
 import { isRegistrationEnabledForEventType } from '@/config/featureFlags';
+import { EVENT_TYPES, GOOGLE_CALENDAR_COLORS } from '@/config/constants';
 
 /**
  * Check if event has registration enabled
@@ -18,7 +19,7 @@ export const isRegistrationEnabled = event => {
 
   // For At Home Training, check if it has a price (auto-enabled)
   const eventType = categorizeEvent(event);
-  if (eventType === 'at_home_training') {
+  if (eventType === EVENT_TYPES.AT_HOME_TRAINING) {
     const price = getEventPrice(event);
     return price !== null && price > 0;
   }
@@ -40,7 +41,7 @@ export const isDescriptionMarkedFull = event => {
 };
 
 /**
- * Check if event is sold out
+ * Check if event is sold out (confirmed registrations fill all spots)
  * @param {Object} event - Calendar event object
  * @returns {boolean}
  */
@@ -49,9 +50,9 @@ export const isSoldOut = event => {
 
   const eventType = categorizeEvent(event);
 
-  // For At Home Training, yellow color (#5) = booked/sold out
-  if (eventType === 'at_home_training') {
-    return event.colorId === '5';
+  // For At Home Training, yellow color = booked/sold out
+  if (eventType === EVENT_TYPES.AT_HOME_TRAINING) {
+    return event.colorId === GOOGLE_CALENDAR_COLORS.AT_HOME_BOOKED;
   }
 
   // Check registration data sold out flag
@@ -60,7 +61,7 @@ export const isSoldOut = event => {
   }
 
   // For camps only, check description for "Spots: FULL"
-  if (eventType.toLowerCase() === 'camp' || eventType.toLowerCase() === 'camps') {
+  if (eventType === EVENT_TYPES.CAMP) {
     return isDescriptionMarkedFull(event);
   }
 

@@ -65,7 +65,7 @@ exports.handler = async (event, context) => {
 
   try {
     // Parse request body
-    const { event: calendarEvent, formData } = JSON.parse(event.body);
+    const { event: calendarEvent, formData, idempotencyKey } = JSON.parse(event.body);
 
     // Validate required fields
     if (!calendarEvent || !calendarEvent.id || !calendarEvent.price || !calendarEvent.eventType) {
@@ -127,7 +127,8 @@ exports.handler = async (event, context) => {
       ? `${calendarEvent.summary || 'At Home Training'} (${playerCount} player${playerCount > 1 ? 's' : ''})`
       : calendarEvent.summary || 'Event Registration';
 
-    // Create Stripe Checkout session
+    // Create Stripe Checkout session (idempotency key prevents duplicate sessions from rapid submits)
+    const stripeOptions = idempotencyKey ? { idempotencyKey } : {};
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'payment',
@@ -208,8 +209,7 @@ exports.handler = async (event, context) => {
       },
       success_url: `${baseUrl}/register/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/register/cancel?event_id=${calendarEvent.id}`,
-      expires_at: Math.floor(Date.now() / 1000) + 1800, // 30 minutes
-    });
+    }, stripeOptions);
 
     // Return session URL
     return {

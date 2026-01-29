@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Helmet } from 'react-helmet-async';
+import { Pause, Play } from 'lucide-react';
 import SEO from '@components/common/SEO/SEO';
 import { testimonials } from '@data/testimonials';
 import TestimonialCard from '@components/testimonials/TestimonialCard/TestimonialCard';
@@ -7,19 +9,31 @@ import Button from '@components/common/Button/Button';
 
 const Testimonials = () => {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [isManuallyPaused, setIsManuallyPaused] = useState(false);
+  const [isHoverPaused, setIsHoverPaused] = useState(false);
+  const carouselRef = useRef(null);
   const carouselTestimonials = testimonials.slice(0, 5);
   const otherTestimonials = testimonials.slice(5);
 
+  // Respect prefers-reduced-motion — auto-pause if user prefers reduced motion
+  const prefersReducedMotion =
+    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Auto-rotation stops when manually paused, hover-paused, or reduced-motion preferred
+  const isAutoPlaying = !isManuallyPaused && !isHoverPaused && !prefersReducedMotion;
+
   useEffect(() => {
+    if (!isAutoPlaying) return;
+
     const timer = setInterval(() => {
       setActiveIndex(prev => (prev + 1) % carouselTestimonials.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, [carouselTestimonials.length]);
+  }, [carouselTestimonials.length, isAutoPlaying]);
 
-  // Keyboard navigation for carousel
-  useEffect(() => {
-    const handleKeyDown = e => {
+  // Keyboard navigation for carousel (only when carousel is focused)
+  const handleCarouselKeyDown = useCallback(
+    e => {
       if (e.key === 'ArrowLeft') {
         setActiveIndex(
           prev => (prev - 1 + carouselTestimonials.length) % carouselTestimonials.length
@@ -27,14 +41,35 @@ const Testimonials = () => {
       } else if (e.key === 'ArrowRight') {
         setActiveIndex(prev => (prev + 1) % carouselTestimonials.length);
       }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [carouselTestimonials.length]);
+    },
+    [carouselTestimonials.length]
+  );
 
   return (
     <div className="min-h-screen">
       <SEO pageKey="testimonials" />
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'SportsOrganization',
+            name: 'New Era Hockey',
+            url: 'https://newerahockeytraining.com',
+            review: testimonials.map(t => ({
+              '@type': 'Review',
+              author: {
+                '@type': 'Person',
+                name: t.name,
+              },
+              reviewBody: t.text,
+              itemReviewed: {
+                '@type': 'SportsOrganization',
+                name: 'New Era Hockey',
+              },
+            })),
+          })}
+        </script>
+      </Helmet>
       {/* Hero */}
       <section className="relative bg-gradient-to-br from-primary via-primary-dark to-neutral-bg py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -64,14 +99,32 @@ const Testimonials = () => {
           Featured Stories
         </motion.h2>
 
-        {/* Carousel Container */}
-        <div className="max-w-4xl mx-auto">
+        {/* Carousel Container - tabIndex needed for keyboard navigation per ARIA carousel pattern */}
+        {/* eslint-disable jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex */}
+        <div
+          ref={carouselRef}
+          role="region"
+          tabIndex={0}
+          className="max-w-4xl mx-auto"
+          onMouseEnter={() => setIsHoverPaused(true)}
+          onMouseLeave={() => setIsHoverPaused(false)}
+          onFocus={() => setIsHoverPaused(true)}
+          onBlur={e => {
+            // Only unpause if focus leaves the carousel entirely
+            if (!carouselRef.current?.contains(e.relatedTarget)) {
+              setIsHoverPaused(false);
+            }
+          }}
+          onKeyDown={handleCarouselKeyDown}
+          aria-roledescription="carousel"
+          aria-label="Featured testimonials"
+        >
           {/* ARIA live region for screen reader announcements */}
           <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
             Showing testimonial {activeIndex + 1} of {carouselTestimonials.length}
           </div>
 
-          <div className="relative min-h-[400px]">
+          <div className="relative min-h-[400px]" aria-live="off">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeIndex}
@@ -80,31 +133,64 @@ const Testimonials = () => {
                 exit={{ opacity: 0, x: -50 }}
                 transition={{ duration: 0.5 }}
                 className="absolute inset-0"
+                role="group"
+                aria-roledescription="slide"
+                aria-label={`Testimonial ${activeIndex + 1} of ${carouselTestimonials.length}`}
               >
                 <TestimonialCard testimonial={carouselTestimonials[activeIndex]} index={0} />
               </motion.div>
             </AnimatePresence>
           </div>
 
-          {/* Dot Navigation */}
-          <div
-            className="flex justify-center gap-3 mt-8"
-            role="group"
-            aria-label="Testimonial navigation"
-          >
-            {carouselTestimonials.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => setActiveIndex(idx)}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  idx === activeIndex ? 'bg-teal-500 w-8' : 'bg-neutral-dark hover:bg-neutral-text'
-                }`}
-                aria-label={`Go to testimonial ${idx + 1}`}
-                aria-current={idx === activeIndex ? 'true' : 'false'}
-              />
-            ))}
+          {/* Controls: Play/Pause + Dot Navigation */}
+          <div className="flex items-center justify-center gap-4 mt-8">
+            <button
+              onClick={() => setIsManuallyPaused(prev => !prev)}
+              className="p-2 rounded-full bg-neutral-dark/50 text-neutral-light hover:text-white hover:bg-neutral-dark transition-colors"
+              aria-label={
+                isManuallyPaused || prefersReducedMotion ? 'Play carousel' : 'Pause carousel'
+              }
+            >
+              {isManuallyPaused || prefersReducedMotion ? (
+                <Play className="w-4 h-4" />
+              ) : (
+                <Pause className="w-4 h-4" />
+              )}
+            </button>
+            <div
+              className="flex gap-3 items-center"
+              role="group"
+              aria-label="Testimonial navigation"
+            >
+              {carouselTestimonials.map((_, idx) => {
+                const isActive = idx === activeIndex;
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => setActiveIndex(idx)}
+                    className={`relative h-3 rounded-full transition-all duration-300 overflow-hidden ${
+                      isActive ? 'w-8 bg-neutral-dark' : 'w-3 bg-neutral-dark hover:bg-neutral-text'
+                    }`}
+                    aria-label={`Go to testimonial ${idx + 1}`}
+                    aria-current={isActive ? 'true' : 'false'}
+                  >
+                    {isActive && (
+                      <span
+                        key={activeIndex}
+                        className="absolute inset-0 rounded-full bg-teal-500"
+                        style={{
+                          animation: isAutoPlaying ? 'dot-fill 5s linear forwards' : 'none',
+                          width: isAutoPlaying ? undefined : '100%',
+                        }}
+                      />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
+        {/* eslint-enable jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex */}
       </section>
 
       {/* Other Testimonials */}

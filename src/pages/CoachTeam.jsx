@@ -1,8 +1,11 @@
 import { motion } from 'framer-motion';
+import { Helmet } from 'react-helmet-async';
 import SEO from '@components/common/SEO/SEO';
 import { coaches } from '@data/coachInfo';
 import CoachCard from '@components/coach/CoachCard/CoachCard';
 import Button from '@components/common/Button/Button';
+
+const BASE_URL = 'https://newerahockeytraining.com';
 
 const CoachTeam = () => {
   // Separate primary coach (Will) from others
@@ -12,6 +15,28 @@ const CoachTeam = () => {
   return (
     <div className="min-h-screen">
       <SEO pageKey="coaches" />
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'SportsTeam',
+            name: 'New Era Hockey',
+            url: BASE_URL,
+            sport: 'Ice Hockey',
+            coach: coaches.map(coach => ({
+              '@type': 'Person',
+              name: coach.name,
+              jobTitle: coach.title,
+              image: `${BASE_URL}${coach.image}`,
+              description: coach.quickSummary,
+              worksFor: {
+                '@type': 'SportsOrganization',
+                name: 'New Era Hockey',
+              },
+            })),
+          })}
+        </script>
+      </Helmet>
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-primary via-primary-dark to-neutral-bg py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

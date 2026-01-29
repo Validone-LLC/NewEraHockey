@@ -150,29 +150,44 @@ exports.handler = async (event, context) => {
 /**
  * Categorize calendar event based on extended properties, color, or keywords
  * @param {Object} event - Google Calendar event object
- * @returns {string} - 'camp', 'lesson', or 'other'
+ * @returns {string} - 'camp', 'lesson', 'at_home_training', 'mt_vernon_skating', or 'other'
  */
 function categorizeEvent(event) {
+  if (!event) return 'other';
+
   // Method 1: Extended Properties (most reliable)
   const eventType = event.extendedProperties?.shared?.eventType;
   if (eventType) {
-    return eventType.toLowerCase();
+    const normalized = eventType.toLowerCase();
+    if (['camp', 'lesson', 'at_home_training', 'mt_vernon_skating'].includes(normalized)) {
+      return normalized;
+    }
   }
 
-  // Method 2: Color-based categorization
+  // Method 2: Title-based detection (check before color for Mt Vernon events)
+  // This is needed because registered Mt Vernon events use yellow (same as AT_HOME_BOOKED)
+  const title = (event.summary || '').toLowerCase();
+  if (title.includes('mount vernon') || title.includes('mt vernon') || title.includes('mt. vernon')) {
+    return 'mt_vernon_skating';
+  }
+
+  // Method 3: Color-based categorization
   const colorMap = {
     '11': 'camp', // Red
     '9': 'lesson', // Blue
+    '6': 'at_home_training', // Orange (Tangerine) - available slots
+    '5': 'at_home_training', // Yellow (Banana) - booked slots
+    '10': 'mt_vernon_skating', // Green (Basil) - available for registration
   };
 
   if (event.colorId && colorMap[event.colorId]) {
     return colorMap[event.colorId];
   }
 
-  // Method 3: Keyword detection in title
-  const title = (event.summary || '').toLowerCase();
+  // Method 4: Keyword detection in title
   if (title.includes('camp')) return 'camp';
-  if (title.includes('lesson') || title.includes('training')) return 'lesson';
+  if (title.includes('lesson')) return 'lesson';
+  if (title.includes('at home') || title.includes('training')) return 'at_home_training';
 
   return 'other';
 }

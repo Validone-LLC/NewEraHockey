@@ -1,26 +1,83 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import Navigation from './Navigation';
 
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
+
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const mobileMenuRef = useRef(null);
+  const hamburgerRef = useRef(null);
 
+  // Throttled scroll handler (~200ms)
   useEffect(() => {
+    let ticking = false;
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(() => {
+          setIsScrolled(window.scrollY > 20);
+          ticking = false;
+        });
+      }
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location]);
+
+  // Mobile menu focus trap
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+
+    // Focus first link in mobile menu
+    const raf = requestAnimationFrame(() => {
+      const firstLink = mobileMenuRef.current?.querySelector(FOCUSABLE_SELECTOR);
+      firstLink?.focus();
+    });
+
+    const handleKeyDown = e => {
+      if (e.key === 'Escape') {
+        setIsMobileMenuOpen(false);
+        hamburgerRef.current?.focus();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+
+      // Include hamburger button in the focus trap so user can close the menu
+      const menuFocusables = Array.from(
+        mobileMenuRef.current?.querySelectorAll(FOCUSABLE_SELECTOR) || []
+      );
+      const allFocusables = [hamburgerRef.current, ...menuFocusables].filter(Boolean);
+      if (allFocusables.length === 0) return;
+
+      const firstEl = allFocusables[0];
+      const lastEl = allFocusables[allFocusables.length - 1];
+
+      if (e.shiftKey && document.activeElement === firstEl) {
+        e.preventDefault();
+        lastEl.focus();
+      } else if (!e.shiftKey && document.activeElement === lastEl) {
+        e.preventDefault();
+        firstEl.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      cancelAnimationFrame(raf);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isMobileMenuOpen]);
 
   return (
     <header
@@ -50,6 +107,7 @@ const Header = () => {
 
           {/* Mobile Menu Button */}
           <button
+            ref={hamburgerRef}
             className="lg:hidden text-white p-2 hover:bg-primary-light rounded-lg transition-colors"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
@@ -65,6 +123,7 @@ const Header = () => {
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
+            ref={mobileMenuRef}
             id="mobile-menu"
             className="lg:hidden bg-primary border-t border-neutral-dark"
             initial={{ opacity: 0, height: 0 }}

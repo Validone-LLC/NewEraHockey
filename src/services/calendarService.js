@@ -36,18 +36,23 @@ const CACHE_KEY_PREFIX = 'calendar_events_';
  * Cache utilities
  */
 const cache = {
-  get(key) {
+  get(key, { allowExpired = false } = {}) {
     try {
       const item = localStorage.getItem(`${CACHE_KEY_PREFIX}${key}`);
       if (!item) return null;
 
       const { data, timestamp } = JSON.parse(item);
       const now = Date.now();
+      const isExpired = now - timestamp > CACHE_TTL;
 
-      // Check if expired
-      if (now - timestamp > CACHE_TTL) {
+      if (isExpired && !allowExpired) {
         this.remove(key);
         return null;
+      }
+
+      // Tag stale data so consumers can display a warning
+      if (isExpired && allowExpired) {
+        return { ...data, _stale: true, _cachedAt: timestamp };
       }
 
       return data;
@@ -185,6 +190,18 @@ export const fetchEvents = async (eventType = null, useSync = true, useCache = t
     return result;
   } catch (error) {
     console.error('Calendar service error:', error);
+
+    // Fallback: return expired cache data if API fails
+    const cacheKey = eventType || 'all';
+    const staleData = cache.get(cacheKey, { allowExpired: true });
+    if (staleData) {
+      console.warn('Using stale cached data as fallback');
+      return {
+        ...staleData,
+        cached: true,
+      };
+    }
+
     throw error;
   }
 };
@@ -367,35 +384,38 @@ export const filterVisibleEvents = (events, eventType) => {
 
 /**
  * Filter out booked At Home Training events
- * Yellow color (#5) = booked, hide from public view
+ * Yellow color (AT_HOME_BOOKED) = booked, hide from public view
  * @param {Array} events - Array of calendar events
  * @returns {Array} - Only available (non-booked) events
  */
 export const filterAvailableAtHomeTraining = events => {
   return events.filter(event => {
-    // Yellow (#5) = booked slot, filter out
-    if (event.colorId === '5') return false;
+    // Yellow (AT_HOME_BOOKED) = booked slot, filter out
+    if (event.colorId === GOOGLE_CALENDAR_COLORS.AT_HOME_BOOKED) return false;
     return true;
   });
 };
 
 /**
- * Filter out registered and sold-out Mt Vernon Skating events
- * Yellow color (#5) = already registered, hide from public view
- * Green color (#10) = available for registration
+ * Filter out registered, sold-out, and incomplete Mt Vernon Skating events
+ * Yellow color (MT_VERNON_SKATING_REGISTERED) = already registered, hide from public view
+ * Green color (MT_VERNON_SKATING_AVAILABLE) = available for registration
  * Also hides events marked as sold out via registrationData
- * @param {Array} events - Array of calendar events
- * @returns {Array} - Only available Mt Vernon Skating events
+ * Also hides events missing required fields (price) to prevent incomplete listings
+ *
+ * Note: This function is only called on events already fetched as mt_vernon_skating type,
+ * so no title matching is needed - all events in the array are Mt Vernon events.
+ * @param {Array} events - Array of calendar events (pre-filtered to mt_vernon_skating type)
+ * @returns {Array} - Only available Mt Vernon Skating events with complete info
  */
 export const filterAvailableMtVernonSkating = events => {
   return events.filter(event => {
-    const title = (event.summary || '').toLowerCase();
-    if (title.includes('mount vernon skating') || title.includes('mt vernon skating')) {
-      // Hide registered events (yellow color)
-      if (event.colorId === '5') return false;
-      // Hide sold out events
-      if (isSoldOut(event)) return false;
-    }
+    // Hide registered events (yellow color)
+    if (event.colorId === GOOGLE_CALENDAR_COLORS.MT_VERNON_SKATING_REGISTERED) return false;
+    // Hide sold out events
+    if (isSoldOut(event)) return false;
+    // Hide events without a price (incomplete setup)
+    if (getPrice(event) === null) return false;
     return true;
   });
 };

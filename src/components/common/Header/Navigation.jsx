@@ -1,14 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
-
-const navLinks = [
-  { path: '/', label: 'Home' },
-  { path: '/coaches', label: 'Coaches' },
-  { path: '/testimonials', label: 'Testimonials' },
-  { path: '/gallery', label: 'Gallery' },
-  { path: '/contact', label: 'Contact' },
-  { path: '/event-registration', label: 'Event Registration' },
-];
+import { headerNavLinks } from '@/config/navigation';
 
 const Navigation = ({ mobile = false }) => {
   const linkClasses = ({ isActive }) => `
@@ -19,8 +11,8 @@ const Navigation = ({ mobile = false }) => {
 
   if (mobile) {
     return (
-      <nav className="space-y-2">
-        {navLinks.map((link, index) => (
+      <nav aria-label="Main navigation" className="space-y-2">
+        {headerNavLinks.map((link, index) => (
           <motion.div
             key={link.path}
             initial={{ opacity: 0, x: -20 }}
@@ -37,8 +29,8 @@ const Navigation = ({ mobile = false }) => {
   }
 
   return (
-    <nav className="flex items-center space-x-1">
-      {navLinks.map(link => (
+    <nav aria-label="Main navigation" className="flex items-center space-x-1">
+      {headerNavLinks.map(link => (
         <NavLink key={link.path} to={link.path} className={linkClasses}>
           {link.label}
         </NavLink>

@@ -5,7 +5,7 @@
  * Uses Formik for form management with dynamic Yup validation.
  */
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useFormik } from 'formik';
 import axios from 'axios';
 import { getFormConfig, getEventType } from '../config/formConfigs';
@@ -15,6 +15,67 @@ import { getPrice, getFormattedPrice } from '@/utils/registrationHelpers';
 // Mailing list configuration
 const MAIL_SERVICE_API = 'https://eqk81e6nlj.execute-api.us-east-1.amazonaws.com/public/subscribe';
 const MASTER_LIST_ID = 'list_7952d451';
+
+// Form draft persistence
+const DRAFT_KEY_PREFIX = 'neh_reg_draft_';
+
+/**
+ * Get sessionStorage key for form draft
+ * @param {string} eventId - Event ID
+ * @returns {string} Storage key
+ */
+const getDraftKey = eventId => `${DRAFT_KEY_PREFIX}${eventId}`;
+
+/**
+ * Load saved form draft from sessionStorage
+ * @param {string} eventId - Event ID
+ * @returns {Object|null} Saved form values or null
+ */
+const loadDraft = eventId => {
+  try {
+    const saved = sessionStorage.getItem(getDraftKey(eventId));
+    if (!saved) return null;
+    const parsed = JSON.parse(saved);
+    // Expire drafts older than 2 hours
+    if (parsed._savedAt && Date.now() - parsed._savedAt > 2 * 60 * 60 * 1000) {
+      sessionStorage.removeItem(getDraftKey(eventId));
+      return null;
+    }
+    // eslint-disable-next-line no-unused-vars
+    const { _savedAt, ...values } = parsed;
+    return values;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Save form draft to sessionStorage
+ * @param {string} eventId - Event ID
+ * @param {Object} values - Form values
+ */
+const saveDraft = (eventId, values) => {
+  try {
+    sessionStorage.setItem(
+      getDraftKey(eventId),
+      JSON.stringify({ ...values, _savedAt: Date.now() })
+    );
+  } catch {
+    // sessionStorage not available — non-blocking
+  }
+};
+
+/**
+ * Clear form draft from sessionStorage
+ * @param {string} eventId - Event ID
+ */
+const clearDraft = eventId => {
+  try {
+    sessionStorage.removeItem(getDraftKey(eventId));
+  } catch {
+    // non-blocking
+  }
+};
 
 /**
  * Calculate total price based on event type and player count
@@ -54,6 +115,7 @@ const formatTotalPrice = (event, config, playerCount) => {
  */
 const useRegistrationForm = event => {
   const [submitError, setSubmitError] = useState(null);
+  const submitLockRef = useRef(false);
 
   // Get configuration for this event type
   const config = getFormConfig(event);
@@ -62,14 +124,20 @@ const useRegistrationForm = event => {
   // Build dynamic validation schema
   const validationSchema = buildValidationSchema(config);
 
-  // Get initial values based on config
-  const initialValues = getInitialValues(config);
+  // Get initial values based on config, restoring any saved draft
+  const defaultValues = getInitialValues(config);
+  const savedDraft = loadDraft(event.id);
+  const initialValues = savedDraft ? { ...defaultValues, ...savedDraft } : defaultValues;
 
   // Initialize Formik
   const formik = useFormik({
     initialValues,
     validationSchema,
     onSubmit: async values => {
+      // Prevent double-submit (rapid clicks before Formik's isSubmitting updates)
+      if (submitLockRef.current) return;
+      submitLockRef.current = true;
+
       setSubmitError(null);
 
       try {
@@ -105,6 +173,9 @@ const useRegistrationForm = event => {
           });
         }
 
+        // Generate idempotency key to prevent duplicate Stripe sessions
+        const idempotencyKey = `${event.id}_${values.guardianEmail}_${Date.now()}`;
+
         // Create Stripe Checkout session
         const response = await fetch('/.netlify/functions/create-checkout-session', {
           method: 'POST',
@@ -112,6 +183,7 @@ const useRegistrationForm = event => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
+            idempotencyKey,
             event: {
               id: event.id,
               summary: event.summary,
@@ -135,6 +207,9 @@ const useRegistrationForm = event => {
           throw new Error(data.message || 'Failed to create checkout session');
         }
 
+        // NOTE: Draft is intentionally NOT cleared here — user may cancel on Stripe
+        // and return to retry. Draft cleanup happens on RegistrationSuccess page.
+
         // Store event info for the success page (e.g., "Add to Google Calendar" button)
         try {
           sessionStorage.setItem(
@@ -155,9 +230,28 @@ const useRegistrationForm = event => {
       } catch (error) {
         console.error('Registration error:', error);
         setSubmitError(error.message || 'Failed to process registration. Please try again.');
+        submitLockRef.current = false;
       }
     },
   });
+
+  // Auto-save form values to sessionStorage (debounced)
+  const stableEventId = event.id;
+  const saveTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    // Don't save while submitting or if form is pristine with no draft
+    if (formik.isSubmitting) return;
+
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(() => {
+      saveDraft(stableEventId, formik.values);
+    }, 500);
+
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    };
+  }, [formik.values, formik.isSubmitting, stableEventId]);
 
   // Calculate current total price
   const playerCount = config.features.multiPlayer ? formik.values.players?.length || 1 : 1;
@@ -178,3 +272,4 @@ const useRegistrationForm = event => {
 };
 
 export default useRegistrationForm;
+export { clearDraft, DRAFT_KEY_PREFIX };

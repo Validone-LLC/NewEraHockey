@@ -7,6 +7,7 @@ import { HiCheckCircle, HiMail, HiCalendar } from 'react-icons/hi';
 import Card from '@components/common/Card/Card';
 import Button from '@components/common/Button/Button';
 import { invalidateCache } from '../services/calendarService';
+import { DRAFT_KEY_PREFIX } from '@components/registration/hooks/useRegistrationForm';
 
 /**
  * Build a Google Calendar "Add Event" URL from event data
@@ -50,9 +51,18 @@ const RegistrationSuccess = () => {
     height: window.innerHeight,
   });
 
-  // Invalidate cache immediately on mount to ensure fresh data
+  // Invalidate cache and clear any form drafts on mount
   useEffect(() => {
     invalidateCache(); // Clear all cached events to show updated capacity
+
+    // Clear all form drafts — registration is complete
+    try {
+      Object.keys(sessionStorage)
+        .filter(key => key.startsWith(DRAFT_KEY_PREFIX))
+        .forEach(key => sessionStorage.removeItem(key));
+    } catch {
+      // non-blocking
+    }
   }, []);
 
   // Read stored event data for "Add to Google Calendar" button
@@ -98,17 +108,21 @@ const RegistrationSuccess = () => {
         <meta name="robots" content="noindex, nofollow" />
         <title>Registration Complete | New Era Hockey</title>
       </Helmet>
-      {/* Confetti Animation */}
-      {showConfetti && (
-        <Confetti
-          width={windowDimensions.width}
-          height={windowDimensions.height}
-          recycle={false}
-          numberOfPieces={500}
-          gravity={0.3}
-          colors={['#14b8a6', '#0d9488', '#0f766e', '#115e59', '#134e4a']}
-        />
-      )}
+      {/* Confetti Animation (respects prefers-reduced-motion) */}
+      {showConfetti &&
+        !(
+          typeof window !== 'undefined' &&
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        ) && (
+          <Confetti
+            width={windowDimensions.width}
+            height={windowDimensions.height}
+            recycle={false}
+            numberOfPieces={500}
+            gravity={0.3}
+            colors={['#14b8a6', '#0d9488', '#0f766e', '#115e59', '#134e4a']}
+          />
+        )}
 
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <Card>

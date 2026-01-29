@@ -203,10 +203,11 @@ function categorizeEvent(event) {
     }
   }
 
-  // Method 2: Title-based detection (check before color for Mt Vernon Skating)
-  // This is needed because registered Mt Vernon Skating events use yellow (same as AT_HOME_BOOKED)
+  // Method 2: Title-based detection (check before color for Mt Vernon events)
+  // This is needed because registered Mt Vernon events use yellow (same as AT_HOME_BOOKED)
+  // Matches: "Mount Vernon...", "Mt Vernon...", "Mt. Vernon..." (any Mt Vernon event)
   const title = (event.summary || '').toLowerCase();
-  if (title.includes('mount vernon skating') || title.includes('mt vernon skating')) {
+  if (title.includes('mount vernon') || title.includes('mt vernon') || title.includes('mt. vernon')) {
     return 'mt_vernon_skating';
   }
 

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { HiRefresh, HiHome } from 'react-icons/hi';
+import { Helmet } from 'react-helmet-async';
+import { HiRefresh, HiHome, HiExclamation } from 'react-icons/hi';
 import SEO from '@components/common/SEO/SEO';
 import EventList from '@components/schedule/EventList/EventList';
 import EventCalendar from '@components/schedule/EventCalendar/EventCalendar';
@@ -8,8 +9,8 @@ import {
   fetchCamps,
   fetchLessons,
   fetchMtVernonSkating,
+  fetchEvents,
   fetchAtHomeTrainingByMonth,
-  startPolling,
   filterVisibleEvents,
   filterAvailableAtHomeTraining,
   filterAvailableMtVernonSkating,
@@ -34,6 +35,7 @@ const TrainingSchedule = () => {
   const [calendarError, setCalendarError] = useState(null);
 
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [isStaleData, setIsStaleData] = useState(false);
   // eslint-disable-next-line no-unused-vars
   const [monthCache, setMonthCache] = useState({}); // Cache for at-home training by month (accessed via setter)
   const monthCacheRef = useRef({}); // Ref for synchronous cache access (prevents loading flicker)
@@ -51,6 +53,10 @@ const TrainingSchedule = () => {
         fetchMtVernonSkating(),
       ]);
 
+      // Detect if any data came from stale cache (API was down)
+      const stale = [campsData, lessonsData, skatingData].some(d => d._stale);
+      setIsStaleData(stale);
+
       // Filter visible events (camps show all, lessons hide sold-out, skating hide registered)
       // Also filter out [TEST] events unless VITE_SHOW_TEST_EVENTS=true
       const visibleCamps = filterTestEvents(filterVisibleEvents(campsData.events, 'camps'));
@@ -60,7 +66,7 @@ const TrainingSchedule = () => {
       setCampsEvents(sortEventsByDate(visibleCamps));
       setLessonsEvents(sortEventsByDate(visibleLessons));
       setSkatingEvents(sortEventsByDate(visibleSkating));
-      setLastUpdated(new Date());
+      setLastUpdated(stale && campsData._cachedAt ? new Date(campsData._cachedAt) : new Date());
     } catch (err) {
       console.error('Failed to load list events:', err);
       setListError(err.message || 'Failed to load events');
@@ -132,46 +138,33 @@ const TrainingSchedule = () => {
     }
   }, [listLoading, currentMonth, loadCalendarEvents]);
 
-  // Set up automatic polling for camps, lessons, and skating (updates both list and calendar)
+  // Single consolidated poll for all event types (replaces 3 separate polling intervals)
   useEffect(() => {
-    const stopCampsPolling = startPolling(
-      updatedEvents => {
-        const visibleCamps = filterTestEvents(filterVisibleEvents(updatedEvents, 'camps'));
+    const POLL_INTERVAL = 300000; // 5 minutes
+
+    const pollId = setInterval(async () => {
+      try {
+        // Fetch all event types in parallel, bypassing cache for fresh data
+        const [campsData, lessonsData, skatingData] = await Promise.all([
+          fetchEvents('camp', true, false),
+          fetchEvents('lesson', true, false),
+          fetchEvents('mt_vernon_skating', true, false),
+        ]);
+
+        const visibleCamps = filterTestEvents(filterVisibleEvents(campsData.events, 'camps'));
+        const visibleLessons = filterTestEvents(filterVisibleEvents(lessonsData.events, 'lessons'));
+        const visibleSkating = filterTestEvents(filterAvailableMtVernonSkating(skatingData.events));
+
         setCampsEvents(sortEventsByDate(visibleCamps));
-        setLastUpdated(new Date());
-      },
-      'camp',
-      300000, // 5 minutes
-      true // Skip initial fetch
-    );
-
-    const stopLessonsPolling = startPolling(
-      updatedEvents => {
-        const visibleLessons = filterTestEvents(filterVisibleEvents(updatedEvents, 'lessons'));
         setLessonsEvents(sortEventsByDate(visibleLessons));
-        setLastUpdated(new Date());
-      },
-      'lesson',
-      300000, // 5 minutes
-      true // Skip initial fetch
-    );
-
-    const stopSkatingPolling = startPolling(
-      updatedEvents => {
-        const visibleSkating = filterTestEvents(filterAvailableMtVernonSkating(updatedEvents));
         setSkatingEvents(sortEventsByDate(visibleSkating));
         setLastUpdated(new Date());
-      },
-      'mt_vernon_skating',
-      300000, // 5 minutes
-      true // Skip initial fetch
-    );
+      } catch (error) {
+        console.error('Polling error:', error);
+      }
+    }, POLL_INTERVAL);
 
-    return () => {
-      stopCampsPolling();
-      stopLessonsPolling();
-      stopSkatingPolling();
-    };
+    return () => clearInterval(pollId);
   }, []);
 
   const handleRefresh = async () => {
@@ -195,6 +188,7 @@ const TrainingSchedule = () => {
       setCampsEvents(sortEventsByDate(visibleCamps));
       setLessonsEvents(sortEventsByDate(visibleLessons));
       setSkatingEvents(sortEventsByDate(visibleSkating));
+      setIsStaleData(false);
 
       // Refresh at-home training for current month (clear cache)
       const year = currentMonth.getFullYear();
@@ -242,6 +236,32 @@ const TrainingSchedule = () => {
   return (
     <div className="min-h-screen">
       <SEO pageKey="event-registration" />
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'SportsOrganization',
+            name: 'New Era Hockey',
+            url: 'https://newerahockeytraining.com',
+            sport: 'Ice Hockey',
+            description:
+              'Premier hockey training in the DMV area offering camps, private lessons, and skating sessions.',
+            areaServed: {
+              '@type': 'Place',
+              name: 'DMV (DC, Maryland, Virginia)',
+            },
+            event: {
+              '@type': 'Event',
+              name: 'New Era Hockey Training Events',
+              url: 'https://newerahockeytraining.com/event-registration',
+              organizer: {
+                '@type': 'SportsOrganization',
+                name: 'New Era Hockey',
+              },
+            },
+          })}
+        </script>
+      </Helmet>
       {/* Hero */}
       <section className="relative bg-gradient-to-br from-primary via-primary-dark to-neutral-bg py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -259,6 +279,30 @@ const TrainingSchedule = () => {
           </motion.div>
         </div>
       </section>
+
+      {/* Stale Data Warning */}
+      {isStaleData && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
+            <HiExclamation className="w-5 h-5 text-amber-400 flex-shrink-0" />
+            <p className="text-sm text-amber-200">
+              Showing cached data — our event service is temporarily unavailable.{' '}
+              {lastUpdated && (
+                <span className="text-amber-400">
+                  Last updated:{' '}
+                  {lastUpdated.toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })}
+                </span>
+              )}
+            </p>
+            <button
+              onClick={handleRefresh}
+              className="ml-auto text-sm text-amber-400 hover:text-amber-300 underline flex-shrink-0"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Upcoming Events List Section */}
       <section className="section-container pb-12">

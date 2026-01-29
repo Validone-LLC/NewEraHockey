@@ -114,6 +114,16 @@
   }
 }
 
+/* Carousel dot progress animation */
+@keyframes dot-fill {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

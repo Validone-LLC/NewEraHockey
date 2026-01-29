@@ -124,7 +124,7 @@ const RegistrationCancel = () => {
                   Try Again
                 </Button>
               ) : (
-                <Button to="/schedule" variant="primary">
+                <Button to="/event-registration" variant="primary">
                   View Schedule
                 </Button>
               )}

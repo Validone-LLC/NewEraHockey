@@ -369,7 +369,7 @@ const EventRegistration = () => {
                       information.
                     </p>
                     <div className="flex gap-4 justify-center">
-                      <Button to="/schedule" variant="secondary">
+                      <Button to="/event-registration" variant="secondary">
                         Back to Schedule
                       </Button>
                       <Button to="/contact" variant="primary">

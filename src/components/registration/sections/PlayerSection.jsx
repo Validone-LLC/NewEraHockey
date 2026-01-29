@@ -29,8 +29,11 @@ const PlayerSection = ({ formik, config }) => {
     return null;
   };
 
+  const MAX_PLAYERS = 6;
+
   const addPlayer = () => {
     const players = formik.values.players || [];
+    if (players.length >= MAX_PLAYERS) return;
     formik.setFieldValue('players', [
       ...players,
       {
@@ -178,10 +181,15 @@ const PlayerSection = ({ formik, config }) => {
           onClick={addPlayer}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="flex items-center gap-2 px-4 py-2 bg-teal-500/20 text-teal-400 rounded-lg hover:bg-teal-500/30 transition-colors"
+          disabled={players.length >= MAX_PLAYERS}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+            players.length >= MAX_PLAYERS
+              ? 'bg-neutral-dark/50 text-neutral-light/50 cursor-not-allowed'
+              : 'bg-teal-500/20 text-teal-400 hover:bg-teal-500/30'
+          }`}
         >
           <Plus className="w-5 h-5" />
-          Add Sibling
+          {players.length >= MAX_PLAYERS ? `Max ${MAX_PLAYERS} Players` : 'Add Sibling'}
         </motion.button>
       </div>
 

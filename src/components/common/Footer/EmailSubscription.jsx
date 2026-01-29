@@ -106,17 +106,21 @@ const EmailSubscription = () => {
   if (status === 'success') {
     return (
       <>
-        {showConfetti && (
-          <Confetti
-            width={windowDimensions.width}
-            height={windowDimensions.height}
-            recycle={false}
-            numberOfPieces={300}
-            gravity={0.3}
-            colors={['#14b8a6', '#0d9488', '#0f766e', '#115e59', '#134e4a']}
-            style={{ position: 'fixed', top: 0, left: 0, zIndex: 9999 }}
-          />
-        )}
+        {showConfetti &&
+          !(
+            typeof window !== 'undefined' &&
+            window.matchMedia('(prefers-reduced-motion: reduce)').matches
+          ) && (
+            <Confetti
+              width={windowDimensions.width}
+              height={windowDimensions.height}
+              recycle={false}
+              numberOfPieces={300}
+              gravity={0.3}
+              colors={['#14b8a6', '#0d9488', '#0f766e', '#115e59', '#134e4a']}
+              style={{ position: 'fixed', top: 0, left: 0, zIndex: 9999 }}
+            />
+          )}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
