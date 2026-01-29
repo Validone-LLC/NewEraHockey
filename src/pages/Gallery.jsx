@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { Helmet } from 'react-helmet-async';
 import SEO from '@components/common/SEO/SEO';
 import { galleryImages, galleryCategories } from '@data/galleryImages';
+
+const BASE_URL = 'https://newerahockeytraining.com';
 
 const Gallery = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -14,6 +17,27 @@ const Gallery = () => {
   return (
     <div className="min-h-screen">
       <SEO pageKey="gallery" />
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'ImageGallery',
+            name: 'New Era Hockey Photo Gallery',
+            url: `${BASE_URL}/gallery`,
+            description: 'Photos from New Era Hockey camps, training sessions, and events.',
+            about: {
+              '@type': 'SportsOrganization',
+              name: 'New Era Hockey',
+            },
+            image: galleryImages.map(img => ({
+              '@type': 'ImageObject',
+              contentUrl: `${BASE_URL}${img.src}`,
+              name: img.alt,
+              description: img.alt,
+            })),
+          })}
+        </script>
+      </Helmet>
       {/* Hero */}
       <section className="relative bg-gradient-to-br from-primary via-primary-dark to-neutral-bg py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -93,7 +117,10 @@ const Gallery = () => {
           {filteredImages.map((image, index) => (
             <motion.div
               key={image.id}
-              className="relative aspect-square rounded-lg overflow-hidden bg-primary-light group cursor-pointer"
+              tabIndex={0}
+              role="figure"
+              aria-label={image.alt}
+              className="relative aspect-square rounded-lg overflow-hidden bg-primary-light group cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-500"
               initial={{ opacity: 0, scale: 0.8 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
@@ -105,8 +132,12 @@ const Gallery = () => {
                 alt={image.alt}
                 className="w-full h-full object-cover"
                 loading="lazy"
+                width={600}
+                height={600}
+                sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, (max-width: 1279px) 33vw, 25vw"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+              {/* Title overlay: always visible on mobile, hover/focus on desktop */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity duration-300 flex items-end p-4">
                 <p className="text-white font-semibold">{image.alt}</p>
               </div>
             </motion.div>
@@ -134,6 +165,7 @@ const FilterButton = ({ label, active, onClick }) => {
   return (
     <button
       onClick={onClick}
+      aria-pressed={active}
       className={`px-6 py-2 rounded-lg font-semibold transition-all duration-300 ${
         active
           ? 'bg-gradient-to-r from-teal-500 to-teal-700 text-white'

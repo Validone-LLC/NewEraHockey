@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Calendar, Clock, MapPin, DollarSign } from 'lucide-react';
@@ -13,16 +14,38 @@ import {
 } from '@/services/calendarService';
 import SoldOutBadge from '@components/registration/SoldOutBadge';
 
+const EVENTS_PER_PAGE = 10;
+
 const EventList = ({ events, eventType }) => {
+  const [visibleCount, setVisibleCount] = useState(EVENTS_PER_PAGE);
+
+  // Reset pagination when switching tabs
+  useEffect(() => {
+    setVisibleCount(EVENTS_PER_PAGE);
+  }, [eventType]);
+
   if (!events || events.length === 0) {
     return null;
   }
 
+  const visibleEvents = events.slice(0, visibleCount);
+  const hasMore = visibleCount < events.length;
+
   return (
     <div className="space-y-4">
-      {events.map((event, index) => (
+      {visibleEvents.map((event, index) => (
         <EventCard key={event.id || index} event={event} eventType={eventType} />
       ))}
+      {hasMore && (
+        <div className="text-center pt-2">
+          <button
+            onClick={() => setVisibleCount(prev => prev + EVENTS_PER_PAGE)}
+            className="px-6 py-2 bg-primary border border-neutral-dark rounded-lg text-neutral-light hover:border-teal-500 hover:text-white transition-colors"
+          >
+            Show More ({events.length - visibleCount} remaining)
+          </button>
+        </div>
+      )}
     </div>
   );
 };

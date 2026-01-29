@@ -2,18 +2,9 @@ import { Link } from 'react-router-dom';
 import { Mail, Phone } from 'lucide-react';
 import { FaInstagram } from 'react-icons/fa';
 import EmailSubscription from './EmailSubscription';
+import { footerNavLinks } from '@/config/navigation';
 
 const Footer = () => {
-  const navLinks = [
-    { path: '/', label: 'Home' },
-    { path: '/coaches', label: 'Coaches' },
-    { path: '/testimonials', label: 'Testimonials' },
-    { path: '/gallery', label: 'Gallery' },
-    { path: '/faq', label: 'FAQ' },
-    { path: '/contact', label: 'Contact' },
-    { path: '/event-registration', label: 'Event Registration' },
-  ];
-
   return (
     <footer className="bg-primary border-t border-neutral-dark mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -55,7 +46,7 @@ const Footer = () => {
           <div>
             <h3 className="text-white font-semibold text-lg mb-4">Quick Links</h3>
             <nav className="space-y-2">
-              {navLinks.map(link => (
+              {footerNavLinks.map(link => (
                 <Link
                   key={link.path}
                   to={link.path}

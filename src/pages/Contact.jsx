@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { useSearchParams } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Mail, Phone, Instagram } from 'lucide-react';
 import SEO from '@components/common/SEO/SEO';
 import ContactForm from '@components/contact/ContactForm/ContactForm';
@@ -31,6 +32,28 @@ const Contact = () => {
   return (
     <div className="min-h-screen">
       <SEO pageKey="contact" />
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'ContactPage',
+            name: 'Contact New Era Hockey',
+            url: 'https://newerahockeytraining.com/contact',
+            mainEntity: {
+              '@type': 'SportsOrganization',
+              name: 'New Era Hockey',
+              url: 'https://newerahockeytraining.com',
+              email: 'coachwill@newerahockeytraining.com',
+              telephone: '+1-571-274-4691',
+              areaServed: {
+                '@type': 'Place',
+                name: 'DMV (DC, Maryland, Virginia)',
+              },
+              sameAs: ['https://www.instagram.com/NewEraHockeyDMV'],
+            },
+          })}
+        </script>
+      </Helmet>
       {/* Hero */}
       <section className="relative bg-gradient-to-br from-primary via-primary-dark to-neutral-bg py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

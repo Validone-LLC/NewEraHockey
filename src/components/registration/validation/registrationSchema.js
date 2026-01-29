@@ -26,7 +26,9 @@ const phoneValidation = Yup.string().test(
 const singlePlayerSchema = {
   playerFirstName: Yup.string().trim().required('Player first name is required'),
   playerLastName: Yup.string().trim().required('Player last name is required'),
-  playerDateOfBirth: Yup.date().required('Date of birth is required'),
+  playerDateOfBirth: Yup.date()
+    .max(new Date(), 'Date of birth must be in the past')
+    .required('Date of birth is required'),
   playerLevelOfPlay: Yup.string().trim().required('Level of play is required'),
 };
 
@@ -36,12 +38,17 @@ const singlePlayerSchema = {
 const playerItemSchema = Yup.object({
   firstName: Yup.string().trim().required('First name is required'),
   lastName: Yup.string().trim().required('Last name is required'),
-  dateOfBirth: Yup.date().required('Date of birth is required'),
+  dateOfBirth: Yup.date()
+    .max(new Date(), 'Date of birth must be in the past')
+    .required('Date of birth is required'),
   levelOfPlay: Yup.string().trim().required('Level of play is required'),
 });
 
 const multiPlayerSchema = {
-  players: Yup.array().of(playerItemSchema).min(1, 'At least one player is required'),
+  players: Yup.array()
+    .of(playerItemSchema)
+    .min(1, 'At least one player is required')
+    .max(6, 'Maximum of 6 players allowed'),
 };
 
 /**

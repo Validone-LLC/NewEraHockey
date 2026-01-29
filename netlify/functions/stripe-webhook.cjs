@@ -104,28 +104,26 @@ exports.handler = async (event, context) => {
         const players = isAtHomeTraining && playersData ? JSON.parse(playersData) : null;
 
         // Add registration to blob storage
-        const registrationData = await addRegistration(
-          eventId,
-          eventType,
-          {
-            stripeSessionId: session.id,
-            playerFirstName,
-            playerLastName,
-            playerDateOfBirth,
-            playerAge,
-            guardianFirstName,
-            guardianLastName,
-            guardianEmail,
-            guardianPhone,
-            guardianRelationship,
-            emergencyContactName: emergencyName,
-            emergencyContactPhone: emergencyPhone,
-            emergencyContactRelationship: emergencyRelationship,
-            medicalNotes,
-          }
-        );
+        const regPayload = {
+          stripeSessionId: session.id,
+          playerFirstName,
+          playerLastName,
+          playerDateOfBirth,
+          playerAge,
+          guardianFirstName,
+          guardianLastName,
+          guardianEmail,
+          guardianPhone,
+          guardianRelationship,
+          emergencyContactName: emergencyName,
+          emergencyContactPhone: emergencyPhone,
+          emergencyContactRelationship: emergencyRelationship,
+          medicalNotes,
+        };
 
-        console.log(`Registration added for event ${eventId}:`, {
+        const registrationData = await addRegistration(eventId, eventType, regPayload);
+
+        console.log(`Registration complete for event ${eventId}:`, {
           eventSummary,
           currentRegistrations: registrationData.currentRegistrations,
           maxCapacity: registrationData.maxCapacity,

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { HiX, HiCalendar, HiClock, HiLocationMarker, HiCurrencyDollar } from 'react-icons/hi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
@@ -15,7 +16,59 @@ import {
 } from '@/services/calendarService';
 import { isRegistrationEnabledForEventType } from '@/config/featureFlags';
 
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
+
 const EventModal = ({ isOpen, onClose, event }) => {
+  const modalRef = useRef(null);
+  const previousFocusRef = useRef(null);
+
+  // Focus trap: capture previous focus, move focus into modal, trap Tab key
+  useEffect(() => {
+    if (!isOpen) return;
+
+    previousFocusRef.current = document.activeElement;
+
+    // Small delay to let framer-motion render the modal
+    const raf = requestAnimationFrame(() => {
+      const firstFocusable = modalRef.current?.querySelector(FOCUSABLE_SELECTOR);
+      firstFocusable?.focus();
+    });
+
+    const handleKeyDown = e => {
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+
+      const focusableEls = modalRef.current?.querySelectorAll(FOCUSABLE_SELECTOR);
+      if (!focusableEls || focusableEls.length === 0) return;
+
+      const firstEl = focusableEls[0];
+      const lastEl = focusableEls[focusableEls.length - 1];
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstEl) {
+          e.preventDefault();
+          lastEl.focus();
+        }
+      } else {
+        if (document.activeElement === lastEl) {
+          e.preventDefault();
+          firstEl.focus();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      cancelAnimationFrame(raf);
+      document.removeEventListener('keydown', handleKeyDown);
+      previousFocusRef.current?.focus();
+    };
+  }, [isOpen, onClose]);
+
   if (!event) return null;
 
   // Determine actual event type from event data (not the passed eventType which might be 'all')
@@ -59,6 +112,10 @@ const EventModal = ({ isOpen, onClose, event }) => {
           <div className="fixed inset-0 z-50 overflow-y-auto">
             <div className="flex min-h-full items-center justify-center p-4">
               <motion.div
+                ref={modalRef}
+                role="dialog"
+                aria-modal="true"
+                aria-label={event.summary || 'Event details'}
                 className="relative bg-primary-dark border border-neutral-dark rounded-lg shadow-2xl w-full max-w-2xl"
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}

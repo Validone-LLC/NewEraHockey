@@ -1,11 +1,12 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import './EventCalendar.css';
 import EventModal from '../EventModal/EventModal';
-import { COLOR_TO_EVENT_TYPE, EVENT_TYPES, CALENDAR_DISPLAY_COLORS } from '@/config/constants';
+import { EVENT_TYPES, CALENDAR_DISPLAY_COLORS } from '@/config/constants';
+import { categorizeEvent } from '@utils/eventCategorization';
 
 // Setup date-fns localizer for react-big-calendar
 const locales = {
@@ -46,15 +47,11 @@ const EventCalendar = ({ events, eventType, currentMonth, onMonthChange }) => {
     });
   }, [events]);
 
-  // Event style getter - color code by categorized type
-  const eventStyleGetter = event => {
-    // Determine event category from the original event data using constants
+  // Event style getter - color code by categorized type (memoized to avoid recalculation on re-renders)
+  const eventStyleGetter = useCallback(event => {
     const eventData = event.resource;
-    const category = eventData?.colorId
-      ? COLOR_TO_EVENT_TYPE[eventData.colorId] || EVENT_TYPES.OTHER
-      : EVENT_TYPES.OTHER;
+    const category = categorizeEvent(eventData);
 
-    // Get display color from constants, default to lesson color
     const backgroundColor =
       CALENDAR_DISPLAY_COLORS[category] || CALENDAR_DISPLAY_COLORS[EVENT_TYPES.LESSON];
 
@@ -69,7 +66,7 @@ const EventCalendar = ({ events, eventType, currentMonth, onMonthChange }) => {
     };
 
     return { style };
-  };
+  }, []);
 
   // Handle event click
   const handleSelectEvent = event => {
