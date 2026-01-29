@@ -189,7 +189,7 @@ exports.handler = async (event, context) => {
 /**
  * Categorize calendar event based on extended properties, color, or keywords
  * @param {Object} event - Google Calendar event object
- * @returns {string} - 'camp', 'lesson', 'at_home_training', 'mt_vernon_skating', or 'other'
+ * @returns {string} - 'camp', 'lesson', 'at_home_training', 'mt_vernon_skating', 'rockville_small_group', or 'other'
  */
 function categorizeEvent(event) {
   if (!event) return 'other';
@@ -198,28 +198,35 @@ function categorizeEvent(event) {
   const eventType = event.extendedProperties?.shared?.eventType;
   if (eventType) {
     const normalized = eventType.toLowerCase();
-    if (normalized === 'camp' || normalized === 'lesson' || normalized === 'at_home_training' || normalized === 'mt_vernon_skating') {
+    if (normalized === 'camp' || normalized === 'lesson' || normalized === 'at_home_training' || normalized === 'mt_vernon_skating' || normalized === 'rockville_small_group') {
       return normalized;
     }
   }
 
-  // Method 2: Title-based detection (check before color for Mt Vernon events)
-  // This is needed because registered Mt Vernon events use yellow (same as AT_HOME_BOOKED)
-  // Matches: "Mount Vernon...", "Mt Vernon...", "Mt. Vernon..." (any Mt Vernon event)
+  // Method 2: Title-based detection (check before color for specific event types)
   const title = (event.summary || '').toLowerCase();
+
+  // Rockville Small Group - check before color since title is definitive
+  if (title.includes('rockville small group')) {
+    return 'rockville_small_group';
+  }
+
+  // Mt Vernon events - Matches: "Mount Vernon...", "Mt Vernon...", "Mt. Vernon..."
   if (title.includes('mount vernon') || title.includes('mt vernon') || title.includes('mt. vernon')) {
     return 'mt_vernon_skating';
   }
 
   // Method 3: Color-based categorization (easiest for Coach Will)
   // Red (#11) = Camps, Blue (#9) = Lessons, Orange (#6) = At Home Training (available),
-  // Yellow (#5) = At Home Training (booked), Green (#10) = Mt Vernon Skating (available)
+  // Yellow (#5) = At Home Training (booked), Green (#10) = Mt Vernon Skating (available),
+  // Peacock (#7) = Rockville Small Group
   const colorMap = {
     '11': 'camp', // Red
     '9': 'lesson', // Blue
     '6': 'at_home_training', // Orange (Tangerine) - available slots
     '5': 'at_home_training', // Yellow (Banana) - booked slots
     '10': 'mt_vernon_skating', // Green (Basil) - available for registration
+    '7': 'rockville_small_group', // Peacock (Teal/Cyan)
   };
 
   if (event.colorId && colorMap[event.colorId]) {

@@ -7,23 +7,24 @@ import EventList from '@components/schedule/EventList/EventList';
 import EventCalendar from '@components/schedule/EventCalendar/EventCalendar';
 import {
   fetchCamps,
-  fetchLessons,
+  fetchRockvilleSmallGroup,
   fetchMtVernonSkating,
   fetchEvents,
   fetchAtHomeTrainingByMonth,
   filterVisibleEvents,
   filterAvailableAtHomeTraining,
   filterAvailableMtVernonSkating,
+  filterAvailableRockvilleSmallGroup,
   filterTestEvents,
   refreshEvents,
 } from '@services/calendarService';
 import { sortEventsByDate } from '@utils/eventCategorization';
 
 const TrainingSchedule = () => {
-  // List view state (Camps/Lessons/Mt Vernon Skating tabs)
-  const [listType, setListType] = useState('camps'); // 'camps', 'lessons', or 'skating'
+  // List view state (Camps/Rockville Small Group/Mt Vernon Skating tabs)
+  const [listType, setListType] = useState('camps'); // 'camps', 'rockville', or 'skating'
   const [campsEvents, setCampsEvents] = useState([]);
-  const [lessonsEvents, setLessonsEvents] = useState([]);
+  const [rockvilleEvents, setRockvilleEvents] = useState([]);
   const [skatingEvents, setSkatingEvents] = useState([]);
   const [listLoading, setListLoading] = useState(true);
   const [listError, setListError] = useState(null);
@@ -40,31 +41,33 @@ const TrainingSchedule = () => {
   const [monthCache, setMonthCache] = useState({}); // Cache for at-home training by month (accessed via setter)
   const monthCacheRef = useRef({}); // Ref for synchronous cache access (prevents loading flicker)
 
-  // Load camps, lessons, and skating events for list view (fetch all events)
+  // Load camps, rockville, and skating events for list view (fetch all events)
   const loadListEvents = useCallback(async () => {
     try {
       setListLoading(true);
       setListError(null);
 
-      // Fetch camps, lessons, and skating in parallel
-      const [campsData, lessonsData, skatingData] = await Promise.all([
+      // Fetch camps, rockville small group, and skating in parallel
+      const [campsData, rockvilleData, skatingData] = await Promise.all([
         fetchCamps(),
-        fetchLessons(),
+        fetchRockvilleSmallGroup(),
         fetchMtVernonSkating(),
       ]);
 
       // Detect if any data came from stale cache (API was down)
-      const stale = [campsData, lessonsData, skatingData].some(d => d._stale);
+      const stale = [campsData, rockvilleData, skatingData].some(d => d._stale);
       setIsStaleData(stale);
 
-      // Filter visible events (camps show all, lessons hide sold-out, skating hide registered)
+      // Filter visible events (camps show all, rockville hide sold-out, skating hide registered)
       // Also filter out [TEST] events unless VITE_SHOW_TEST_EVENTS=true
       const visibleCamps = filterTestEvents(filterVisibleEvents(campsData.events, 'camps'));
-      const visibleLessons = filterTestEvents(filterVisibleEvents(lessonsData.events, 'lessons'));
+      const visibleRockville = filterTestEvents(
+        filterAvailableRockvilleSmallGroup(rockvilleData.events)
+      );
       const visibleSkating = filterTestEvents(filterAvailableMtVernonSkating(skatingData.events));
 
       setCampsEvents(sortEventsByDate(visibleCamps));
-      setLessonsEvents(sortEventsByDate(visibleLessons));
+      setRockvilleEvents(sortEventsByDate(visibleRockville));
       setSkatingEvents(sortEventsByDate(visibleSkating));
       setLastUpdated(stale && campsData._cachedAt ? new Date(campsData._cachedAt) : new Date());
     } catch (err) {
@@ -106,10 +109,10 @@ const TrainingSchedule = () => {
       // Filter available at-home training slots (hide booked) and test events
       const visibleAtHome = filterTestEvents(filterAvailableAtHomeTraining(atHomeData.events));
 
-      // Combine all events for calendar (use already loaded camps/lessons/skating + at-home for month)
+      // Combine all events for calendar (use already loaded camps/rockville/skating + at-home for month)
       const allCalendarEvents = [
         ...campsEvents,
-        ...lessonsEvents,
+        ...rockvilleEvents,
         ...skatingEvents,
         ...visibleAtHome,
       ];
@@ -122,7 +125,7 @@ const TrainingSchedule = () => {
     } finally {
       setCalendarLoading(false);
     }
-  }, [currentMonth, campsEvents, lessonsEvents, skatingEvents]);
+  }, [currentMonth, campsEvents, rockvilleEvents, skatingEvents]);
 
   // Initial load: Fetch list events on mount
   useEffect(() => {
@@ -145,18 +148,20 @@ const TrainingSchedule = () => {
     const pollId = setInterval(async () => {
       try {
         // Fetch all event types in parallel, bypassing cache for fresh data
-        const [campsData, lessonsData, skatingData] = await Promise.all([
+        const [campsData, rockvilleData, skatingData] = await Promise.all([
           fetchEvents('camp', true, false),
-          fetchEvents('lesson', true, false),
+          fetchEvents('rockville_small_group', true, false),
           fetchEvents('mt_vernon_skating', true, false),
         ]);
 
         const visibleCamps = filterTestEvents(filterVisibleEvents(campsData.events, 'camps'));
-        const visibleLessons = filterTestEvents(filterVisibleEvents(lessonsData.events, 'lessons'));
+        const visibleRockville = filterTestEvents(
+          filterAvailableRockvilleSmallGroup(rockvilleData.events)
+        );
         const visibleSkating = filterTestEvents(filterAvailableMtVernonSkating(skatingData.events));
 
         setCampsEvents(sortEventsByDate(visibleCamps));
-        setLessonsEvents(sortEventsByDate(visibleLessons));
+        setRockvilleEvents(sortEventsByDate(visibleRockville));
         setSkatingEvents(sortEventsByDate(visibleSkating));
         setLastUpdated(new Date());
       } catch (error) {
@@ -174,19 +179,21 @@ const TrainingSchedule = () => {
       setListError(null);
       setCalendarError(null);
 
-      // Refresh list events (camps, lessons, and skating)
-      const [campsData, lessonsData, skatingData] = await Promise.all([
+      // Refresh list events (camps, rockville, and skating)
+      const [campsData, rockvilleData, skatingData] = await Promise.all([
         refreshEvents('camp'),
-        refreshEvents('lesson'),
+        refreshEvents('rockville_small_group'),
         refreshEvents('mt_vernon_skating'),
       ]);
 
       const visibleCamps = filterTestEvents(filterVisibleEvents(campsData.events, 'camps'));
-      const visibleLessons = filterTestEvents(filterVisibleEvents(lessonsData.events, 'lessons'));
+      const visibleRockville = filterTestEvents(
+        filterAvailableRockvilleSmallGroup(rockvilleData.events)
+      );
       const visibleSkating = filterTestEvents(filterAvailableMtVernonSkating(skatingData.events));
 
       setCampsEvents(sortEventsByDate(visibleCamps));
-      setLessonsEvents(sortEventsByDate(visibleLessons));
+      setRockvilleEvents(sortEventsByDate(visibleRockville));
       setSkatingEvents(sortEventsByDate(visibleSkating));
       setIsStaleData(false);
 
@@ -211,7 +218,7 @@ const TrainingSchedule = () => {
       const visibleAtHome = filterTestEvents(filterAvailableAtHomeTraining(atHomeData.events));
       const allCalendarEvents = [
         ...visibleCamps,
-        ...visibleLessons,
+        ...visibleRockville,
         ...visibleSkating,
         ...visibleAtHome,
       ];
@@ -331,9 +338,9 @@ const TrainingSchedule = () => {
             onClick={() => setListType('camps')}
           />
           <ToggleButton
-            label="Lessons"
-            active={listType === 'lessons'}
-            onClick={() => setListType('lessons')}
+            label="Rockville Small Group"
+            active={listType === 'rockville'}
+            onClick={() => setListType('rockville')}
           />
           <ToggleButton
             label="Mt Vernon Lessons"
@@ -378,8 +385,8 @@ const TrainingSchedule = () => {
               events={
                 listType === 'camps'
                   ? campsEvents
-                  : listType === 'lessons'
-                    ? lessonsEvents
+                  : listType === 'rockville'
+                    ? rockvilleEvents
                     : skatingEvents
               }
               eventType={listType}
@@ -387,7 +394,7 @@ const TrainingSchedule = () => {
 
             {/* No Events Message */}
             {((listType === 'camps' && campsEvents.length === 0) ||
-              (listType === 'lessons' && lessonsEvents.length === 0) ||
+              (listType === 'rockville' && rockvilleEvents.length === 0) ||
               (listType === 'skating' && skatingEvents.length === 0)) && (
               <motion.div
                 className="text-center py-12"
@@ -395,7 +402,12 @@ const TrainingSchedule = () => {
                 animate={{ opacity: 1 }}
               >
                 <p className="text-xl text-neutral-light mb-2">
-                  No upcoming {listType === 'skating' ? 'Mt Vernon Skating sessions' : listType}{' '}
+                  No upcoming{' '}
+                  {listType === 'skating'
+                    ? 'Mt Vernon Skating sessions'
+                    : listType === 'rockville'
+                      ? 'Rockville Small Group sessions'
+                      : listType}{' '}
                   scheduled
                 </p>
                 <p className="text-neutral-light text-sm">
@@ -464,8 +476,8 @@ const TrainingSchedule = () => {
             <span className="text-neutral-light">Camps</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded bg-blue-500" />
-            <span className="text-neutral-light">Lessons</span>
+            <div className="w-4 h-4 rounded bg-cyan-500" />
+            <span className="text-neutral-light">Rockville Small Group</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded bg-green-500" />

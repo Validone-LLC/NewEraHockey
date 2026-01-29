@@ -99,9 +99,14 @@ exports.handler = async (event, context) => {
           break;
         }
 
-        // Parse players data for At Home Training
+        // Parse players data for multi-player event types (At Home Training, Rockville Small Group)
         const isAtHomeTraining = eventType === 'at_home_training';
-        const players = isAtHomeTraining && playersData ? JSON.parse(playersData) : null;
+        const isRockvilleSmallGroup = eventType === 'rockville_small_group';
+        const isMultiPlayerEvent = isAtHomeTraining || isRockvilleSmallGroup;
+        const players = isMultiPlayerEvent && playersData ? JSON.parse(playersData) : null;
+
+        // Calculate actual player count for multi-player events
+        const actualPlayerCount = isMultiPlayerEvent && players ? players.length : 1;
 
         // Add registration to blob storage
         const regPayload = {
@@ -110,6 +115,7 @@ exports.handler = async (event, context) => {
           playerLastName,
           playerDateOfBirth,
           playerAge,
+          players, // Include players array for multi-player events
           guardianFirstName,
           guardianLastName,
           guardianEmail,
@@ -121,7 +127,7 @@ exports.handler = async (event, context) => {
           medicalNotes,
         };
 
-        const registrationData = await addRegistration(eventId, eventType, regPayload);
+        const registrationData = await addRegistration(eventId, eventType, regPayload, actualPlayerCount);
 
         console.log(`Registration complete for event ${eventId}:`, {
           eventSummary,
@@ -178,6 +184,49 @@ exports.handler = async (event, context) => {
             }
           } catch (calendarError) {
             console.error('Failed to update calendar (non-blocking):', calendarError.message);
+          }
+        }
+
+        // For Rockville Small Group: Update calendar with registration details
+        if (isRockvilleSmallGroup) {
+          try {
+            const calendarUpdateUrl =
+              process.env.DEPLOY_URL || process.env.URL || 'http://localhost:8888';
+            const calendarFunctionUrl = `${calendarUpdateUrl}/.netlify/functions/calendar-update-event`;
+
+            // Construct formData for Rockville Small Group
+            const formDataForCalendar = {
+              players,
+              guardianFirstName,
+              guardianLastName,
+              guardianEmail,
+              guardianPhone,
+              guardianRelationship,
+              emergencyName,
+              emergencyPhone,
+              emergencyRelationship,
+              medicalNotes,
+            };
+
+            const calendarResponse = await fetch(calendarFunctionUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                eventId,
+                formData: formDataForCalendar,
+                eventType,
+              }),
+            });
+
+            if (!calendarResponse.ok) {
+              const errorText = await calendarResponse.text();
+              console.error('Calendar update failed for Rockville Small Group:', calendarResponse.status, errorText);
+            } else {
+              const calendarResult = await calendarResponse.json();
+              console.log('Rockville Small Group calendar updated successfully:', calendarResult);
+            }
+          } catch (calendarError) {
+            console.error('Failed to update Rockville Small Group calendar (non-blocking):', calendarError.message);
           }
         }
 

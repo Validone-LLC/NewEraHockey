@@ -17,6 +17,8 @@ export const isFeatureEnabled = feature => {
       import.meta.env.VITE_ENABLE_AT_HOME_TRAINING_REGISTRATION === 'true',
     mtVernonSkatingRegistration:
       import.meta.env.VITE_ENABLE_MT_VERNON_SKATING_REGISTRATION === 'true',
+    rockvilleSmallGroupRegistration:
+      import.meta.env.VITE_ENABLE_ROCKVILLE_SMALL_GROUP_REGISTRATION === 'true',
     showTestEvents: import.meta.env.VITE_SHOW_TEST_EVENTS === 'true',
   };
 
@@ -32,7 +34,7 @@ export const shouldShowTestEvents = () => isFeatureEnabled('showTestEvents');
 
 /**
  * Get feature flag for specific event type
- * @param {string} eventType - 'camp' | 'camps' | 'lesson' | 'lessons' | 'at_home_training' | 'at-home' | 'mt_vernon_skating' | 'skating'
+ * @param {string} eventType - 'camp' | 'camps' | 'lesson' | 'lessons' | 'at_home_training' | 'at-home' | 'mt_vernon_skating' | 'skating' | 'rockville_small_group' | 'rockville'
  * @returns {boolean}
  */
 export const isRegistrationEnabledForEventType = eventType => {
@@ -54,6 +56,10 @@ export const isRegistrationEnabledForEventType = eventType => {
 
   if (normalized === 'mt_vernon_skating' || normalized === 'skating') {
     return isFeatureEnabled('mtVernonSkatingRegistration');
+  }
+
+  if (normalized === 'rockville_small_group' || normalized === 'rockville') {
+    return isFeatureEnabled('rockvilleSmallGroupRegistration');
   }
 
   return false;

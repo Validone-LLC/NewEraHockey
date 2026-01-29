@@ -18,6 +18,7 @@ const DEFAULT_CAPACITY = {
   camp: 20,
   lesson: 10,
   mt_vernon_skating: 1, // Each skating slot is typically for one person
+  rockville_small_group: 5, // Small group lessons - typically 5 spots
   other: 15,
 };
 
@@ -112,9 +113,10 @@ async function initializeEventRegistrations(eventId, eventType, customCapacity =
  * @param {string} eventId - Google Calendar event ID
  * @param {string} eventType - 'camp' or 'lesson'
  * @param {Object} registrationData - Registration details from Stripe metadata
+ * @param {number} playerCount - Number of players in this registration (for multi-player events)
  * @returns {Promise<Object>} Updated registration data
  */
-async function addRegistration(eventId, eventType, registrationData) {
+async function addRegistration(eventId, eventType, registrationData, playerCount = 1) {
   const store = getRegistrationStore();
 
   // Get current registration data
@@ -131,13 +133,15 @@ async function addRegistration(eventId, eventType, registrationData) {
     throw new Error('Event is sold out');
   }
 
-  // Add new registration
+  // Add new registration with player count
   const registration = {
     id: registrationData.stripeSessionId || registrationData.id,
     timestamp: new Date().toISOString(),
+    playerCount: playerCount, // Track number of players in this registration
     playerFirstName: registrationData.playerFirstName,
     playerLastName: registrationData.playerLastName,
     playerDateOfBirth: registrationData.playerDateOfBirth,
+    players: registrationData.players || null, // Store players array for multi-player events
     guardianEmail: registrationData.guardianEmail,
     guardianPhone: registrationData.guardianPhone,
     emergencyContactName: registrationData.emergencyContactName,
@@ -146,7 +150,8 @@ async function addRegistration(eventId, eventType, registrationData) {
   };
 
   data.registrations.push(registration);
-  data.currentRegistrations = data.registrations.length;
+  // Sum up all player counts from registrations (supports multi-player events)
+  data.currentRegistrations = data.registrations.reduce((sum, reg) => sum + (reg.playerCount || 1), 0);
   data.updatedAt = new Date().toISOString();
 
   // Save updated data
