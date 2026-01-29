@@ -72,7 +72,7 @@ const EventModal = ({ isOpen, onClose, event }) => {
   if (!event) return null;
 
   // Determine actual event type from event data (not the passed eventType which might be 'all')
-  const actualEventType = categorizeEvent(event); // Returns: 'camp', 'lesson', 'at_home_training', 'mt_vernon_skating', or 'other'
+  const actualEventType = categorizeEvent(event); // Returns: 'camp', 'lesson', 'at_home_training', 'mt_vernon_skating', 'rockville_small_group', or 'other'
   const displayEventType =
     actualEventType === 'at_home_training'
       ? 'at-home'
@@ -80,7 +80,9 @@ const EventModal = ({ isOpen, onClose, event }) => {
         ? 'camps'
         : actualEventType === 'mt_vernon_skating'
           ? 'skating'
-          : 'lessons';
+          : actualEventType === 'rockville_small_group'
+            ? 'rockville'
+            : 'lessons';
 
   const { date, time } = formatEventDateTime(event);
   const multiDateData = getMultiDateDisplay(event);
@@ -131,7 +133,9 @@ const EventModal = ({ isOpen, onClose, event }) => {
                         ? 'bg-gradient-to-r from-orange-500/20 to-orange-700/20'
                         : displayEventType === 'skating'
                           ? 'bg-gradient-to-r from-green-500/20 to-green-700/20'
-                          : 'bg-gradient-to-r from-blue-500/20 to-blue-700/20'
+                          : displayEventType === 'rockville'
+                            ? 'bg-gradient-to-r from-cyan-500/20 to-cyan-700/20'
+                            : 'bg-gradient-to-r from-blue-500/20 to-blue-700/20'
                   }`}
                 >
                   <div>
@@ -144,7 +148,9 @@ const EventModal = ({ isOpen, onClose, event }) => {
                               ? 'bg-orange-500'
                               : displayEventType === 'skating'
                                 ? 'bg-green-500'
-                                : 'bg-blue-500'
+                                : displayEventType === 'rockville'
+                                  ? 'bg-cyan-500'
+                                  : 'bg-blue-500'
                         }`}
                       >
                         {displayEventType === 'camps'
@@ -153,7 +159,9 @@ const EventModal = ({ isOpen, onClose, event }) => {
                             ? 'At Home Training'
                             : displayEventType === 'skating'
                               ? 'Mt Vernon Skating'
-                              : 'Lesson'}
+                              : displayEventType === 'rockville'
+                                ? 'Rockville Small Group'
+                                : 'Lesson'}
                       </span>
                     </div>
                     <h2 className="text-2xl font-display font-bold text-white">

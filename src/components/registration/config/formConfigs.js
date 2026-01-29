@@ -120,6 +120,32 @@ export const FORM_CONFIGS = {
     },
   },
 
+  [EVENT_TYPES.ROCKVILLE_SMALL_GROUP]: {
+    label: 'Rockville Small Group',
+    features: {
+      multiPlayer: true, // Allow multiple siblings to be registered
+      showAddress: false, // No parent address needed
+      emergencyRequired: true,
+    },
+    pricing: {
+      model: 'event_price', // Pull from Google Calendar Price: parser
+    },
+    levelOptions: PLAYER_LEVEL_OPTIONS,
+    // Page display settings
+    display: {
+      pageTitle: 'Rockville Small Group Registration',
+      pageSubtitle: 'Complete the form below to register for this small group session',
+      sidebarTitle: 'Event Details',
+      gradientClasses: 'from-cyan-400 to-cyan-600',
+      bgClasses: 'bg-cyan-500/20',
+      textClasses: 'text-cyan-400',
+      hoverClasses: 'hover:text-cyan-300',
+      borderClasses: 'border-cyan-500',
+      gradientBgClasses: 'from-cyan-500/10',
+      statusBgClasses: 'bg-cyan-500/10 border border-cyan-500/30',
+    },
+  },
+
   // Default fallback config
   [EVENT_TYPES.OTHER]: {
     label: 'Event',

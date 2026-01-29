@@ -90,10 +90,12 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // For At Home Training: validate player count and calculate total
+    // For multi-player event types: validate player count and calculate total
     const isAtHomeTraining = calendarEvent.eventType === 'at_home_training';
-    const playerCount = isAtHomeTraining && formData.players ? formData.players.length : 1;
-    const totalPrice = isAtHomeTraining ? calendarEvent.price * playerCount : calendarEvent.price;
+    const isRockvilleSmallGroup = calendarEvent.eventType === 'rockville_small_group';
+    const isMultiPlayerEvent = isAtHomeTraining || isRockvilleSmallGroup;
+    const playerCount = isMultiPlayerEvent && formData.players ? formData.players.length : 1;
+    const totalPrice = isMultiPlayerEvent ? calendarEvent.price * playerCount : calendarEvent.price;
 
     // Validate Stripe configuration
     if (!process.env.STRIPE_SECRET_KEY) {
@@ -122,9 +124,9 @@ exports.handler = async (event, context) => {
     // Logo URL - using the deployed site's logo
     const logoUrl = `${baseUrl}/assets/images/logo/neh-logo.png`;
 
-    // Build product name with player count for At Home Training
-    const productName = isAtHomeTraining
-      ? `${calendarEvent.summary || 'At Home Training'} (${playerCount} player${playerCount > 1 ? 's' : ''})`
+    // Build product name with player count for multi-player events
+    const productName = isMultiPlayerEvent
+      ? `${calendarEvent.summary || 'Event Registration'} (${playerCount} player${playerCount > 1 ? 's' : ''})`
       : calendarEvent.summary || 'Event Registration';
 
     // Create Stripe Checkout session (idempotency key prevents duplicate sessions from rapid submits)
@@ -178,8 +180,8 @@ exports.handler = async (event, context) => {
 
         // Player information (backwards compatible)
         // For single player (camps/lessons): use formData fields directly
-        // For multi-player (at home): serialize players array to JSON
-        ...(isAtHomeTraining
+        // For multi-player (at home, rockville small group): serialize players array to JSON
+        ...(isMultiPlayerEvent
           ? {
               playersData: JSON.stringify(formData.players),
             }

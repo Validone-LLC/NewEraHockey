@@ -231,6 +231,14 @@ export const fetchMtVernonSkating = async () => {
 };
 
 /**
+ * Fetch only Rockville Small Group events
+ * @returns {Promise<Object>}
+ */
+export const fetchRockvilleSmallGroup = async () => {
+  return fetchEvents('rockville_small_group');
+};
+
+/**
  * Fetch all events without filtering
  * @returns {Promise<Object>}
  */
@@ -412,6 +420,24 @@ export const filterAvailableMtVernonSkating = events => {
   return events.filter(event => {
     // Hide registered events (yellow color)
     if (event.colorId === GOOGLE_CALENDAR_COLORS.MT_VERNON_SKATING_REGISTERED) return false;
+    // Hide sold out events
+    if (isSoldOut(event)) return false;
+    // Hide events without a price (incomplete setup)
+    if (getPrice(event) === null) return false;
+    return true;
+  });
+};
+
+/**
+ * Filter out sold-out or incomplete Rockville Small Group events
+ * Hides events marked as sold out via registrationData
+ * Hides events missing required fields (price) to prevent incomplete listings
+ *
+ * @param {Array} events - Array of calendar events (pre-filtered to rockville_small_group type)
+ * @returns {Array} - Only available Rockville Small Group events with complete info
+ */
+export const filterAvailableRockvilleSmallGroup = events => {
+  return events.filter(event => {
     // Hide sold out events
     if (isSoldOut(event)) return false;
     // Hide events without a price (incomplete setup)
