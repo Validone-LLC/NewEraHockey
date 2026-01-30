@@ -4,7 +4,6 @@ import InstagramEmbed from './InstagramEmbed';
 
 /**
  * VideoCard - Displays an Instagram video embed
- * Uses Instagram's native embed script (no API needed)
  */
 const VideoCard = memo(function VideoCard({ video, index = 0 }) {
   return (
