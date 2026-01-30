@@ -556,7 +556,7 @@ async function sendRegistrationEmails(data) {
     },
   };
 
-  // Guardian confirmation email
+  // Guardian confirmation email - NEH branded dark theme with dark mode override
   const userEmailParams = {
     Source: fromEmail,
     Destination: {
@@ -569,79 +569,297 @@ async function sendRegistrationEmails(data) {
       Body: {
         Html: {
           Data: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #14b8a6;">Registration Confirmed!</h2>
+            <!DOCTYPE html>
+            <html lang="en" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <meta http-equiv="X-UA-Compatible" content="IE=edge">
+              <meta name="color-scheme" content="light only">
+              <meta name="supported-color-schemes" content="light only">
+              <!--[if mso]>
+              <xml>
+                <o:OfficeDocumentSettings>
+                  <o:AllowPNG/>
+                  <o:PixelsPerInch>96</o:PixelsPerInch>
+                </o:OfficeDocumentSettings>
+              </xml>
+              <![endif]-->
+              <style>
+                /* Force light mode / prevent dark mode transformations */
+                :root { color-scheme: light only; supported-color-schemes: light only; }
 
-              <p style="font-size: 16px; line-height: 1.6;">
-                Hi ${safe.guardianFirstName},
-              </p>
-
-              <p style="font-size: 16px; line-height: 1.6;">
-                Thank you for registering ${
-                  hasMultiplePlayers
-                    ? `${playerCount} player${playerCount > 1 ? 's' : ''}`
-                    : `${safe.playerFirstName} ${safe.playerLastName}`
-                } for <strong>${safe.eventSummary}</strong>!
-                We're excited to have them join us ${isAtHomeTraining ? 'for at-home training' : 'on the ice'}.
-              </p>
-
-              <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h3 style="color: #333; margin-top: 0;">Registration Summary</h3>
-                ${
-                  hasMultiplePlayers
-                    ? `<p><strong>Players:</strong></p>
-                       <ul style="margin: 10px 0; padding-left: 20px;">
-                         ${safePlayers.map(p => `<li>${p.firstName} ${p.lastName} (Age ${calculateAge(p.dateOfBirth) || 'N/A'})</li>`).join('')}
-                       </ul>`
-                    : `<p><strong>Player:</strong> ${safe.playerFirstName} ${safe.playerLastName}</p>
-                       <p><strong>Age:</strong> ${displayAge}</p>`
-                }
-                <p><strong>Event:</strong> ${safe.eventSummary}</p>
-                ${eventStartDateTime ? `<p><strong>Date &amp; Time:</strong> ${formattedEventStart}${eventEndDateTime && eventEndDateTime !== eventStartDateTime ? ` &ndash; ${formattedEventEnd}` : ''}</p>` : ''}
-                ${isAtHomeTraining && safe.addressStreet ? `<p><strong>Location:</strong> ${safe.addressStreet}, ${safe.addressCity}, ${safe.addressState}</p>` : ''}
-                <p><strong>Amount Paid:</strong> $${amountPaid.toFixed(2)}</p>
-              </div>
-
-              <div style="background-color: #e0f2f1; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h3 style="color: #00695c; margin-top: 0;">What's Next?</h3>
-                <ul style="color: #00695c; line-height: 1.8;">
-                  ${
-                    isAtHomeTraining
-                      ? `
-                    <li>Coach Will will arrive at your address on ${slotDate ? formattedSlotDate : 'the scheduled date'} at ${safe.slotTime || 'the scheduled time'}</li>
-                    <li>Have all players ready with their hockey equipment</li>
-                    <li>Ensure training area is clear and ready for the session</li>
-                  `
-                      : `
-                    <li>Please arrive 15 minutes early before ice-time</li>
-                    <li>Bring all necessary hockey equipment</li>
-                  `
+                /* Reset dark mode for all major email clients */
+                @media (prefers-color-scheme: dark) {
+                  .email-body, .email-container, .content-section, .summary-section, .next-steps-section, .cta-section, .contact-section, .footer-section {
+                    background-color: #131b24 !important;
                   }
-                </ul>
+                  .heading-text { color: #1ab8df !important; }
+                  .body-text, .list-text { color: #ffffff !important; }
+                  .link-text { color: #1ab8df !important; }
+                  .label-text { color: #1ab8df !important; }
+                }
+
+                /* Outlook.com dark mode overrides */
+                [data-ogsc] .email-body, [data-ogsc] .email-container, [data-ogsc] .content-section { background-color: #131b24 !important; }
+                [data-ogsc] .heading-text { color: #1ab8df !important; }
+                [data-ogsc] .body-text, [data-ogsc] .list-text { color: #ffffff !important; }
+                [data-ogsc] .link-text { color: #1ab8df !important; }
+
+                /* Gmail dark mode overrides */
+                u + .body .email-body { background-color: #131b24 !important; }
+                u + .body .heading-text { color: #1ab8df !important; }
+                u + .body .body-text { color: #ffffff !important; }
+
+                /* Yahoo dark mode */
+                [style*="color-scheme: dark"] .email-body { background-color: #131b24 !important; }
+
+                /* Base styles */
+                body, .email-body {
+                  margin: 0 !important;
+                  padding: 0 !important;
+                  background-color: #131b24 !important;
+                  -webkit-text-size-adjust: 100%;
+                  -ms-text-size-adjust: 100%;
+                }
+
+                .email-container {
+                  max-width: 600px !important;
+                  margin: 0 auto !important;
+                  background-color: #131b24 !important;
+                }
+
+                /* Typography */
+                .heading-text {
+                  font-family: 'Montserrat', Helvetica, Arial, sans-serif !important;
+                  color: #1ab8df !important;
+                  margin: 0 !important;
+                }
+
+                .body-text, .list-text {
+                  font-family: Verdana, Geneva, sans-serif !important;
+                  color: #ffffff !important;
+                  font-size: 16px !important;
+                  line-height: 1.6 !important;
+                }
+
+                .label-text {
+                  font-family: Verdana, Geneva, sans-serif !important;
+                  color: #1ab8df !important;
+                  font-weight: bold !important;
+                }
+
+                .link-text {
+                  color: #1ab8df !important;
+                  text-decoration: underline !important;
+                }
+
+                /* Sections */
+                .content-section {
+                  background-color: #1c2631 !important;
+                  border-radius: 8px !important;
+                  padding: 24px !important;
+                  margin: 20px 0 !important;
+                }
+
+                .cta-button {
+                  display: inline-block !important;
+                  background-color: #1ab8df !important;
+                  color: #131b24 !important;
+                  text-decoration: none !important;
+                  padding: 14px 28px !important;
+                  border-radius: 6px !important;
+                  font-family: 'Montserrat', Helvetica, Arial, sans-serif !important;
+                  font-weight: bold !important;
+                  font-size: 14px !important;
+                }
+
+                .cta-button:hover {
+                  background-color: #15a3c7 !important;
+                }
+
+                .divider {
+                  border: none !important;
+                  border-top: 1px solid #2a3744 !important;
+                  margin: 30px 0 !important;
+                }
+              </style>
+            </head>
+            <body class="body email-body" style="margin: 0; padding: 0; background-color: #131b24;">
+              <!--[if mso]>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #131b24;">
+              <tr><td>
+              <![endif]-->
+              <div class="email-container" style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #131b24;">
+
+                <!-- Header -->
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #131b24;">
+                  <tr>
+                    <td align="center" style="padding: 20px 0 30px 0;">
+                      <h1 class="heading-text" style="font-family: 'Montserrat', Helvetica, Arial, sans-serif; color: #1ab8df; font-size: 28px; margin: 0;">Registration Confirmed!</h1>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Greeting -->
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #131b24;">
+                  <tr>
+                    <td style="padding: 0 0 20px 0;">
+                      <p class="body-text" style="font-family: Verdana, Geneva, sans-serif; color: #ffffff; font-size: 16px; line-height: 1.6; margin: 0 0 16px 0;">
+                        Hi ${safe.guardianFirstName},
+                      </p>
+                      <p class="body-text" style="font-family: Verdana, Geneva, sans-serif; color: #ffffff; font-size: 16px; line-height: 1.6; margin: 0;">
+                        Thank you for registering ${
+                          hasMultiplePlayers
+                            ? `${playerCount} player${playerCount > 1 ? 's' : ''}`
+                            : `<strong>${safe.playerFirstName} ${safe.playerLastName}</strong>`
+                        } for <strong>${safe.eventSummary}</strong>!
+                        We're excited to have them join us ${isAtHomeTraining ? 'for at-home training' : 'on the ice'}.
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Registration Summary -->
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="content-section" style="background-color: #1c2631; border-radius: 8px; margin: 20px 0;">
+                  <tr>
+                    <td style="padding: 24px;">
+                      <h2 class="heading-text" style="font-family: 'Montserrat', Helvetica, Arial, sans-serif; color: #1ab8df; font-size: 20px; margin: 0 0 16px 0;">Registration Summary</h2>
+                      ${
+                        hasMultiplePlayers
+                          ? `<p class="body-text" style="font-family: Verdana, Geneva, sans-serif; color: #ffffff; font-size: 14px; margin: 0 0 8px 0;"><span class="label-text" style="color: #1ab8df; font-weight: bold;">Players:</span></p>
+                             <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 0 0 16px 16px;">
+                               ${safePlayers.map(p => `<tr><td class="body-text" style="font-family: Verdana, Geneva, sans-serif; color: #ffffff; font-size: 14px; padding: 4px 0;">• ${p.firstName} ${p.lastName} (Age ${calculateAge(p.dateOfBirth) || 'N/A'})</td></tr>`).join('')}
+                             </table>`
+                          : `<p class="body-text" style="font-family: Verdana, Geneva, sans-serif; color: #ffffff; font-size: 14px; margin: 0 0 8px 0;"><span class="label-text" style="color: #1ab8df; font-weight: bold;">Player:</span> ${safe.playerFirstName} ${safe.playerLastName}</p>
+                             <p class="body-text" style="font-family: Verdana, Geneva, sans-serif; color: #ffffff; font-size: 14px; margin: 0 0 8px 0;"><span class="label-text" style="color: #1ab8df; font-weight: bold;">Age:</span> ${displayAge}</p>`
+                      }
+                      <p class="body-text" style="font-family: Verdana, Geneva, sans-serif; color: #ffffff; font-size: 14px; margin: 0 0 8px 0;"><span class="label-text" style="color: #1ab8df; font-weight: bold;">Event:</span> ${safe.eventSummary}</p>
+                      ${eventStartDateTime ? `<p class="body-text" style="font-family: Verdana, Geneva, sans-serif; color: #ffffff; font-size: 14px; margin: 0 0 8px 0;"><span class="label-text" style="color: #1ab8df; font-weight: bold;">Date &amp; Time:</span> ${formattedEventStart}${eventEndDateTime && eventEndDateTime !== eventStartDateTime ? ` – ${formattedEventEnd}` : ''}</p>` : ''}
+                      ${isAtHomeTraining && safe.addressStreet ? `<p class="body-text" style="font-family: Verdana, Geneva, sans-serif; color: #ffffff; font-size: 14px; margin: 0 0 8px 0;"><span class="label-text" style="color: #1ab8df; font-weight: bold;">Location:</span> ${safe.addressStreet}, ${safe.addressCity}, ${safe.addressState}</p>` : ''}
+                      <p class="body-text" style="font-family: Verdana, Geneva, sans-serif; color: #ffffff; font-size: 14px; margin: 0;"><span class="label-text" style="color: #1ab8df; font-weight: bold;">Amount Paid:</span> $${amountPaid.toFixed(2)}</p>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- What's Next -->
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="content-section" style="background-color: #1c2631; border-radius: 8px; margin: 20px 0; border-left: 4px solid #1ab8df;">
+                  <tr>
+                    <td style="padding: 24px;">
+                      <h2 class="heading-text" style="font-family: 'Montserrat', Helvetica, Arial, sans-serif; color: #1ab8df; font-size: 20px; margin: 0 0 16px 0;">What's Next?</h2>
+                      <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                        ${
+                          isAtHomeTraining
+                            ? `
+                          <tr><td class="body-text" style="font-family: Verdana, Geneva, sans-serif; color: #ffffff; font-size: 16px; padding: 6px 0;">• Coach Will will arrive at your address on ${slotDate ? formattedSlotDate : 'the scheduled date'} at ${safe.slotTime || 'the scheduled time'}</td></tr>
+                          <tr><td class="body-text" style="font-family: Verdana, Geneva, sans-serif; color: #ffffff; font-size: 16px; padding: 6px 0;">• Have all players ready with their hockey equipment</td></tr>
+                          <tr><td class="body-text" style="font-family: Verdana, Geneva, sans-serif; color: #ffffff; font-size: 16px; padding: 6px 0;">• Ensure training area is clear and ready for the session</td></tr>
+                        `
+                            : `
+                          <tr><td class="body-text" style="font-family: Verdana, Geneva, sans-serif; color: #ffffff; font-size: 16px; padding: 6px 0;">• Please arrive 15 minutes early before ice-time</td></tr>
+                          <tr><td class="body-text" style="font-family: Verdana, Geneva, sans-serif; color: #ffffff; font-size: 16px; padding: 6px 0;">• Bring all necessary hockey equipment</td></tr>
+                        `
+                        }
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+
+                ${googleCalendarUrl ? `
+                <!-- Google Calendar CTA -->
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #131b24;">
+                  <tr>
+                    <td align="center" style="padding: 24px 0;">
+                      <!--[if mso]>
+                      <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${googleCalendarUrl}" style="height:48px;v-text-anchor:middle;width:240px;" arcsize="13%" fillcolor="#1ab8df" stroke="f">
+                        <w:anchorlock/>
+                        <center style="color:#131b24;font-family:Helvetica,Arial,sans-serif;font-size:14px;font-weight:bold;">&#128197; Add to Google Calendar</center>
+                      </v:roundrect>
+                      <![endif]-->
+                      <!--[if !mso]><!-->
+                      <a href="${googleCalendarUrl}" target="_blank" rel="noopener noreferrer" class="cta-button" style="display: inline-block; background-color: #1ab8df; color: #131b24; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-family: 'Montserrat', Helvetica, Arial, sans-serif; font-weight: bold; font-size: 14px;">&#128197;&nbsp;&nbsp;Add to Google Calendar</a>
+                      <!--<![endif]-->
+                    </td>
+                  </tr>
+                </table>
+                ` : ''}
+
+                <!-- Contact Section -->
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="content-section" style="background-color: #1c2631; border-radius: 8px; margin: 20px 0;">
+                  <tr>
+                    <td style="padding: 20px 24px;">
+                      <p class="body-text" style="font-family: Verdana, Geneva, sans-serif; color: #ffffff; font-size: 16px; margin: 0;">
+                        <strong>Questions?</strong> Contact Coach Will at
+                        <a href="mailto:coachwill@newerahockeytraining.com" class="link-text" style="color: #1ab8df; text-decoration: underline;">coachwill@newerahockeytraining.com</a>
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Signature -->
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #131b24;">
+                  <tr>
+                    <td style="padding: 20px 0;">
+                      <p class="body-text" style="font-family: Verdana, Geneva, sans-serif; color: #ffffff; font-size: 16px; margin: 0;">
+                        Best regards,<br>
+                        <strong style="color: #1ab8df;">Coach Will &amp; The New Era Hockey Team</strong>
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Divider -->
+                <hr class="divider" style="border: none; border-top: 1px solid #2a3744; margin: 30px 0;">
+
+                <!-- Footer Links -->
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #131b24;">
+                  <tr>
+                    <td align="center" style="padding: 0 0 20px 0;">
+                      <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                        <tr>
+                          <td style="padding: 0 12px;">
+                            <a href="https://newerahockeytraining.com/terms-and-conditions" target="_blank" rel="noopener noreferrer" style="font-family: Verdana, Geneva, sans-serif; font-size: 12px; color: #1ab8df; text-decoration: none;">Terms &amp; Conditions</a>
+                          </td>
+                          <td style="color: #2a3744;">|</td>
+                          <td style="padding: 0 12px;">
+                            <a href="https://newerahockeytraining.com/privacy-policy" target="_blank" rel="noopener noreferrer" style="font-family: Verdana, Geneva, sans-serif; font-size: 12px; color: #1ab8df; text-decoration: none;">Privacy Policy</a>
+                          </td>
+                          <td style="color: #2a3744;">|</td>
+                          <td style="padding: 0 12px;">
+                            <a href="https://newerahockeytraining.com/waiver" target="_blank" rel="noopener noreferrer" style="font-family: Verdana, Geneva, sans-serif; font-size: 12px; color: #1ab8df; text-decoration: none;">Waiver</a>
+                          </td>
+                          <td style="color: #2a3744;">|</td>
+                          <td style="padding: 0 12px;">
+                            <a href="https://newerahockeytraining.com/contact" target="_blank" rel="noopener noreferrer" style="font-family: Verdana, Geneva, sans-serif; font-size: 12px; color: #1ab8df; text-decoration: none;">Contact</a>
+                          </td>
+                          <td style="color: #2a3744;">|</td>
+                          <td style="padding: 0 12px;">
+                            <a href="https://newerahockeytraining.com/faq" target="_blank" rel="noopener noreferrer" style="font-family: Verdana, Geneva, sans-serif; font-size: 12px; color: #1ab8df; text-decoration: none;">FAQ</a>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Footer Text -->
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #131b24;">
+                  <tr>
+                    <td align="center" style="padding: 0 0 20px 0;">
+                      <p style="font-family: Verdana, Geneva, sans-serif; color: #8899a6; font-size: 12px; margin: 0; line-height: 1.5;">
+                        This is an automated confirmation email. Your payment receipt will be sent separately by Stripe.
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+
               </div>
-
-              ${googleCalendarUrl ? `
-              <div style="text-align: center; margin: 20px 0;">
-                <a href="${googleCalendarUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background-color: #14b8a6; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; font-size: 14px;">&#128197; Add to Google Calendar</a>
-              </div>
-              ` : ''}
-
-              <div style="background-color: #fff; padding: 15px; border-left: 4px solid #14b8a6; margin: 20px 0;">
-                <p style="margin: 0;"><strong>Questions?</strong> Contact Coach Will at <a href="mailto:coachwill@newerahockeytraining.com">coachwill@newerahockeytraining.com</a></p>
-              </div>
-
-              <br>
-              <p style="font-size: 16px;">
-                Best regards,<br>
-                <strong>Coach Will &amp; The New Era Hockey Team</strong>
-              </p>
-
-              <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
-
-              <p style="font-size: 12px; color: #666;">
-                This is an automated confirmation email. Your payment receipt will be sent separately by Stripe.
-              </p>
-            </div>
+              <!--[if mso]>
+              </td></tr>
+              </table>
+              <![endif]-->
+            </body>
+            </html>
           `,
         },
       },

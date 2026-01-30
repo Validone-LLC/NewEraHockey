@@ -8,6 +8,7 @@
 import { motion } from 'framer-motion';
 import { User, Plus, X } from 'lucide-react';
 import Select from '@components/common/Select';
+import DatePicker from '@components/common/DatePicker';
 
 const PlayerSection = ({ formik, config }) => {
   const { multiPlayer, levelOptions = [] } = {
@@ -125,14 +126,15 @@ const PlayerSection = ({ formik, config }) => {
             >
               Date of Birth *
             </label>
-            <input
-              type="date"
+            <DatePicker
               id="playerDateOfBirth"
               name="playerDateOfBirth"
-              {...formik.getFieldProps('playerDateOfBirth')}
-              className={`w-full px-4 py-2 bg-neutral-bg border ${
-                getFieldError('playerDateOfBirth') ? 'border-red-500' : 'border-neutral-dark'
-              } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors`}
+              value={formik.values.playerDateOfBirth}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={getFieldError('playerDateOfBirth')}
+              placeholder="Select date of birth"
+              maxDate={new Date()}
             />
             {getFieldError('playerDateOfBirth') && (
               <p className="text-red-400 text-sm mt-1">{getFieldError('playerDateOfBirth')}</p>
@@ -271,17 +273,15 @@ const PlayerSection = ({ formik, config }) => {
               >
                 Date of Birth *
               </label>
-              <input
-                type="date"
+              <DatePicker
                 id={`player_${index}_dateOfBirth`}
+                name={`players.${index}.dateOfBirth`}
                 value={player.dateOfBirth}
                 onChange={e => handlePlayerChange(index, 'dateOfBirth', e.target.value)}
                 onBlur={() => handlePlayerBlur(index, 'dateOfBirth')}
-                className={`w-full px-4 py-2 bg-neutral-bg border ${
-                  getPlayerFieldError(index, 'dateOfBirth')
-                    ? 'border-red-500'
-                    : 'border-neutral-dark'
-                } rounded-lg text-white focus:outline-none focus:border-teal-500 transition-colors`}
+                error={getPlayerFieldError(index, 'dateOfBirth')}
+                placeholder="Select date of birth"
+                maxDate={new Date()}
               />
               {getPlayerFieldError(index, 'dateOfBirth') && (
                 <p className="text-red-400 text-sm mt-1">
