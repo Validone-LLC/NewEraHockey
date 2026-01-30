@@ -6,7 +6,7 @@
 
 /**
  * Check if a feature is enabled
- * @param {string} feature - Feature name ('campRegistration' | 'lessonRegistration' | 'atHomeTrainingRegistration' | 'mtVernonSkatingRegistration' | 'showTestEvents')
+ * @param {string} feature - Feature name ('campRegistration' | 'lessonRegistration' | 'atHomeTrainingRegistration' | 'mtVernonSkatingRegistration' | 'showTestEvents' | 'instagramVideos')
  * @returns {boolean}
  */
 export const isFeatureEnabled = feature => {
@@ -20,6 +20,7 @@ export const isFeatureEnabled = feature => {
     rockvilleSmallGroupRegistration:
       import.meta.env.VITE_ENABLE_ROCKVILLE_SMALL_GROUP_REGISTRATION === 'true',
     showTestEvents: import.meta.env.VITE_SHOW_TEST_EVENTS === 'true',
+    instagramVideos: import.meta.env.VITE_ENABLE_INSTAGRAM_VIDEOS === 'true',
   };
 
   return flags[feature] ?? false;
