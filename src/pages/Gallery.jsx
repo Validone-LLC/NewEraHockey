@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import SEO from '@components/common/SEO/SEO';
 import { galleryImages, galleryCategories } from '@data/galleryImages';
+import { galleryVideos } from '@data/videos';
+import { VideoGallery } from '@components/gallery';
 
 const BASE_URL = 'https://newerahockeytraining.com';
 
@@ -144,18 +146,29 @@ const Gallery = () => {
           ))}
         </div>
 
-        {/* Videos Coming Soon */}
-        <motion.div
-          className="text-center mt-20"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
-          <h2 className="text-3xl font-display font-bold text-white mb-4">
-            Videos <span className="gradient-text">(Coming Soon!)</span>
-          </h2>
-          <p className="text-neutral-light">Check back soon for training videos and highlights</p>
-        </motion.div>
+        {/* Videos Section */}
+        {galleryVideos.length > 0 ? (
+          <VideoGallery
+            videos={galleryVideos}
+            title={
+              <>
+                Videos <span className="gradient-text">from Instagram</span>
+              </>
+            }
+          />
+        ) : (
+          <motion.div
+            className="text-center mt-20"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-3xl font-display font-bold text-white mb-4">
+              Videos <span className="gradient-text">(Coming Soon!)</span>
+            </h2>
+            <p className="text-neutral-light">Check back soon for training videos and highlights</p>
+          </motion.div>
+        )}
       </section>
     </div>
   );
