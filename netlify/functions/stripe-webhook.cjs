@@ -10,14 +10,16 @@
  */
 
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const AWS = require('aws-sdk');
+const { SESClient, SendEmailCommand } = require('@aws-sdk/client-ses');
 const { addRegistration } = require('./lib/registrationStore.cjs');
 const { escapeHtml, formatDate, formatEventDateTime, buildGoogleCalendarUrl, calculateAge } = require('./lib/htmlUtils.cjs');
 
-// Initialize AWS SES for email notifications
-const ses = new AWS.SES({
-  accessKeyId: process.env.NEH_AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.NEH_AWS_SECRET_ACCESS_KEY,
+// Initialize AWS SES v3 client for email notifications
+const sesClient = new SESClient({
+  credentials: {
+    accessKeyId: process.env.NEH_AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.NEH_AWS_SECRET_ACCESS_KEY,
+  },
   region: process.env.NEH_AWS_REGION || 'us-east-1',
 });
 
@@ -117,6 +119,7 @@ exports.handler = async (event, context) => {
           playerLastName,
           playerDateOfBirth,
           playerAge,
+          playerLevelOfPlay,
           players, // Include players array for multi-player events
           guardianFirstName,
           guardianLastName,
@@ -872,8 +875,8 @@ async function sendRegistrationEmails(data) {
   // Send both emails in parallel
   console.log('Sending registration confirmation emails...');
   const [adminResult, userResult] = await Promise.all([
-    ses.sendEmail(adminEmailParams).promise(),
-    ses.sendEmail(userEmailParams).promise(),
+    sesClient.send(new SendEmailCommand(adminEmailParams)),
+    sesClient.send(new SendEmailCommand(userEmailParams)),
   ]);
 
   console.log(`Admin notification sent. MessageId: ${adminResult.MessageId}`);
