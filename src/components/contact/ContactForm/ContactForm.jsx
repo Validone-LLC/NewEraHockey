@@ -45,9 +45,21 @@ const ContactForm = ({ initialMessage = '' }) => {
       try {
         // Check if widget already rendered in DOM (prevents double-render in Strict Mode)
         if (turnstileRef.current.children.length === 0) {
+          const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
+          if (!siteKey) {
+            console.error('Turnstile: VITE_TURNSTILE_SITE_KEY is not configured');
+            return;
+          }
           const id = window.turnstile.render(turnstileRef.current, {
-            sitekey: import.meta.env.VITE_TURNSTILE_SITE_KEY,
+            sitekey: siteKey,
             callback: token => setTurnstileToken(token),
+            'error-callback': errorCode => {
+              console.error('Turnstile challenge error:', errorCode);
+              // 300030 = timeout/hung, verify domain is registered in Cloudflare
+            },
+            'expired-callback': () => {
+              setTurnstileToken('');
+            },
             theme: 'dark',
           });
           currentWidgetId = id;
