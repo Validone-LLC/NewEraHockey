@@ -111,6 +111,8 @@ exports.handler = async (event, context) => {
         // Add registration to blob storage
         const regPayload = {
           stripeSessionId: session.id,
+          stripePaymentId: session.payment_intent, // For refunds
+          amount: session.amount_total / 100, // Convert from cents
           playerFirstName,
           playerLastName,
           playerDateOfBirth,
@@ -125,6 +127,7 @@ exports.handler = async (event, context) => {
           emergencyContactPhone: emergencyPhone,
           emergencyContactRelationship: emergencyRelationship,
           medicalNotes,
+          status: 'confirmed',
         };
 
         const registrationData = await addRegistration(eventId, eventType, regPayload, actualPlayerCount);
