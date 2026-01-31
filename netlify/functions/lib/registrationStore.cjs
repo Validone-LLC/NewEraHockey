@@ -191,11 +191,17 @@ async function addRegistration(eventId, eventType, registrationData, playerCount
     playerFirstName: registrationData.playerFirstName,
     playerLastName: registrationData.playerLastName,
     playerDateOfBirth: registrationData.playerDateOfBirth,
+    playerAge: registrationData.playerAge || null,
+    playerLevelOfPlay: registrationData.playerLevelOfPlay || null,
     players: registrationData.players || null, // Store players array for multi-player events
+    guardianFirstName: registrationData.guardianFirstName || null,
+    guardianLastName: registrationData.guardianLastName || null,
     guardianEmail: registrationData.guardianEmail,
     guardianPhone: registrationData.guardianPhone,
+    guardianRelationship: registrationData.guardianRelationship || null,
     emergencyContactName: registrationData.emergencyContactName,
     emergencyContactPhone: registrationData.emergencyContactPhone,
+    emergencyContactRelationship: registrationData.emergencyContactRelationship || null,
     medicalNotes: registrationData.medicalNotes,
     // Additional fields for admin panel
     amount: registrationData.amount || null,

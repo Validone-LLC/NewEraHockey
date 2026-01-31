@@ -1,10 +1,12 @@
-const AWS = require('aws-sdk');
+const { SESClient, SendEmailCommand } = require('@aws-sdk/client-ses');
 const { escapeHtml } = require('./lib/htmlUtils.cjs');
 
-// Initialize AWS SES
-const ses = new AWS.SES({
-  accessKeyId: process.env.NEH_AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.NEH_AWS_SECRET_ACCESS_KEY,
+// Initialize AWS SES v3 client
+const sesClient = new SESClient({
+  credentials: {
+    accessKeyId: process.env.NEH_AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.NEH_AWS_SECRET_ACCESS_KEY,
+  },
   region: process.env.NEH_AWS_REGION || 'us-east-1',
 });
 
@@ -245,8 +247,8 @@ exports.handler = async event => {
     // Send both emails
     console.log('Sending emails via AWS SES...');
     const [adminResult, userResult] = await Promise.all([
-      ses.sendEmail(adminEmailParams).promise(),
-      ses.sendEmail(userEmailParams).promise(),
+      sesClient.send(new SendEmailCommand(adminEmailParams)),
+      sesClient.send(new SendEmailCommand(userEmailParams)),
     ]);
 
     console.log(`Admin email sent successfully. MessageId: ${adminResult.MessageId}`);

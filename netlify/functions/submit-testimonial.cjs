@@ -11,12 +11,14 @@
  * - SES_FROM_EMAIL: Email address to send from (default: noreply@newerahockeytraining.com)
  */
 
-const AWS = require('aws-sdk');
+const { SESClient, SendEmailCommand } = require('@aws-sdk/client-ses');
 
-// Initialize AWS SES for email notifications
-const ses = new AWS.SES({
-  accessKeyId: process.env.NEH_AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.NEH_AWS_SECRET_ACCESS_KEY,
+// Initialize AWS SES v3 client for email notifications
+const sesClient = new SESClient({
+  credentials: {
+    accessKeyId: process.env.NEH_AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.NEH_AWS_SECRET_ACCESS_KEY,
+  },
   region: process.env.NEH_AWS_REGION || 'us-east-1',
 });
 
@@ -158,6 +160,6 @@ async function sendTestimonialEmail(data) {
   };
 
   console.log('Sending testimonial notification email...');
-  const result = await ses.sendEmail(emailParams).promise();
+  const result = await sesClient.send(new SendEmailCommand(emailParams));
   console.log(`Testimonial notification sent to ${adminEmail}. MessageId: ${result.MessageId}`);
 }

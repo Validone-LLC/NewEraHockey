@@ -1,11 +1,13 @@
-const AWS = require('aws-sdk');
+const { SESClient, SendEmailCommand } = require('@aws-sdk/client-ses');
 const fs = require('fs').promises;
 const path = require('path');
 
-// Initialize AWS SES
-const ses = new AWS.SES({
-  accessKeyId: process.env.NEH_AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.NEH_AWS_SECRET_ACCESS_KEY,
+// Initialize AWS SES v3 client
+const sesClient = new SESClient({
+  credentials: {
+    accessKeyId: process.env.NEH_AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.NEH_AWS_SECRET_ACCESS_KEY,
+  },
   region: process.env.NEH_AWS_REGION || 'us-east-1',
 });
 
@@ -142,7 +144,7 @@ exports.handler = async (event) => {
     };
 
     // Send the reply email
-    await ses.sendEmail(replyEmailParams).promise();
+    await sesClient.send(new SendEmailCommand(replyEmailParams));
 
     // Update the email JSON file with reply information
     emailData.status = 'RESPONDED';
