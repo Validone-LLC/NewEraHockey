@@ -1,107 +1,99 @@
 /**
- * Registration Tracking Store
+ * S3 Registration Store
  *
- * Uses Netlify Blob Storage to track event registrations without
- * modifying Google Calendar events.
+ * AWS S3-based registration storage that mirrors the Netlify Blob Storage API.
+ * Used for migration from Netlify Blobs to S3 for cross-platform access.
  *
- * MIGRATION STATUS:
- * - Phase 1 (Current): Dual-write to Netlify Blobs + S3, read from Netlify
- * - Phase 2: Switch reads to S3 (set REGISTRATION_READ_SOURCE=s3)
- * - Phase 3: Disable Netlify writes (set DISABLE_NETLIFY_BLOBS=true)
- *
- * Environment Variables:
- * - ENABLE_S3_SYNC: Set to 'true' to enable S3 dual-write (Phase 1)
- * - REGISTRATION_READ_SOURCE: 'netlify' (default) or 's3' (Phase 2)
- * - DISABLE_NETLIFY_BLOBS: Set to 'true' to stop writing to Netlify (Phase 3)
+ * Environment Variables Required:
+ * - NEH_AWS_ACCESS_KEY_ID: AWS access key (reuses existing SES credentials)
+ * - NEH_AWS_SECRET_ACCESS_KEY: AWS secret key
+ * - NEH_AWS_REGION: AWS region (default: us-east-1)
+ * - S3_REGISTRATIONS_BUCKET: S3 bucket name for registrations
  */
 
-const { getStore } = require('@netlify/blobs');
-const s3Store = require('./s3RegistrationStore.cjs');
+const {
+  S3Client,
+  GetObjectCommand,
+  PutObjectCommand,
+  ListObjectsV2Command,
+} = require('@aws-sdk/client-s3');
 
-// Default capacities by event type
+// Default capacities by event type (same as Netlify store)
 const DEFAULT_CAPACITY = {
   camp: 20,
   lesson: 10,
-  mt_vernon_skating: 1, // Each skating slot is typically for one person
-  rockville_small_group: 5, // Small group lessons - typically 5 spots
+  mt_vernon_skating: 1,
+  rockville_small_group: 5,
   other: 15,
 };
 
-/**
- * Migration feature flags
- */
-const MIGRATION_FLAGS = {
-  // Phase 1: Enable S3 sync (dual-write)
-  isS3SyncEnabled: () =>
-    process.env.ENABLE_S3_SYNC === 'true' && s3Store.isS3Configured(),
-
-  // Phase 2: Read from S3 instead of Netlify
-  shouldReadFromS3: () =>
-    process.env.REGISTRATION_READ_SOURCE === 's3' && s3Store.isS3Configured(),
-
-  // Phase 3: Stop writing to Netlify Blobs
-  isNetlifyDisabled: () => process.env.DISABLE_NETLIFY_BLOBS === 'true',
-};
+let s3Client = null;
 
 /**
- * Get configured Netlify Blobs store
- * Handles both local development (requires explicit config) and production (auto-configured)
+ * Get configured S3 client (lazy initialization)
  */
-function getRegistrationStore() {
-  // For local development, explicitly pass credentials in options object
-  if (process.env.NETLIFY_SITE_ID && process.env.NETLIFY_AUTH_TOKEN) {
-    return getStore({
-      name: 'registrations',
-      siteID: process.env.NETLIFY_SITE_ID,
-      token: process.env.NETLIFY_AUTH_TOKEN,
+function getS3Client() {
+  if (!s3Client) {
+    s3Client = new S3Client({
+      region: process.env.NEH_AWS_REGION || 'us-east-1',
+      credentials: {
+        accessKeyId: process.env.NEH_AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.NEH_AWS_SECRET_ACCESS_KEY,
+      },
     });
   }
-
-  // Production: auto-configured by Netlify
-  return getStore('registrations');
+  return s3Client;
 }
 
 /**
- * Sync to S3 in background (non-blocking)
- * Logs errors but doesn't fail the main operation
+ * Get S3 bucket name from environment
  */
-async function syncToS3(operation, ...args) {
-  if (!MIGRATION_FLAGS.isS3SyncEnabled()) {
-    return;
+function getBucketName() {
+  const bucket = process.env.S3_REGISTRATIONS_BUCKET;
+  if (!bucket) {
+    throw new Error('S3_REGISTRATIONS_BUCKET environment variable is required');
   }
-
-  try {
-    await s3Store[operation](...args);
-    console.log(`[S3 Sync] Successfully synced ${operation}`);
-  } catch (error) {
-    // Log but don't fail - S3 is secondary during Phase 1
-    console.error(`[S3 Sync] Error during ${operation}:`, error.message);
-  }
+  return bucket;
 }
 
 /**
- * Get registration data for an event
+ * Helper to convert stream to string
+ */
+async function streamToString(stream) {
+  const chunks = [];
+  for await (const chunk of stream) {
+    chunks.push(chunk);
+  }
+  return Buffer.concat(chunks).toString('utf-8');
+}
+
+/**
+ * Get registration data for an event from S3
  * @param {string} eventId - Google Calendar event ID
  * @returns {Promise<Object>} Registration data
  */
 async function getEventRegistrations(eventId) {
-  // Phase 2: Read from S3
-  if (MIGRATION_FLAGS.shouldReadFromS3()) {
-    console.log(`[Migration] Reading from S3 for event ${eventId}`);
-    return s3Store.getEventRegistrations(eventId);
-  }
-
-  // Default: Read from Netlify Blobs
-  const store = getRegistrationStore();
+  const client = getS3Client();
+  const bucket = getBucketName();
 
   try {
-    const data = await store.get(eventId, { type: 'json' });
+    const response = await client.send(
+      new GetObjectCommand({
+        Bucket: bucket,
+        Key: `registrations/${eventId}.json`,
+      })
+    );
 
-    if (!data) {
+    const bodyString = await streamToString(response.Body);
+    const data = JSON.parse(bodyString);
+
+    return data;
+  } catch (error) {
+    if (error.name === 'NoSuchKey' || error.Code === 'NoSuchKey') {
       // No registrations yet, return empty state
       return {
         eventId,
-        maxCapacity: null, // Will be set on first registration
+        maxCapacity: null,
         currentRegistrations: 0,
         registrations: [],
         createdAt: null,
@@ -109,9 +101,7 @@ async function getEventRegistrations(eventId) {
       };
     }
 
-    return data;
-  } catch (error) {
-    console.error(`Error fetching registrations for ${eventId}:`, error);
+    console.error(`[S3] Error fetching registrations for ${eventId}:`, error);
     return {
       eventId,
       maxCapacity: null,
@@ -124,13 +114,16 @@ async function getEventRegistrations(eventId) {
 }
 
 /**
- * Initialize registration tracking for an event
+ * Initialize registration tracking for an event in S3
  * @param {string} eventId - Google Calendar event ID
  * @param {string} eventType - 'camp' or 'lesson'
  * @param {number|null} customCapacity - Optional custom capacity
  * @returns {Promise<Object>} Initialized registration data
  */
 async function initializeEventRegistrations(eventId, eventType, customCapacity = null) {
+  const client = getS3Client();
+  const bucket = getBucketName();
+
   const maxCapacity = customCapacity || DEFAULT_CAPACITY[eventType] || DEFAULT_CAPACITY.other;
 
   const data = {
@@ -143,33 +136,35 @@ async function initializeEventRegistrations(eventId, eventType, customCapacity =
     updatedAt: new Date().toISOString(),
   };
 
-  // Write to Netlify (unless disabled in Phase 3)
-  if (!MIGRATION_FLAGS.isNetlifyDisabled()) {
-    const store = getRegistrationStore();
-    await store.set(eventId, JSON.stringify(data), {
-      metadata: {
-        eventType,
+  await client.send(
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: `registrations/${eventId}.json`,
+      Body: JSON.stringify(data, null, 2),
+      ContentType: 'application/json',
+      Metadata: {
+        eventtype: eventType,
         capacity: maxCapacity.toString(),
       },
-    });
-  }
-
-  // Sync to S3 (Phase 1+)
-  await syncToS3('initializeEventRegistrations', eventId, eventType, customCapacity);
+    })
+  );
 
   return data;
 }
 
 /**
- * Add a registration to an event
+ * Add a registration to an event in S3
  * @param {string} eventId - Google Calendar event ID
  * @param {string} eventType - 'camp' or 'lesson'
  * @param {Object} registrationData - Registration details from Stripe metadata
- * @param {number} playerCount - Number of players in this registration (for multi-player events)
+ * @param {number} playerCount - Number of players in this registration
  * @returns {Promise<Object>} Updated registration data
  */
 async function addRegistration(eventId, eventType, registrationData, playerCount = 1) {
-  // Get current registration data (from appropriate source)
+  const client = getS3Client();
+  const bucket = getBucketName();
+
+  // Get current registration data
   let data = await getEventRegistrations(eventId);
 
   // Initialize if this is the first registration
@@ -178,7 +173,6 @@ async function addRegistration(eventId, eventType, registrationData, playerCount
   }
 
   // Check if already sold out (skip for camps - unlimited capacity)
-  // Note: Camps have unlimited spots as of Jan 2026
   if (eventType !== 'camp' && data.currentRegistrations >= data.maxCapacity) {
     throw new Error('Event is sold out');
   }
@@ -187,11 +181,11 @@ async function addRegistration(eventId, eventType, registrationData, playerCount
   const registration = {
     id: registrationData.stripeSessionId || registrationData.id,
     timestamp: new Date().toISOString(),
-    playerCount: playerCount, // Track number of players in this registration
+    playerCount: playerCount,
     playerFirstName: registrationData.playerFirstName,
     playerLastName: registrationData.playerLastName,
     playerDateOfBirth: registrationData.playerDateOfBirth,
-    players: registrationData.players || null, // Store players array for multi-player events
+    players: registrationData.players || null,
     guardianEmail: registrationData.guardianEmail,
     guardianPhone: registrationData.guardianPhone,
     emergencyContactName: registrationData.emergencyContactName,
@@ -204,37 +198,39 @@ async function addRegistration(eventId, eventType, registrationData, playerCount
   };
 
   data.registrations.push(registration);
-  // Sum up all player counts from registrations (supports multi-player events)
   data.currentRegistrations = data.registrations.reduce((sum, reg) => sum + (reg.playerCount || 1), 0);
   data.updatedAt = new Date().toISOString();
   data.eventType = eventType;
 
-  // Write to Netlify (unless disabled in Phase 3)
-  if (!MIGRATION_FLAGS.isNetlifyDisabled()) {
-    const store = getRegistrationStore();
-    await store.set(eventId, JSON.stringify(data), {
-      metadata: {
-        eventType,
+  // Save updated data
+  await client.send(
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: `registrations/${eventId}.json`,
+      Body: JSON.stringify(data, null, 2),
+      ContentType: 'application/json',
+      Metadata: {
+        eventtype: eventType,
         capacity: data.maxCapacity.toString(),
         registrations: data.currentRegistrations.toString(),
       },
-    });
-  }
-
-  // Sync to S3 (Phase 1+)
-  await syncToS3('addRegistration', eventId, eventType, registrationData, playerCount);
+    })
+  );
 
   return data;
 }
 
 /**
- * Update a registration
+ * Update a registration in S3
  * @param {string} eventId - Google Calendar event ID
  * @param {string} registrationId - Registration ID to update
  * @param {Object} updateData - Fields to update
  * @returns {Promise<Object>} Updated registration data
  */
 async function updateRegistration(eventId, registrationId, updateData) {
+  const client = getS3Client();
+  const bucket = getBucketName();
+
   let data = await getEventRegistrations(eventId);
 
   if (!data.createdAt) {
@@ -260,25 +256,28 @@ async function updateRegistration(eventId, registrationId, updateData) {
 
   data.updatedAt = new Date().toISOString();
 
-  // Write to Netlify (unless disabled in Phase 3)
-  if (!MIGRATION_FLAGS.isNetlifyDisabled()) {
-    const store = getRegistrationStore();
-    await store.set(eventId, JSON.stringify(data));
-  }
-
-  // Sync to S3
-  await syncToS3('updateRegistration', eventId, registrationId, updateData);
+  await client.send(
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: `registrations/${eventId}.json`,
+      Body: JSON.stringify(data, null, 2),
+      ContentType: 'application/json',
+    })
+  );
 
   return data;
 }
 
 /**
- * Delete a registration (frees up spot)
+ * Delete a registration from S3 (frees up spot)
  * @param {string} eventId - Google Calendar event ID
  * @param {string} registrationId - Registration ID to delete
  * @returns {Promise<Object>} Updated registration data
  */
 async function deleteRegistration(eventId, registrationId) {
+  const client = getS3Client();
+  const bucket = getBucketName();
+
   let data = await getEventRegistrations(eventId);
 
   if (!data.createdAt) {
@@ -297,63 +296,77 @@ async function deleteRegistration(eventId, registrationId) {
   data.currentRegistrations = data.registrations.reduce((sum, reg) => sum + (reg.playerCount || 1), 0);
   data.updatedAt = new Date().toISOString();
 
-  // Write to Netlify (unless disabled in Phase 3)
-  if (!MIGRATION_FLAGS.isNetlifyDisabled()) {
-    const store = getRegistrationStore();
-    await store.set(eventId, JSON.stringify(data), {
-      metadata: {
-        eventType: data.eventType || 'other',
+  await client.send(
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: `registrations/${eventId}.json`,
+      Body: JSON.stringify(data, null, 2),
+      ContentType: 'application/json',
+      Metadata: {
+        eventtype: data.eventType || 'other',
         capacity: data.maxCapacity.toString(),
         registrations: data.currentRegistrations.toString(),
       },
-    });
-  }
-
-  // Sync to S3
-  await syncToS3('deleteRegistration', eventId, registrationId);
+    })
+  );
 
   return data;
 }
 
 /**
- * Get all registrations for reporting
+ * Get all registrations for reporting from S3
  * @returns {Promise<Array>} All event registration data
  */
 async function getAllRegistrations() {
-  // Phase 2: Read from S3
-  if (MIGRATION_FLAGS.shouldReadFromS3()) {
-    console.log('[Migration] Reading all registrations from S3');
-    return s3Store.getAllRegistrations();
-  }
-
-  // Default: Read from Netlify Blobs
-  const store = getRegistrationStore();
+  const client = getS3Client();
+  const bucket = getBucketName();
 
   try {
-    const list = await store.list();
+    const listResponse = await client.send(
+      new ListObjectsV2Command({
+        Bucket: bucket,
+        Prefix: 'registrations/',
+      })
+    );
+
     const allData = [];
 
-    for (const item of list.blobs) {
-      const data = await store.get(item.key, { type: 'json' });
-      if (data) {
-        allData.push(data);
+    for (const item of listResponse.Contents || []) {
+      if (item.Key.endsWith('.json')) {
+        try {
+          const response = await client.send(
+            new GetObjectCommand({
+              Bucket: bucket,
+              Key: item.Key,
+            })
+          );
+
+          const bodyString = await streamToString(response.Body);
+          const data = JSON.parse(bodyString);
+          allData.push(data);
+        } catch (err) {
+          console.error(`[S3] Error reading ${item.Key}:`, err);
+        }
       }
     }
 
     return allData;
   } catch (error) {
-    console.error('Error fetching all registrations:', error);
+    console.error('[S3] Error fetching all registrations:', error);
     return [];
   }
 }
 
 /**
- * Update event capacity
+ * Update event capacity in S3
  * @param {string} eventId - Google Calendar event ID
  * @param {number} newCapacity - New maximum capacity
  * @returns {Promise<Object>} Updated registration data
  */
 async function updateEventCapacity(eventId, newCapacity) {
+  const client = getS3Client();
+  const bucket = getBucketName();
+
   let data = await getEventRegistrations(eventId);
 
   if (!data.createdAt) {
@@ -363,14 +376,14 @@ async function updateEventCapacity(eventId, newCapacity) {
   data.maxCapacity = newCapacity;
   data.updatedAt = new Date().toISOString();
 
-  // Write to Netlify (unless disabled in Phase 3)
-  if (!MIGRATION_FLAGS.isNetlifyDisabled()) {
-    const store = getRegistrationStore();
-    await store.set(eventId, JSON.stringify(data));
-  }
-
-  // Sync to S3
-  await syncToS3('updateEventCapacity', eventId, newCapacity);
+  await client.send(
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: `registrations/${eventId}.json`,
+      Body: JSON.stringify(data, null, 2),
+      ContentType: 'application/json',
+    })
+  );
 
   return data;
 }
@@ -384,23 +397,22 @@ async function isEventSoldOut(eventId) {
   const data = await getEventRegistrations(eventId);
 
   if (!data.maxCapacity) {
-    return false; // No capacity set = not sold out
+    return false;
   }
 
   return data.currentRegistrations >= data.maxCapacity;
 }
 
 /**
- * Get current migration status (for debugging)
- * @returns {Object} Migration flags status
+ * Check if S3 storage is properly configured
+ * @returns {boolean} True if S3 is configured
  */
-function getMigrationStatus() {
-  return {
-    s3SyncEnabled: MIGRATION_FLAGS.isS3SyncEnabled(),
-    readSource: MIGRATION_FLAGS.shouldReadFromS3() ? 's3' : 'netlify',
-    netlifyDisabled: MIGRATION_FLAGS.isNetlifyDisabled(),
-    s3Configured: s3Store.isS3Configured(),
-  };
+function isS3Configured() {
+  return !!(
+    process.env.NEH_AWS_ACCESS_KEY_ID &&
+    process.env.NEH_AWS_SECRET_ACCESS_KEY &&
+    process.env.S3_REGISTRATIONS_BUCKET
+  );
 }
 
 module.exports = {
@@ -412,6 +424,6 @@ module.exports = {
   getAllRegistrations,
   updateEventCapacity,
   isEventSoldOut,
-  getMigrationStatus,
+  isS3Configured,
   DEFAULT_CAPACITY,
 };
