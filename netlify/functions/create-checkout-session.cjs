@@ -1,6 +1,24 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 /**
+ * Calculate age from date of birth
+ * @param {string} dateOfBirth - DOB in YYYY-MM-DD format
+ * @returns {number|null} - Age in years or null if invalid
+ */
+function calculateAge(dateOfBirth) {
+  if (!dateOfBirth) return null;
+  const dob = new Date(dateOfBirth);
+  if (isNaN(dob.getTime())) return null;
+  const today = new Date();
+  let age = today.getFullYear() - dob.getFullYear();
+  const monthDiff = today.getMonth() - dob.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+    age--;
+  }
+  return age;
+}
+
+/**
  * Netlify Function: Create Stripe Checkout Session
  *
  * Creates a Stripe Checkout session for event registration payment
@@ -189,7 +207,7 @@ exports.handler = async (event, context) => {
               playerFirstName: formData.playerFirstName,
               playerLastName: formData.playerLastName,
               playerDateOfBirth: formData.playerDateOfBirth,
-              playerAge: formData.playerAge || '',
+              playerAge: calculateAge(formData.playerDateOfBirth)?.toString() || '',
               playerLevelOfPlay: formData.playerLevelOfPlay || '',
             }),
 
