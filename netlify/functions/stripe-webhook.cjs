@@ -54,6 +54,15 @@ exports.handler = async (event, context) => {
       case 'checkout.session.completed': {
         const session = stripeEvent.data.object;
 
+        // Skip test mode sessions - only process live payments
+        if (!session.livemode) {
+          console.log('Skipping test mode session:', session.id);
+          return {
+            statusCode: 200,
+            body: JSON.stringify({ received: true, skipped: 'test_mode' }),
+          };
+        }
+
         console.log('Processing checkout.session.completed:', session.id);
 
         // Extract registration data from session metadata
