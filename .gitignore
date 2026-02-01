@@ -69,6 +69,7 @@ todo.md
 
 # Claude generated documentation
 claudedocs/
+claudedocs-completed/
 
 # Vite
 vite.config.js.timestamp-*
