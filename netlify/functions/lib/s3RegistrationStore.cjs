@@ -17,6 +17,11 @@ const {
   PutObjectCommand,
   ListObjectsV2Command,
 } = require('@aws-sdk/client-s3');
+const {
+  setCachedRegistration,
+  invalidateRegistrationCache,
+  incrementStats,
+} = require('./cacheClient.cjs');
 
 // Default capacities by event type (same as Netlify store)
 const DEFAULT_CAPACITY = {
@@ -149,6 +154,9 @@ async function initializeEventRegistrations(eventId, eventType, customCapacity =
     })
   );
 
+  // Write-through to DynamoDB cache
+  await setCachedRegistration(eventId, data);
+
   return data;
 }
 
@@ -208,7 +216,7 @@ async function addRegistration(eventId, eventType, registrationData, playerCount
   data.updatedAt = new Date().toISOString();
   data.eventType = eventType;
 
-  // Save updated data
+  // Save updated data to S3
   await client.send(
     new PutObjectCommand({
       Bucket: bucket,
@@ -222,6 +230,10 @@ async function addRegistration(eventId, eventType, registrationData, playerCount
       },
     })
   );
+
+  // Write-through to DynamoDB cache (for admin dashboard)
+  await setCachedRegistration(eventId, data);
+  await incrementStats(registration);
 
   return data;
 }
@@ -271,6 +283,9 @@ async function updateRegistration(eventId, registrationId, updateData) {
     })
   );
 
+  // Write-through to DynamoDB cache
+  await setCachedRegistration(eventId, data);
+
   return data;
 }
 
@@ -315,6 +330,9 @@ async function deleteRegistration(eventId, registrationId) {
       },
     })
   );
+
+  // Write-through to DynamoDB cache
+  await setCachedRegistration(eventId, data);
 
   return data;
 }
