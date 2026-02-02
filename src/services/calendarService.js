@@ -450,7 +450,7 @@ export const filterAvailableRockvilleSmallGroup = events => {
  * Filter out dev-only events based on environment flag
  * Dev-only events are identified by:
  * - Graphite color (#8) in Google Calendar, OR
- * - [DEV-ONLY] marker in title
+ * - [DEV ONLY] or [DEV-ONLY] marker in title (with or without hyphen)
  * These are only visible when VITE_SHOW_TEST_EVENTS=true (local dev)
  * @param {Array} events - Array of calendar events
  * @returns {Array} - Events with dev-only events filtered based on environment
@@ -460,15 +460,15 @@ export const filterTestEvents = events => {
   if (shouldShowTestEvents()) {
     return events;
   }
-  // Otherwise, filter out dev-only events (Graphite color OR [DEV-ONLY] in title)
+  // Otherwise, filter out dev-only events (Graphite color OR [DEV ONLY]/[DEV-ONLY] in title)
   return events.filter(event => {
     // Check for Graphite color (dev-only marker)
     if (event.colorId === GOOGLE_CALENDAR_COLORS.DEV_ONLY) {
       return false;
     }
-    // Check for [DEV-ONLY] in title
+    // Check for [DEV ONLY] or [DEV-ONLY] in title (handles both space and hyphen variants)
     const title = (event.summary || '').toLowerCase();
-    if (title.includes('[dev-only]')) {
+    if (title.includes('[dev only]') || title.includes('[dev-only]')) {
       return false;
     }
     return true;
