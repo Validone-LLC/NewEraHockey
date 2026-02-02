@@ -45,6 +45,7 @@ const termsAndConditions = {
         'Lessons: Individual lessons must be canceled at least 48 hours before the scheduled lesson time to be eligible for a refund. Cancellations made less than 48 hours before a lesson are non-refundable.',
         'New Era Hockey reserves the right to cancel sessions due to weather, facility closures, or other circumstances beyond our control. Affected participants will be notified promptly and offered rescheduling options or full refunds.',
         'No-shows forfeit the session fee and training time without refund or rescheduling option.',
+        'Session Credits: Refunds or credits for sessions at one location cannot be applied toward sessions at a different location. For example, a Mount Vernon session cannot be used as credit toward a Rockville session, and vice versa.',
         "For any questions or concerns regarding cancellations, please contact Coach Will directly. We're happy to help!",
       ],
     },
