@@ -30,6 +30,7 @@ const singlePlayerSchema = {
     .max(new Date(), 'Date of birth must be in the past')
     .required('Date of birth is required'),
   playerLevelOfPlay: Yup.string().trim().required('Level of play is required'),
+  playerLeague: Yup.string().trim().required('League is required'),
 };
 
 /**
@@ -42,6 +43,7 @@ const playerItemSchema = Yup.object({
     .max(new Date(), 'Date of birth must be in the past')
     .required('Date of birth is required'),
   levelOfPlay: Yup.string().trim().required('Level of play is required'),
+  league: Yup.string().trim().required('League is required'),
 });
 
 const multiPlayerSchema = {
@@ -169,6 +171,7 @@ export const getInitialValues = config => {
         lastName: '',
         dateOfBirth: '',
         levelOfPlay: '',
+        league: '',
       },
     ];
   } else {
@@ -176,6 +179,7 @@ export const getInitialValues = config => {
     baseValues.playerLastName = '';
     baseValues.playerDateOfBirth = '';
     baseValues.playerLevelOfPlay = '';
+    baseValues.playerLeague = '';
   }
 
   // Address section

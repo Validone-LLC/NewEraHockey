@@ -209,6 +209,7 @@ exports.handler = async (event, context) => {
               playerDateOfBirth: formData.playerDateOfBirth,
               playerAge: calculateAge(formData.playerDateOfBirth)?.toString() || '',
               playerLevelOfPlay: formData.playerLevelOfPlay || '',
+              playerLeague: formData.playerLeague || '',
             }),
 
         // Guardian information

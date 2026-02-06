@@ -100,6 +100,15 @@ export const PLAYER_LEVEL_OPTIONS = [
 ];
 
 /**
+ * Player league options for registration forms
+ */
+export const PLAYER_LEAGUE_OPTIONS = [
+  { value: 'Travel', label: 'Travel' },
+  { value: 'House', label: 'House' },
+  { value: 'None', label: 'None' },
+];
+
+/**
  * Guardian relationship options
  */
 export const GUARDIAN_RELATIONSHIP_OPTIONS = [
