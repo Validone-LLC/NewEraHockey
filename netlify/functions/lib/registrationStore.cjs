@@ -5,9 +5,12 @@
  * modifying Google Calendar events.
  *
  * MIGRATION STATUS:
- * - Phase 1 (Current): Dual-write to Netlify Blobs + S3, read from Netlify
+ * - Phase 1: Dual-write to Netlify Blobs + S3, read from Netlify
  * - Phase 2: Switch reads to S3 (set REGISTRATION_READ_SOURCE=s3)
  * - Phase 3: Disable Netlify writes (set DISABLE_NETLIFY_BLOBS=true)
+ *
+ * Note: Setting DISABLE_NETLIFY_BLOBS=true automatically enables S3 reads
+ * and S3 sync to prevent data loss from inconsistent flag combinations.
  *
  * Environment Variables:
  * - ENABLE_S3_SYNC: Set to 'true' to enable S3 dual-write (Phase 1)
@@ -29,15 +32,23 @@ const DEFAULT_CAPACITY = {
 
 /**
  * Migration feature flags
+ *
+ * Auto-detection: When Netlify Blobs are disabled (Phase 3), S3 is automatically
+ * used for both reads and writes. This prevents data loss if ENABLE_S3_SYNC or
+ * REGISTRATION_READ_SOURCE aren't explicitly set alongside DISABLE_NETLIFY_BLOBS.
  */
 const MIGRATION_FLAGS = {
   // Phase 1: Enable S3 sync (dual-write)
+  // Auto-enabled when Netlify is disabled to prevent data loss
   isS3SyncEnabled: () =>
-    process.env.ENABLE_S3_SYNC === 'true' && s3Store.isS3Configured(),
+    (process.env.ENABLE_S3_SYNC === 'true' || process.env.DISABLE_NETLIFY_BLOBS === 'true') &&
+    s3Store.isS3Configured(),
 
   // Phase 2: Read from S3 instead of Netlify
+  // Auto-enabled when Netlify is disabled (no point reading from disabled store)
   shouldReadFromS3: () =>
-    process.env.REGISTRATION_READ_SOURCE === 's3' && s3Store.isS3Configured(),
+    (process.env.REGISTRATION_READ_SOURCE === 's3' || process.env.DISABLE_NETLIFY_BLOBS === 'true') &&
+    s3Store.isS3Configured(),
 
   // Phase 3: Stop writing to Netlify Blobs
   isNetlifyDisabled: () => process.env.DISABLE_NETLIFY_BLOBS === 'true',
