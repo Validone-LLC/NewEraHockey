@@ -69,7 +69,7 @@ const CoachCard = ({ coach, isPrimary = false, index = 0 }) => {
           <button
             onClick={toggleExpand}
             aria-expanded={isExpanded}
-            className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-primary-dark border border-neutral-dark rounded-lg hover:border-teal-500 transition-colors duration-200"
+            className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-primary-dark border border-neutral-dark rounded-lg hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors duration-200"
           >
             <span className="text-neutral-light font-medium">
               {isExpanded

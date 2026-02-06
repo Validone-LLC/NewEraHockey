@@ -21,7 +21,13 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
-const EventCalendar = ({ events, eventType, currentMonth, onMonthChange }) => {
+const EventCalendar = ({
+  events,
+  eventType,
+  currentMonth,
+  onMonthChange,
+  defaultView = 'month',
+}) => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -100,8 +106,8 @@ const EventCalendar = ({ events, eventType, currentMonth, onMonthChange }) => {
           eventPropGetter={eventStyleGetter}
           onSelectEvent={handleSelectEvent}
           onNavigate={handleNavigate}
-          views={['month', 'week', 'day']}
-          defaultView="month"
+          views={['month', 'week', 'day', 'agenda']}
+          defaultView={defaultView}
           popup
           tooltipAccessor={event => event.title}
         />

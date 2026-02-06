@@ -73,7 +73,7 @@ const Footer = () => {
                 href="tel:+15712744691"
                 className="flex items-center gap-2 text-neutral-text hover:text-white transition-colors text-sm"
               >
-                <Phone className="w-5 h-5 text-teal-500" />
+                <Phone className="w-5 h-5 text-teal-400" />
                 (571) 274-4691
               </a>
               <a
@@ -82,7 +82,7 @@ const Footer = () => {
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 text-neutral-text hover:text-white transition-colors text-sm"
               >
-                <FaInstagram className="w-5 h-5 text-teal-600" />
+                <FaInstagram className="w-5 h-5 text-teal-400" />
                 @NewEraHockeyDMV
               </a>
             </div>

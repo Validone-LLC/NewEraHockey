@@ -79,7 +79,7 @@ const Testimonials = () => {
             transition={{ duration: 0.8 }}
           >
             <h1 className="text-5xl sm:text-6xl font-display font-bold mb-4">
-              Parent and Player <span className="gradient-text">Testimonies</span>
+              Parent and Player <span className="gradient-text">Testimonials</span>
             </h1>
             <p className="text-xl text-neutral-light max-w-2xl mx-auto">
               See what parents and players have to say about New Era Hockey
@@ -105,7 +105,7 @@ const Testimonials = () => {
           ref={carouselRef}
           role="region"
           tabIndex={0}
-          className="max-w-4xl mx-auto"
+          className="max-w-4xl mx-auto focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 focus:ring-offset-primary rounded-lg"
           onMouseEnter={() => setIsHoverPaused(true)}
           onMouseLeave={() => setIsHoverPaused(false)}
           onFocus={() => setIsHoverPaused(true)}
@@ -168,22 +168,28 @@ const Testimonials = () => {
                   <button
                     key={idx}
                     onClick={() => setActiveIndex(idx)}
-                    className={`relative h-3 rounded-full transition-all duration-300 overflow-hidden ${
-                      isActive ? 'w-8 bg-neutral-dark' : 'w-3 bg-neutral-dark hover:bg-neutral-text'
-                    }`}
+                    className="relative h-8 w-8 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 focus:ring-offset-primary rounded-full"
                     aria-label={`Go to testimonial ${idx + 1}`}
                     aria-current={isActive ? 'true' : 'false'}
                   >
-                    {isActive && (
-                      <span
-                        key={activeIndex}
-                        className="absolute inset-0 rounded-full bg-teal-500"
-                        style={{
-                          animation: isAutoPlaying ? 'dot-fill 5s linear forwards' : 'none',
-                          width: isAutoPlaying ? undefined : '100%',
-                        }}
-                      />
-                    )}
+                    <span
+                      className={`rounded-full transition-all duration-300 overflow-hidden ${
+                        isActive
+                          ? 'h-3 w-8 bg-neutral-dark'
+                          : 'h-3 w-3 bg-neutral-dark hover:bg-neutral-text'
+                      }`}
+                    >
+                      {isActive && (
+                        <span
+                          key={activeIndex}
+                          className="block h-full rounded-full bg-teal-500"
+                          style={{
+                            animation: isAutoPlaying ? 'dot-fill 5s linear forwards' : 'none',
+                            width: isAutoPlaying ? undefined : '100%',
+                          }}
+                        />
+                      )}
+                    </span>
                   </button>
                 );
               })}

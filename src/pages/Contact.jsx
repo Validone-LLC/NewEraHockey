@@ -89,7 +89,7 @@ const Contact = () => {
                 <h3 className="text-lg font-semibold text-white mb-4">Email:</h3>
                 <a
                   href="mailto:coachwill@newerahockeytraining.com"
-                  className="flex items-center gap-3 text-neutral-light hover:text-white transition-colors group"
+                  className="flex items-center gap-3 text-neutral-light hover:text-white transition-colors group rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 focus:ring-offset-primary-dark"
                 >
                   <div className="w-12 h-12 flex-shrink-0 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center">
                     <Mail className="w-6 h-6 text-white" />
@@ -104,7 +104,7 @@ const Contact = () => {
                 <h3 className="text-lg font-semibold text-white mb-4">Phone:</h3>
                 <a
                   href="tel:+15712744691"
-                  className="flex items-center gap-3 text-neutral-light hover:text-white transition-colors group"
+                  className="flex items-center gap-3 text-neutral-light hover:text-white transition-colors group rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 focus:ring-offset-primary-dark"
                 >
                   <div className="w-12 h-12 flex-shrink-0 rounded-full bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center">
                     <Phone className="w-6 h-6 text-white" />
@@ -119,7 +119,7 @@ const Contact = () => {
                   href="https://www.instagram.com/NewEraHockeyDMV"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 text-neutral-light hover:text-white transition-colors group"
+                  className="flex items-center gap-3 text-neutral-light hover:text-white transition-colors group rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 focus:ring-offset-primary-dark"
                 >
                   <div className="w-12 h-12 flex-shrink-0 rounded-full bg-gradient-to-br from-teal-300 to-teal-500 flex items-center justify-center">
                     <Instagram className="w-6 h-6 text-white" />

@@ -113,7 +113,7 @@ const Gallery = () => {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
         >
-          Images:
+          Photos
         </motion.h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -168,7 +168,7 @@ const FilterButton = ({ label, active, onClick }) => {
     <button
       onClick={onClick}
       aria-pressed={active}
-      className={`px-6 py-2 rounded-lg font-semibold transition-all duration-300 ${
+      className={`px-6 py-2 rounded-lg font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 focus:ring-offset-primary ${
         active
           ? 'bg-gradient-to-r from-teal-500 to-teal-700 text-white'
           : 'bg-primary border border-neutral-dark text-neutral-light hover:border-teal-500'

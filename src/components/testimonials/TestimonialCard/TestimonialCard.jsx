@@ -26,7 +26,7 @@ const TestimonialCard = ({ testimonial, index }) => {
       {isLongText && !testimonial.featured && (
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="flex items-center gap-1 text-teal-400 hover:text-teal-300 transition-colors text-sm font-semibold mb-4"
+          className="flex items-center gap-1 text-teal-400 hover:text-teal-300 transition-colors text-sm font-semibold mb-4 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 focus:ring-offset-primary-dark rounded"
           aria-expanded={isExpanded}
           aria-label={isExpanded ? 'Show less' : 'Read more'}
         >
