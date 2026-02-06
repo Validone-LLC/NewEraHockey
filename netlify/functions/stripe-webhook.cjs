@@ -91,6 +91,7 @@ exports.handler = async (event, context) => {
           playerDateOfBirth,
           playerAge,
           playerLevelOfPlay,
+          playerLeague,
           // Guardian & emergency
           guardianFirstName,
           guardianLastName,
@@ -129,6 +130,7 @@ exports.handler = async (event, context) => {
           playerDateOfBirth,
           playerAge,
           playerLevelOfPlay,
+          playerLeague,
           players, // Include players array for multi-player events
           guardianFirstName,
           guardianLastName,
@@ -315,6 +317,7 @@ exports.handler = async (event, context) => {
             playerAge,
             playerDateOfBirth,
             playerLevelOfPlay,
+            playerLeague,
             // Multi-player (at home training)
             players,
             playerCount: playerCount ? parseInt(playerCount) : 1,
@@ -387,6 +390,7 @@ async function sendRegistrationEmails(data) {
     playerAge,
     playerDateOfBirth,
     playerLevelOfPlay,
+    playerLeague,
     // Multi-player
     players,
     playerCount,
@@ -420,6 +424,7 @@ async function sendRegistrationEmails(data) {
     playerLastName: escapeHtml(playerLastName),
     playerAge: escapeHtml(playerAge),
     playerLevelOfPlay: escapeHtml(playerLevelOfPlay),
+    playerLeague: escapeHtml(playerLeague),
     addressStreet: escapeHtml(addressStreet),
     addressUnit: escapeHtml(addressUnit),
     addressCity: escapeHtml(addressCity),
@@ -468,6 +473,7 @@ async function sendRegistrationEmails(data) {
         lastName: escapeHtml(p.lastName),
         dateOfBirth: p.dateOfBirth,
         levelOfPlay: escapeHtml(p.levelOfPlay),
+        league: escapeHtml(p.league),
       }))
     : [];
 
@@ -507,6 +513,7 @@ async function sendRegistrationEmails(data) {
                       <p><strong>Date of Birth:</strong> ${formatDate(player.dateOfBirth)}</p>
                       <p><strong>Age:</strong> ${calculateAge(player.dateOfBirth) || 'N/A'}</p>
                       <p><strong>Level of Play:</strong> ${player.levelOfPlay || 'N/A'}</p>
+                      <p><strong>League:</strong> ${player.league || 'N/A'}</p>
                     </div>
                   `
                         )
@@ -516,6 +523,7 @@ async function sendRegistrationEmails(data) {
                     <p><strong>Date of Birth:</strong> ${formattedDOB}</p>
                     <p><strong>Age:</strong> ${displayAge}</p>
                     <p><strong>Level of Play:</strong> ${safe.playerLevelOfPlay || 'N/A'}</p>
+                    <p><strong>League:</strong> ${safe.playerLeague || 'N/A'}</p>
                   `
                 }
               </div>

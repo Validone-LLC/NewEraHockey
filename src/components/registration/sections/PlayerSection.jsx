@@ -11,9 +11,14 @@ import Select from '@components/common/Select';
 import DatePicker from '@components/common/DatePicker';
 
 const PlayerSection = ({ formik, config }) => {
-  const { multiPlayer, levelOptions = [] } = {
+  const {
+    multiPlayer,
+    levelOptions = [],
+    leagueOptions = [],
+  } = {
     multiPlayer: config.features.multiPlayer,
     levelOptions: config.levelOptions,
+    leagueOptions: config.leagueOptions,
   };
 
   // Single player helpers
@@ -42,6 +47,7 @@ const PlayerSection = ({ formik, config }) => {
         lastName: '',
         dateOfBirth: '',
         levelOfPlay: '',
+        league: '',
       },
     ]);
   };
@@ -161,6 +167,29 @@ const PlayerSection = ({ formik, config }) => {
             />
             {getFieldError('playerLevelOfPlay') && (
               <p className="text-red-400 text-sm mt-1">{getFieldError('playerLevelOfPlay')}</p>
+            )}
+          </div>
+
+          {/* League */}
+          <div>
+            <label
+              htmlFor="playerLeague"
+              className="block text-sm font-medium text-neutral-light mb-2"
+            >
+              League *
+            </label>
+            <Select
+              id="playerLeague"
+              name="playerLeague"
+              value={formik.values.playerLeague}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={getFieldError('playerLeague')}
+              placeholder="Select league"
+              options={leagueOptions}
+            />
+            {getFieldError('playerLeague') && (
+              <p className="text-red-400 text-sm mt-1">{getFieldError('playerLeague')}</p>
             )}
           </div>
         </div>
@@ -312,6 +341,29 @@ const PlayerSection = ({ formik, config }) => {
                 <p className="text-red-400 text-sm mt-1">
                   {getPlayerFieldError(index, 'levelOfPlay')}
                 </p>
+              )}
+            </div>
+
+            {/* League */}
+            <div>
+              <label
+                htmlFor={`player_${index}_league`}
+                className="block text-sm font-medium text-neutral-light mb-2"
+              >
+                League *
+              </label>
+              <Select
+                id={`player_${index}_league`}
+                name={`players.${index}.league`}
+                value={player.league}
+                onChange={e => handlePlayerChange(index, 'league', e.target.value)}
+                onBlur={() => handlePlayerBlur(index, 'league')}
+                error={getPlayerFieldError(index, 'league')}
+                placeholder="Select league"
+                options={leagueOptions}
+              />
+              {getPlayerFieldError(index, 'league') && (
+                <p className="text-red-400 text-sm mt-1">{getPlayerFieldError(index, 'league')}</p>
               )}
             </div>
           </div>

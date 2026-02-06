@@ -195,6 +195,7 @@ async function addRegistration(eventId, eventType, registrationData, playerCount
     playerDateOfBirth: registrationData.playerDateOfBirth,
     playerAge: registrationData.playerAge || null,
     playerLevelOfPlay: registrationData.playerLevelOfPlay || null,
+    playerLeague: registrationData.playerLeague || null,
     players: registrationData.players || null,
     guardianFirstName: registrationData.guardianFirstName || null,
     guardianLastName: registrationData.guardianLastName || null,

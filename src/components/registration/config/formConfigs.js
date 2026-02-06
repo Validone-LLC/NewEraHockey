@@ -5,7 +5,7 @@
  * Each event type can customize which sections appear and their behavior.
  */
 
-import { EVENT_TYPES, PLAYER_LEVEL_OPTIONS } from '@/config/constants';
+import { EVENT_TYPES, PLAYER_LEVEL_OPTIONS, PLAYER_LEAGUE_OPTIONS } from '@/config/constants';
 import { categorizeEvent } from '@/utils/eventCategorization';
 
 /**
@@ -26,6 +26,7 @@ export const FORM_CONFIGS = {
       model: 'event_price', // Pull from Google Calendar Price: parser
     },
     levelOptions: PLAYER_LEVEL_OPTIONS,
+    leagueOptions: PLAYER_LEAGUE_OPTIONS,
     // Page display settings
     display: {
       pageTitle: 'At Home Training Registration',
@@ -53,6 +54,7 @@ export const FORM_CONFIGS = {
       model: 'event_price', // Pull from Google Calendar Price: parser
     },
     levelOptions: PLAYER_LEVEL_OPTIONS,
+    leagueOptions: PLAYER_LEAGUE_OPTIONS,
     // Page display settings
     display: {
       pageTitle: 'Camp Registration',
@@ -79,6 +81,7 @@ export const FORM_CONFIGS = {
       model: 'event_price', // Pull from Google Calendar Price: parser
     },
     levelOptions: PLAYER_LEVEL_OPTIONS,
+    leagueOptions: PLAYER_LEAGUE_OPTIONS,
     // Page display settings
     display: {
       pageTitle: 'Lesson Registration',
@@ -105,6 +108,7 @@ export const FORM_CONFIGS = {
       model: 'event_price', // Pull from Google Calendar Price: parser
     },
     levelOptions: PLAYER_LEVEL_OPTIONS,
+    leagueOptions: PLAYER_LEAGUE_OPTIONS,
     // Page display settings
     display: {
       pageTitle: 'Mt Vernon Skating Registration',
@@ -131,6 +135,7 @@ export const FORM_CONFIGS = {
       model: 'event_price', // Pull from Google Calendar Price: parser
     },
     levelOptions: PLAYER_LEVEL_OPTIONS,
+    leagueOptions: PLAYER_LEAGUE_OPTIONS,
     // Page display settings
     display: {
       pageTitle: 'Rockville Small Group Registration',
@@ -158,6 +163,7 @@ export const FORM_CONFIGS = {
       model: 'event_price',
     },
     levelOptions: PLAYER_LEVEL_OPTIONS,
+    leagueOptions: PLAYER_LEAGUE_OPTIONS,
     // Page display settings
     display: {
       pageTitle: 'Event Registration',
