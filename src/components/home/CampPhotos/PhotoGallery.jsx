@@ -6,12 +6,12 @@ const PhotoGallery = ({ photos }) => {
       {photos.map((photo, index) => (
         <motion.div
           key={index}
-          className="relative aspect-square rounded-lg overflow-hidden bg-primary-light group cursor-pointer"
+          className="relative aspect-square rounded-lg overflow-hidden bg-primary-light group"
           initial={{ opacity: 0, scale: 0.8 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.4, delay: index * 0.05 }}
-          whileHover={{}}
+          whileHover={{ scale: 1.02 }}
         >
           <img
             src={photo}

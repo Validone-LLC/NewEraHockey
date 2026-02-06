@@ -22,7 +22,7 @@ const Hero = () => {
           <img
             src={heroData.logoImage}
             alt="New Era Hockey Logo"
-            className="h-56 sm:h-40 lg:h-64 w-auto mx-auto drop-shadow-2xl"
+            className="h-40 sm:h-48 lg:h-64 w-auto mx-auto drop-shadow-2xl"
           />
           <p className="text-sm sm:text-base tracking-[0.25em] text-silver font-display uppercase mt-3">
             Est. 2019

@@ -94,10 +94,10 @@ const Header = () => {
               alt="New Era Hockey Logo"
               className="h-12 w-auto"
             />
-            <motion.div className="text-2xl sm:text-3xl font-display font-bold hidden sm:block">
+            <div className="text-2xl sm:text-3xl font-display font-bold hidden sm:block">
               <span className="gradient-text">New Era</span>
               <span className="text-white ml-2">Hockey</span>
-            </motion.div>
+            </div>
           </Link>
 
           {/* Desktop Navigation */}
