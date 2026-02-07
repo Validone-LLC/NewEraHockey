@@ -93,6 +93,15 @@ const Footer = () => {
         <div className="mt-12 pt-8 border-t border-neutral-dark">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-neutral-text text-sm">
             <p>&copy; {new Date().getFullYear()} by New Era Hockey. All rights reserved.</p>
+            <a
+              href="https://validone-llc.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-neutral-text hover:text-white transition-colors text-xs hidden sm:block"
+              style={{ textDecoration: 'none' }}
+            >
+              Powered by Validone LLC
+            </a>
             <div className="flex items-center gap-4">
               <Link to="/terms-and-conditions" className="hover:text-white transition-colors">
                 Terms & Conditions
@@ -107,6 +116,15 @@ const Footer = () => {
               </Link>
             </div>
           </div>
+          <a
+            href="https://validone-llc.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block sm:hidden text-center text-neutral-text hover:text-white transition-colors text-xs mt-4"
+            style={{ textDecoration: 'none' }}
+          >
+            Powered by Validone LLC
+          </a>
         </div>
       </div>
     </footer>
