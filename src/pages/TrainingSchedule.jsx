@@ -414,7 +414,15 @@ const TrainingSchedule = () => {
                   1-on-1 training, stick handling, shooting, and film analysis
                 </span>{' '}
                 — book an <span className="text-orange-400 font-semibold">At Home Training</span>{' '}
-                appointment in the calendar.
+                appointment in the{' '}
+                <button
+                  type="button"
+                  onClick={() => setActiveView('calendar')}
+                  className="text-orange-400 font-semibold underline hover:text-orange-300 transition-colors"
+                >
+                  Calendar
+                </button>
+                .
               </p>
             </motion.div>
           </motion.div>
