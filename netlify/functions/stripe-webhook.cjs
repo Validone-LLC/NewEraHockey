@@ -54,8 +54,8 @@ exports.handler = async (event, context) => {
       case 'checkout.session.completed': {
         const session = stripeEvent.data.object;
 
-        // Skip test mode sessions - only process live payments
-        if (!session.livemode) {
+        // Skip test mode sessions in production (allow in local dev)
+        if (!session.livemode && !process.env.NETLIFY_DEV) {
           console.log('Skipping test mode session:', session.id);
           return {
             statusCode: 200,
@@ -298,6 +298,20 @@ exports.handler = async (event, context) => {
           }
         }
 
+        // Retrieve Stripe receipt URL from the payment charge
+        let receiptUrl = null;
+        try {
+          if (session.payment_intent) {
+            const paymentIntent = await stripe.paymentIntents.retrieve(session.payment_intent);
+            if (paymentIntent.latest_charge) {
+              const charge = await stripe.charges.retrieve(paymentIntent.latest_charge);
+              receiptUrl = charge.receipt_url || null;
+            }
+          }
+        } catch (receiptError) {
+          console.warn('Could not retrieve receipt URL (non-blocking):', receiptError.message);
+        }
+
         // Send confirmation emails
         try {
           await sendRegistrationEmails({
@@ -336,6 +350,7 @@ exports.handler = async (event, context) => {
             emergencyContactRelationship: emergencyRelationship,
             medicalNotes,
             amountPaid: session.amount_total / 100, // Convert from cents
+            receiptUrl,
           });
           console.log('Registration confirmation emails sent successfully');
         } catch (emailError) {
@@ -409,6 +424,7 @@ async function sendRegistrationEmails(data) {
     emergencyContactRelationship,
     medicalNotes,
     amountPaid,
+    receiptUrl,
   } = data;
 
   // Escape all user-provided strings for safe HTML insertion
@@ -807,6 +823,25 @@ async function sendRegistrationEmails(data) {
                 </table>
                 ` : ''}
 
+                ${receiptUrl ? `
+                <!-- Payment Receipt CTA -->
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #131b24;">
+                  <tr>
+                    <td align="center" style="padding: 0 0 24px 0;">
+                      <!--[if mso]>
+                      <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${receiptUrl}" style="height:48px;v-text-anchor:middle;width:240px;" arcsize="13%" fillcolor="#1c2631" strokecolor="#1ab8df" strokeweight="2px">
+                        <w:anchorlock/>
+                        <center style="color:#1ab8df;font-family:Helvetica,Arial,sans-serif;font-size:14px;font-weight:bold;">&#129534; View Payment Receipt</center>
+                      </v:roundrect>
+                      <![endif]-->
+                      <!--[if !mso]><!-->
+                      <a href="${receiptUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background-color: #1c2631; color: #1ab8df; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-family: 'Montserrat', Helvetica, Arial, sans-serif; font-weight: bold; font-size: 14px; border: 2px solid #1ab8df;">&#128451;&nbsp;&nbsp;View Payment Receipt</a>
+                      <!--<![endif]-->
+                    </td>
+                  </tr>
+                </table>
+                ` : ''}
+
                 <!-- Contact Section -->
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="content-section" style="background-color: #1c2631; border-radius: 8px; margin: 20px 0;">
                   <tr>
@@ -870,7 +905,7 @@ async function sendRegistrationEmails(data) {
                   <tr>
                     <td align="center" style="padding: 0 0 20px 0;">
                       <p style="font-family: Verdana, Geneva, sans-serif; color: #8899a6; font-size: 12px; margin: 0; line-height: 1.5;">
-                        This is an automated confirmation email. Your payment receipt will be sent separately by Stripe.
+                        This is an automated confirmation from New Era Hockey Training.${receiptUrl ? '' : ' Your payment receipt will be available from Stripe shortly.'}
                       </p>
                     </td>
                   </tr>
