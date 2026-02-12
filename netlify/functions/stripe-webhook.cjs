@@ -2,7 +2,7 @@
  * Netlify Function: Stripe Webhook Handler
  *
  * Listens for checkout.session.completed events from Stripe
- * and updates registration tracking in Netlify Blob Storage.
+ * and updates registration tracking in S3.
  *
  * Environment Variables Required:
  * - STRIPE_SECRET_KEY: Your Stripe secret key

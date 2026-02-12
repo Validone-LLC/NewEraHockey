@@ -298,7 +298,7 @@ function parseSpotsFromDescription(description) {
  * - If event has price in description → registration enabled automatically
  * - Custom capacity from "Spots: X" or "Capacity: X" in description
  * - Falls back to default capacity based on event type (camp: 20, lesson: 10)
- * - Fetches current registration count from Netlify Blob Storage
+ * - Fetches current registration count from S3
  *
  * NO MANUAL EXTENDED PROPERTIES NEEDED!
  *
@@ -319,7 +319,7 @@ async function enrichEventWithRegistrationData(event) {
   // AUTO-ENABLE registration if price exists
   const registrationEnabled = price !== null;
 
-  // Fetch registration data from Netlify Blob Storage
+  // Fetch registration data from S3
   let registrationData = null;
   let maxCapacity = null;
   let currentRegistrations = 0;

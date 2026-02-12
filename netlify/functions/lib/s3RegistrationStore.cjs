@@ -1,8 +1,7 @@
 /**
  * S3 Registration Store
  *
- * AWS S3-based registration storage that mirrors the Netlify Blob Storage API.
- * Used for migration from Netlify Blobs to S3 for cross-platform access.
+ * AWS S3-based registration storage for cross-platform access.
  *
  * Environment Variables Required:
  * - NEH_AWS_ACCESS_KEY_ID: AWS access key (reuses existing SES credentials)
