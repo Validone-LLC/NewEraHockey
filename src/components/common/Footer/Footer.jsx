@@ -97,10 +97,16 @@ const Footer = () => {
               href="https://validone-llc.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-neutral-text hover:text-white transition-colors text-xs hidden sm:block"
+              className="text-neutral-text hover:text-white transition-colors text-xs hidden sm:flex items-center gap-1.5"
               style={{ textDecoration: 'none' }}
             >
-              Powered by Validone LLC
+              Powered by
+              <img
+                src="/assets/images/logo/validone_square_no_text_no_bg.png"
+                alt="Validone"
+                className="h-4 w-4 inline-block"
+              />
+              <span>Validone LLC</span>
             </a>
             <div className="flex items-center gap-4">
               <Link to="/terms-and-conditions" className="hover:text-white transition-colors">
@@ -120,10 +126,16 @@ const Footer = () => {
             href="https://validone-llc.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="block sm:hidden text-center text-neutral-text hover:text-white transition-colors text-xs mt-4"
+            className="flex sm:hidden items-center justify-center gap-1.5 text-neutral-text hover:text-white transition-colors text-xs mt-4"
             style={{ textDecoration: 'none' }}
           >
-            Powered by Validone LLC
+            Powered by
+            <img
+              src="/assets/images/logo/validone_square_no_text_no_bg.png"
+              alt="Validone"
+              className="h-4 w-4 inline-block"
+            />
+            <span>Validone LLC</span>
           </a>
         </div>
       </div>
