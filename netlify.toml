@@ -24,7 +24,7 @@
 [dev]
   command = "npm run dev"
   framework = "#custom"
-  targetPort = 5175
+  targetPort = 5178
   port = 8888
   autoLaunch = false
 
