@@ -25,7 +25,7 @@ export default function cmsFetchPlugin(options = {}) {
       }
 
       const dataDir = resolve(root, "src/data");
-      const files = ["home", "coaches", "faq", "gallery", "testimonials", "contact"];
+      const files = ["home", "coaches", "faq", "gallery", "testimonials", "contact", "terms", "privacy", "waiver"];
       let fetched = 0;
 
       for (const file of files) {
@@ -65,6 +65,12 @@ async function transformAndWrite(dataDir, contentType, data) {
       return writeTestimonials(dataDir, data);
     case "contact":
       return writeContact(dataDir, data);
+    case "terms":
+      return writeLegalPage(dataDir, "terms", data);
+    case "privacy":
+      return writeLegalPage(dataDir, "privacy", data);
+    case "waiver":
+      return writeLegalPage(dataDir, "waiver", data);
     default:
       console.warn(`[CMS] Unknown content type: ${contentType}`);
   }
@@ -289,6 +295,16 @@ async function writeContact(dataDir, data) {
     phone: data.phone || "",
     instagram: data.instagram || "",
     address: data.address || "",
+  });
+}
+
+// --------------------------------------------------------------------
+// Legal pages (terms, privacy, waiver): CMS and web use same format
+// --------------------------------------------------------------------
+async function writeLegalPage(dataDir, name, data) {
+  await writeJson(join(dataDir, `${name}.json`), {
+    lastUpdated: data.lastUpdated || "",
+    sections: data.sections || [],
   });
 }
 
