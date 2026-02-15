@@ -1,9 +1,11 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import cmsFetchPlugin from './plugins/vite-plugin-cms.js';
 
 export default defineConfig({
   plugins: [
     react(),
+    cmsFetchPlugin(),
     {
       name: 'admin-redirect',
       configureServer(server) {
