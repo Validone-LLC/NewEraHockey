@@ -9,18 +9,29 @@
  * - NEH_AWS_REGION: AWS region (default: us-east-1)
  * - ADMIN_EMAIL: Email address to send testimonials to
  * - SES_FROM_EMAIL: Email address to send from (default: noreply@newerahockeytraining.com)
+ * - CMS_BUCKET: S3 bucket for CMS content (optional, for pending queue)
  */
 
 const { SESClient, SendEmailCommand } = require('@aws-sdk/client-ses');
+const { S3Client, GetObjectCommand, PutObjectCommand } = require('@aws-sdk/client-s3');
+
+const awsCredentials = {
+  accessKeyId: process.env.NEH_AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.NEH_AWS_SECRET_ACCESS_KEY,
+};
+const awsRegion = process.env.NEH_AWS_REGION || 'us-east-1';
 
 // Initialize AWS SES v3 client for email notifications
 const sesClient = new SESClient({
-  credentials: {
-    accessKeyId: process.env.NEH_AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.NEH_AWS_SECRET_ACCESS_KEY,
-  },
-  region: process.env.NEH_AWS_REGION || 'us-east-1',
+  credentials: awsCredentials,
+  region: awsRegion,
 });
+
+// Initialize S3 client for CMS pending queue (optional)
+const CMS_BUCKET = process.env.CMS_BUCKET;
+const s3Client = CMS_BUCKET
+  ? new S3Client({ credentials: awsCredentials, region: awsRegion })
+  : null;
 
 exports.handler = async (event, context) => {
   // Only allow POST requests
@@ -68,6 +79,21 @@ exports.handler = async (event, context) => {
       testimonial,
       rating,
     });
+
+    // Add to CMS pending queue (non-blocking — email is the primary notification)
+    if (s3Client) {
+      try {
+        await addToPendingQueue({
+          displayName,
+          role,
+          teamName,
+          testimonial,
+          rating,
+        });
+      } catch (s3Err) {
+        console.error('Failed to add to CMS pending queue (non-fatal):', s3Err.message);
+      }
+    }
 
     return {
       statusCode: 200,
@@ -162,4 +188,53 @@ async function sendTestimonialEmail(data) {
   console.log('Sending testimonial notification email...');
   const result = await sesClient.send(new SendEmailCommand(emailParams));
   console.log(`Testimonial notification sent to ${adminEmail}. MessageId: ${result.MessageId}`);
+}
+
+/**
+ * Add testimonial to CMS pending queue in S3
+ * Read-modify-write pattern on content/testimonials-pending.json
+ */
+async function addToPendingQueue(data) {
+  const key = 'content/testimonials-pending.json';
+  const { displayName, role, teamName, testimonial, rating } = data;
+
+  // Read existing pending file
+  let pending = [];
+  try {
+    const res = await s3Client.send(
+      new GetObjectCommand({ Bucket: CMS_BUCKET, Key: key })
+    );
+    const body = await res.Body.transformToString();
+    const parsed = JSON.parse(body);
+    pending = parsed.pending || [];
+  } catch (err) {
+    if (err.name !== 'NoSuchKey') {
+      console.warn('Warning reading pending file:', err.message);
+    }
+  }
+
+  // Append new testimonial
+  const newEntry = {
+    id: `pending-${Date.now()}`,
+    name: displayName,
+    displayName,
+    role,
+    playerInfo: teamName || '',
+    text: testimonial,
+    rating,
+    submittedAt: new Date().toISOString(),
+  };
+  pending.push(newEntry);
+
+  // Write back
+  await s3Client.send(
+    new PutObjectCommand({
+      Bucket: CMS_BUCKET,
+      Key: key,
+      Body: JSON.stringify({ pending }, null, 2),
+      ContentType: 'application/json',
+    })
+  );
+
+  console.log(`Testimonial added to CMS pending queue. ID: ${newEntry.id}`);
 }
