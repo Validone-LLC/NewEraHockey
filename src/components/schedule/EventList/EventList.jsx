@@ -92,19 +92,26 @@ const getTypeStyles = eventType => {
         text: 'text-red-400',
         label: 'Camp',
       };
-    case 'rockville':
+    case 'smallGroup':
       return {
         border: 'border-l-cyan-500',
         bg: 'bg-cyan-500/10',
         text: 'text-cyan-400',
-        label: 'Rockville',
+        label: 'Small Group',
       };
-    case 'skating':
+    case 'privateSkating':
       return {
         border: 'border-l-green-500',
         bg: 'bg-green-500/10',
         text: 'text-green-400',
-        label: 'Mt Vernon',
+        label: 'Private Skating',
+      };
+    case 'at-home':
+      return {
+        border: 'border-l-orange-500',
+        bg: 'bg-orange-500/10',
+        text: 'text-orange-400',
+        label: 'At Home Training',
       };
     default:
       return {
@@ -174,7 +181,7 @@ const CompactEventCard = ({ event, eventType, isMobile, onOpenSheet }) => {
                 {typeStyles.label}
               </span>
               {/* Sold Out Badge */}
-              {upcoming && soldOut && (eventType === 'camps' || eventType === 'skating') && (
+              {upcoming && soldOut && (eventType === 'camps' || eventType === 'privateSkating') && (
                 <SoldOutBadge size="sm" />
               )}
               {/* Low Spots Warning */}
@@ -285,12 +292,17 @@ const CompactEventCard = ({ event, eventType, isMobile, onOpenSheet }) => {
               </span>
             )}
 
-            {/* Expand Button - Desktop only */}
-            {!isMobile && hasExpandableContent && (
+            {/* Expand Button - Desktop only (invisible placeholder when no content to keep alignment) */}
+            {!isMobile && (
               <button
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="p-2 text-neutral-light hover:text-white hover:bg-neutral-dark/50 rounded-lg transition-colors"
+                onClick={() => hasExpandableContent && setIsExpanded(!isExpanded)}
+                className={`p-2 rounded-lg transition-colors ${
+                  hasExpandableContent
+                    ? 'text-neutral-light hover:text-white hover:bg-neutral-dark/50 cursor-pointer'
+                    : 'invisible'
+                }`}
                 aria-label={isExpanded ? 'Show less' : 'Show more'}
+                tabIndex={hasExpandableContent ? 0 : -1}
               >
                 {isExpanded ? (
                   <ChevronUp className="w-4 h-4" />
@@ -343,7 +355,7 @@ const CompactEventCard = ({ event, eventType, isMobile, onOpenSheet }) => {
             {customText && <p className="text-neutral-light/80 italic">{customText}</p>}
 
             {/* Warning Text */}
-            {warningText && (eventType === 'camps' || eventType === 'skating') && (
+            {warningText && (eventType === 'camps' || eventType === 'privateSkating') && (
               <div className="flex items-start gap-2 text-amber-400">
                 <span>⚠️</span>
                 <span>{warningText}</span>

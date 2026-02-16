@@ -27,7 +27,8 @@ const DEFAULT_CAPACITY = {
   camp: 20,
   lesson: 10,
   mt_vernon_skating: 1,
-  rockville_small_group: 5,
+  small_group: 5,
+  rockville_small_group: 5, // backward compat alias
   other: 15,
 };
 

@@ -189,7 +189,7 @@ exports.handler = async (event, context) => {
 /**
  * Categorize calendar event based on extended properties, color, or keywords
  * @param {Object} event - Google Calendar event object
- * @returns {string} - 'camp', 'lesson', 'at_home_training', 'mt_vernon_skating', 'rockville_small_group', or 'other'
+ * @returns {string} - 'camp', 'lesson', 'at_home_training', 'mt_vernon_skating', 'small_group', or 'other'
  */
 function categorizeEvent(event) {
   if (!event) return 'other';
@@ -198,17 +198,21 @@ function categorizeEvent(event) {
   const eventType = event.extendedProperties?.shared?.eventType;
   if (eventType) {
     const normalized = eventType.toLowerCase();
-    if (normalized === 'camp' || normalized === 'lesson' || normalized === 'at_home_training' || normalized === 'mt_vernon_skating' || normalized === 'rockville_small_group') {
+    if (normalized === 'camp' || normalized === 'lesson' || normalized === 'at_home_training' || normalized === 'mt_vernon_skating' || normalized === 'small_group') {
       return normalized;
+    }
+    // Backward compat: map old type to new
+    if (normalized === 'rockville_small_group') {
+      return 'small_group';
     }
   }
 
   // Method 2: Title-based detection (check before color for specific event types)
   const title = (event.summary || '').toLowerCase();
 
-  // Rockville Small Group - check before color since title is definitive
-  if (title.includes('rockville small group')) {
-    return 'rockville_small_group';
+  // Small Group - check before color since title is definitive
+  if (title.includes('small group')) {
+    return 'small_group';
   }
 
   // Mt Vernon events - Matches: "Mount Vernon...", "Mt Vernon...", "Mt. Vernon..."
@@ -219,14 +223,14 @@ function categorizeEvent(event) {
   // Method 3: Color-based categorization (easiest for Coach Will)
   // Red (#11) = Camps, Blue (#9) = Lessons, Orange (#6) = At Home Training (available),
   // Yellow (#5) = At Home Training (booked), Green (#10) = Mt Vernon Skating (available),
-  // Peacock (#7) = Rockville Small Group
+  // Peacock (#7) = Small Group
   const colorMap = {
     '11': 'camp', // Red
     '9': 'lesson', // Blue
     '6': 'at_home_training', // Orange (Tangerine) - available slots
     '5': 'at_home_training', // Yellow (Banana) - booked slots
     '10': 'mt_vernon_skating', // Green (Basil) - available for registration
-    '7': 'rockville_small_group', // Peacock (Teal/Cyan)
+    '7': 'small_group', // Peacock (Teal/Cyan)
   };
 
   if (event.colorId && colorMap[event.colorId]) {

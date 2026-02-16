@@ -1,21 +1,29 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
-import { HiRefresh, HiHome, HiExclamation, HiViewList, HiCalendar } from 'react-icons/hi';
+import {
+  HiRefresh,
+  HiHome,
+  HiExclamation,
+  HiViewList,
+  HiCalendar,
+  HiLocationMarker,
+} from 'react-icons/hi';
 import SEO from '@components/common/SEO/SEO';
 import EventList from '@components/schedule/EventList/EventList';
 import EventCalendar from '@components/schedule/EventCalendar/EventCalendar';
 import useMediaQuery from '@hooks/useMediaQuery';
 import {
   fetchCamps,
-  fetchRockvilleSmallGroup,
+  fetchSmallGroup,
   fetchMtVernonSkating,
+  fetchAtHomeTraining,
   fetchEvents,
   fetchAtHomeTrainingByMonth,
   filterVisibleEvents,
   filterAvailableAtHomeTraining,
   filterAvailableMtVernonSkating,
-  filterAvailableRockvilleSmallGroup,
+  filterAvailableSmallGroup,
   filterTestEvents,
   refreshEvents,
 } from '@services/calendarService';
@@ -57,9 +65,12 @@ const TrainingSchedule = () => {
 
   // Filter chips state (multi-select: 'all' or specific types)
   const [activeFilters, setActiveFilters] = useState(['all']);
+  // Location filter state (multi-select: 'all' or specific locations)
+  const [activeLocationFilters, setActiveLocationFilters] = useState(['all']);
   const [campsEvents, setCampsEvents] = useState([]);
-  const [rockvilleEvents, setRockvilleEvents] = useState([]);
+  const [smallGroupEvents, setSmallGroupEvents] = useState([]);
   const [skatingEvents, setSkatingEvents] = useState([]);
+  const [atHomeEvents, setAtHomeEvents] = useState([]);
   const [listLoading, setListLoading] = useState(true);
   const [listError, setListError] = useState(null);
 
@@ -79,7 +90,8 @@ const TrainingSchedule = () => {
   const isMobile = useMediaQuery('(max-width: 640px)');
 
   // Total events count for the list view badge
-  const totalListEvents = campsEvents.length + rockvilleEvents.length + skatingEvents.length;
+  const totalListEvents =
+    campsEvents.length + smallGroupEvents.length + skatingEvents.length + atHomeEvents.length;
 
   // Load camps, rockville, and skating events for list view (fetch all events)
   const loadListEvents = useCallback(async () => {
@@ -87,28 +99,29 @@ const TrainingSchedule = () => {
       setListLoading(true);
       setListError(null);
 
-      // Fetch camps, rockville small group, and skating in parallel
-      const [campsData, rockvilleData, skatingData] = await Promise.all([
+      // Fetch camps, small group, skating, and at-home in parallel
+      const [campsData, smallGroupData, skatingData, atHomeData] = await Promise.all([
         fetchCamps(),
-        fetchRockvilleSmallGroup(),
+        fetchSmallGroup(),
         fetchMtVernonSkating(),
+        fetchAtHomeTraining(),
       ]);
 
       // Detect if any data came from stale cache (API was down)
-      const stale = [campsData, rockvilleData, skatingData].some(d => d._stale);
+      const stale = [campsData, smallGroupData, skatingData, atHomeData].some(d => d._stale);
       setIsStaleData(stale);
 
-      // Filter visible events (camps show all, rockville hide sold-out, skating hide registered)
+      // Filter visible events (camps show all, small group hide sold-out, skating hide registered, at-home hide booked)
       // Also filter out [TEST] events unless VITE_SHOW_TEST_EVENTS=true
       const visibleCamps = filterTestEvents(filterVisibleEvents(campsData.events, 'camps'));
-      const visibleRockville = filterTestEvents(
-        filterAvailableRockvilleSmallGroup(rockvilleData.events)
-      );
+      const visibleSmallGroup = filterTestEvents(filterAvailableSmallGroup(smallGroupData.events));
       const visibleSkating = filterTestEvents(filterAvailableMtVernonSkating(skatingData.events));
+      const visibleAtHome = filterTestEvents(filterAvailableAtHomeTraining(atHomeData.events));
 
       setCampsEvents(sortEventsByDate(visibleCamps));
-      setRockvilleEvents(sortEventsByDate(visibleRockville));
+      setSmallGroupEvents(sortEventsByDate(visibleSmallGroup));
       setSkatingEvents(sortEventsByDate(visibleSkating));
+      setAtHomeEvents(sortEventsByDate(visibleAtHome));
       setLastUpdated(stale && campsData._cachedAt ? new Date(campsData._cachedAt) : new Date());
     } catch (err) {
       console.error('Failed to load list events:', err);
@@ -149,15 +162,24 @@ const TrainingSchedule = () => {
       // Filter available at-home training slots (hide booked) and test events
       const visibleAtHome = filterTestEvents(filterAvailableAtHomeTraining(atHomeData.events));
 
-      // Combine all events for calendar (use already loaded camps/rockville/skating + at-home for month)
+      // Combine all events for calendar (use already loaded list events + month-specific at-home)
       const allCalendarEvents = [
         ...campsEvents,
-        ...rockvilleEvents,
+        ...smallGroupEvents,
         ...skatingEvents,
+        ...atHomeEvents,
         ...visibleAtHome,
       ];
 
-      setCalendarEvents(sortEventsByDate(allCalendarEvents));
+      // Dedupe at-home events (list fetch may overlap with month fetch)
+      const seen = new Set();
+      const dedupedEvents = allCalendarEvents.filter(e => {
+        if (seen.has(e.id)) return false;
+        seen.add(e.id);
+        return true;
+      });
+
+      setCalendarEvents(sortEventsByDate(dedupedEvents));
       setLastUpdated(new Date());
     } catch (err) {
       console.error('Failed to load calendar events:', err);
@@ -165,7 +187,7 @@ const TrainingSchedule = () => {
     } finally {
       setCalendarLoading(false);
     }
-  }, [currentMonth, campsEvents, rockvilleEvents, skatingEvents]);
+  }, [currentMonth, campsEvents, smallGroupEvents, skatingEvents, atHomeEvents]);
 
   // Initial load: Fetch list events on mount
   useEffect(() => {
@@ -188,21 +210,24 @@ const TrainingSchedule = () => {
     const pollId = setInterval(async () => {
       try {
         // Fetch all event types in parallel, bypassing cache for fresh data
-        const [campsData, rockvilleData, skatingData] = await Promise.all([
+        const [campsData, smallGroupData, skatingData, atHomeData] = await Promise.all([
           fetchEvents('camp', true, false),
-          fetchEvents('rockville_small_group', true, false),
+          fetchEvents('small_group', true, false),
           fetchEvents('mt_vernon_skating', true, false),
+          fetchEvents('at_home_training', true, false),
         ]);
 
         const visibleCamps = filterTestEvents(filterVisibleEvents(campsData.events, 'camps'));
-        const visibleRockville = filterTestEvents(
-          filterAvailableRockvilleSmallGroup(rockvilleData.events)
+        const visibleSmallGroup = filterTestEvents(
+          filterAvailableSmallGroup(smallGroupData.events)
         );
         const visibleSkating = filterTestEvents(filterAvailableMtVernonSkating(skatingData.events));
+        const visibleAtHome = filterTestEvents(filterAvailableAtHomeTraining(atHomeData.events));
 
         setCampsEvents(sortEventsByDate(visibleCamps));
-        setRockvilleEvents(sortEventsByDate(visibleRockville));
+        setSmallGroupEvents(sortEventsByDate(visibleSmallGroup));
         setSkatingEvents(sortEventsByDate(visibleSkating));
+        setAtHomeEvents(sortEventsByDate(visibleAtHome));
         setLastUpdated(new Date());
       } catch (error) {
         console.error('Polling error:', error);
@@ -219,22 +244,23 @@ const TrainingSchedule = () => {
       setListError(null);
       setCalendarError(null);
 
-      // Refresh list events (camps, rockville, and skating)
-      const [campsData, rockvilleData, skatingData] = await Promise.all([
+      // Refresh list events (camps, small group, skating, and at-home)
+      const [campsData, smallGroupData, skatingData, atHomeData] = await Promise.all([
         refreshEvents('camp'),
-        refreshEvents('rockville_small_group'),
+        refreshEvents('small_group'),
         refreshEvents('mt_vernon_skating'),
+        refreshEvents('at_home_training'),
       ]);
 
       const visibleCamps = filterTestEvents(filterVisibleEvents(campsData.events, 'camps'));
-      const visibleRockville = filterTestEvents(
-        filterAvailableRockvilleSmallGroup(rockvilleData.events)
-      );
+      const visibleSmallGroup = filterTestEvents(filterAvailableSmallGroup(smallGroupData.events));
       const visibleSkating = filterTestEvents(filterAvailableMtVernonSkating(skatingData.events));
+      const visibleAtHome = filterTestEvents(filterAvailableAtHomeTraining(atHomeData.events));
 
       setCampsEvents(sortEventsByDate(visibleCamps));
-      setRockvilleEvents(sortEventsByDate(visibleRockville));
+      setSmallGroupEvents(sortEventsByDate(visibleSmallGroup));
       setSkatingEvents(sortEventsByDate(visibleSkating));
+      setAtHomeEvents(sortEventsByDate(visibleAtHome));
       setIsStaleData(false);
 
       // Refresh at-home training for current month (clear cache)
@@ -250,20 +276,31 @@ const TrainingSchedule = () => {
         return newCache;
       });
 
-      const atHomeData = await fetchAtHomeTrainingByMonth(year, month);
+      const atHomeMonthData = await fetchAtHomeTrainingByMonth(year, month);
       // Update both ref and state
-      monthCacheRef.current[cacheKey] = atHomeData;
-      setMonthCache(prev => ({ ...prev, [cacheKey]: atHomeData }));
+      monthCacheRef.current[cacheKey] = atHomeMonthData;
+      setMonthCache(prev => ({ ...prev, [cacheKey]: atHomeMonthData }));
 
-      const visibleAtHome = filterTestEvents(filterAvailableAtHomeTraining(atHomeData.events));
+      const visibleAtHomeMonth = filterTestEvents(
+        filterAvailableAtHomeTraining(atHomeMonthData.events)
+      );
       const allCalendarEvents = [
         ...visibleCamps,
-        ...visibleRockville,
+        ...visibleSmallGroup,
         ...visibleSkating,
         ...visibleAtHome,
+        ...visibleAtHomeMonth,
       ];
 
-      setCalendarEvents(sortEventsByDate(allCalendarEvents));
+      // Dedupe at-home events (list fetch may overlap with month fetch)
+      const seen = new Set();
+      const dedupedCalEvents = allCalendarEvents.filter(e => {
+        if (seen.has(e.id)) return false;
+        seen.add(e.id);
+        return true;
+      });
+
+      setCalendarEvents(sortEventsByDate(dedupedCalEvents));
       setLastUpdated(new Date());
     } catch (err) {
       console.error('Failed to refresh events:', err);
@@ -280,6 +317,53 @@ const TrainingSchedule = () => {
     setCurrentMonth(newDate);
   }, []);
 
+  // Helper: determine event location category from location string or summary
+  const getEventLocationCategory = event => {
+    const location = (event.location || '').toLowerCase();
+    const summary = (event.summary || '').toLowerCase();
+    if (location.includes('rockville') || summary.includes('rockville')) return 'rockville';
+    if (
+      location.includes('mt vernon') ||
+      location.includes('mt. vernon') ||
+      location.includes('mount vernon') ||
+      summary.includes('mt vernon') ||
+      summary.includes('mt. vernon') ||
+      summary.includes('mount vernon')
+    )
+      return 'mtvernon';
+    return null; // no specific location (e.g. at-home)
+  };
+
+  // Location filter chip definitions
+  const locationChips = [
+    { id: 'all', label: 'All Locations', color: 'bg-neutral-600', activeColor: 'bg-neutral-500' },
+    {
+      id: 'rockville',
+      label: 'Rockville',
+      color: 'bg-purple-500/20 text-purple-400 border-purple-500/50',
+      activeColor: 'bg-purple-500 text-white',
+    },
+    {
+      id: 'mtvernon',
+      label: 'Mt Vernon',
+      color: 'bg-blue-500/20 text-blue-400 border-blue-500/50',
+      activeColor: 'bg-blue-500 text-white',
+    },
+  ];
+
+  // Handle location filter chip toggle
+  const handleLocationFilterToggle = filterId => {
+    setActiveLocationFilters(prev => {
+      if (filterId === 'all') return ['all'];
+      const withoutAll = prev.filter(f => f !== 'all');
+      if (prev.includes(filterId)) {
+        const newFilters = withoutAll.filter(f => f !== filterId);
+        return newFilters.length === 0 ? ['all'] : newFilters;
+      }
+      return [...withoutAll, filterId];
+    });
+  };
+
   // Filter chip definitions
   const filterChips = [
     { id: 'all', label: 'All Events', color: 'bg-neutral-600', activeColor: 'bg-neutral-500' },
@@ -291,18 +375,25 @@ const TrainingSchedule = () => {
       count: campsEvents.length,
     },
     {
-      id: 'rockville',
-      label: 'Rockville',
+      id: 'smallGroup',
+      label: 'Small Group',
       color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50',
       activeColor: 'bg-cyan-500 text-white',
-      count: rockvilleEvents.length,
+      count: smallGroupEvents.length,
     },
     {
-      id: 'skating',
-      label: 'Mt Vernon',
+      id: 'privateSkating',
+      label: 'Private Skating',
       color: 'bg-green-500/20 text-green-400 border-green-500/50',
       activeColor: 'bg-green-500 text-white',
       count: skatingEvents.length,
+    },
+    {
+      id: 'atHome',
+      label: 'At Home Training',
+      color: 'bg-orange-500/20 text-orange-400 border-orange-500/50',
+      activeColor: 'bg-orange-500 text-white',
+      count: atHomeEvents.length,
     },
   ];
 
@@ -329,26 +420,44 @@ const TrainingSchedule = () => {
     });
   };
 
-  // Get unified filtered events based on active filter chips
+  // Get unified filtered events based on active filter chips and location filters
   const getFilteredEvents = useCallback(() => {
     // Add _eventType to each event for proper styling in EventList
     const campsWithType = campsEvents.map(e => ({ ...e, _eventType: 'camps' }));
-    const rockvilleWithType = rockvilleEvents.map(e => ({ ...e, _eventType: 'rockville' }));
-    const skatingWithType = skatingEvents.map(e => ({ ...e, _eventType: 'skating' }));
+    const smallGroupWithType = smallGroupEvents.map(e => ({ ...e, _eventType: 'smallGroup' }));
+    const skatingWithType = skatingEvents.map(e => ({ ...e, _eventType: 'privateSkating' }));
+    const atHomeWithType = atHomeEvents.map(e => ({ ...e, _eventType: 'at-home' }));
 
-    // If 'all' is selected, return all events
+    // Step 1: Filter by event type
+    let filtered;
     if (activeFilters.includes('all')) {
-      return sortEventsByDate([...campsWithType, ...rockvilleWithType, ...skatingWithType]);
+      filtered = [...campsWithType, ...smallGroupWithType, ...skatingWithType, ...atHomeWithType];
+    } else {
+      filtered = [];
+      if (activeFilters.includes('camps')) filtered.push(...campsWithType);
+      if (activeFilters.includes('smallGroup')) filtered.push(...smallGroupWithType);
+      if (activeFilters.includes('privateSkating')) filtered.push(...skatingWithType);
+      if (activeFilters.includes('atHome')) filtered.push(...atHomeWithType);
     }
 
-    // Otherwise, filter based on selected chips
-    const filtered = [];
-    if (activeFilters.includes('camps')) filtered.push(...campsWithType);
-    if (activeFilters.includes('rockville')) filtered.push(...rockvilleWithType);
-    if (activeFilters.includes('skating')) filtered.push(...skatingWithType);
+    // Step 2: Filter by location
+    if (!activeLocationFilters.includes('all')) {
+      filtered = filtered.filter(event => {
+        const category = getEventLocationCategory(event);
+        // Show events that match selected locations, or have no specific location (e.g. at-home)
+        return category && activeLocationFilters.includes(category);
+      });
+    }
 
     return sortEventsByDate(filtered);
-  }, [activeFilters, campsEvents, rockvilleEvents, skatingEvents]);
+  }, [
+    activeFilters,
+    activeLocationFilters,
+    campsEvents,
+    smallGroupEvents,
+    skatingEvents,
+    atHomeEvents,
+  ]);
 
   // Primary view tabs
   const viewTabs = [
@@ -413,16 +522,9 @@ const TrainingSchedule = () => {
                 <span className="font-semibold">
                   1-on-1 training, stick handling, shooting, and film analysis
                 </span>{' '}
-                — book an <span className="text-orange-400 font-semibold">At Home Training</span>{' '}
-                appointment in the{' '}
-                <button
-                  type="button"
-                  onClick={() => setActiveView('calendar')}
-                  className="text-orange-400 font-semibold underline hover:text-orange-300 transition-colors"
-                >
-                  Calendar
-                </button>
-                .
+                — browse available{' '}
+                <span className="text-orange-400 font-semibold">At Home Training</span> sessions
+                below.
               </p>
             </motion.div>
           </motion.div>
@@ -455,62 +557,59 @@ const TrainingSchedule = () => {
 
       {/* Main Content Section */}
       <section className="section-container">
-        {/* Header with View Toggle and Refresh */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-between items-center mb-6">
-          {/* Primary View Tabs */}
-          <div
-            role="tablist"
-            aria-label="View selection"
-            className="flex bg-primary rounded-xl p-1.5 border border-neutral-dark"
-          >
-            {viewTabs.map(tab => {
-              const Icon = tab.icon;
-              const isActive = activeView === tab.id;
-              const count = tab.id === 'list' ? totalListEvents : calendarEvents.length;
-
-              return (
-                <button
-                  key={tab.id}
-                  role="tab"
-                  aria-selected={isActive}
-                  aria-controls={`view-panel-${tab.id}`}
-                  id={`view-tab-${tab.id}`}
-                  onClick={() => setActiveView(tab.id)}
-                  className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-lg font-semibold transition-all duration-300 ${
-                    isActive
-                      ? 'bg-gradient-to-r from-teal-500 to-teal-700 text-white shadow-lg'
-                      : 'text-neutral-light hover:text-white hover:bg-neutral-dark/50'
-                  }`}
-                >
-                  <Icon className="text-lg" />
-                  <span className="hidden sm:inline">{tab.label}</span>
-                  {!listLoading && count > 0 && (
-                    <span
-                      className={`text-xs px-1.5 py-0.5 rounded-full ${
-                        isActive ? 'bg-white/20 text-white' : 'bg-neutral-dark text-neutral-light'
-                      }`}
-                    >
-                      {count}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Refresh Button with Auto-refresh indicator */}
+        {/* Header: View Toggle, Count, Refresh - single row on all breakpoints */}
+        <div className="flex items-center justify-between gap-3 mb-6">
+          {/* Left: View Tabs + count (desktop label) */}
           <div className="flex items-center gap-3">
-            <span className="text-xs text-neutral-light/60 hidden sm:inline">
+            <div
+              role="tablist"
+              aria-label="View selection"
+              className="flex bg-primary rounded-xl p-1.5 border border-neutral-dark"
+            >
+              {viewTabs.map(tab => {
+                const Icon = tab.icon;
+                const isActive = activeView === tab.id;
+
+                return (
+                  <button
+                    key={tab.id}
+                    role="tab"
+                    aria-selected={isActive}
+                    aria-controls={`view-panel-${tab.id}`}
+                    id={`view-tab-${tab.id}`}
+                    onClick={() => setActiveView(tab.id)}
+                    className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-lg font-semibold transition-all duration-300 ${
+                      isActive
+                        ? 'bg-gradient-to-r from-teal-500 to-teal-700 text-white shadow-lg'
+                        : 'text-neutral-light hover:text-white hover:bg-neutral-dark/50'
+                    }`}
+                  >
+                    <Icon className="text-lg" />
+                    <span className="hidden sm:inline">{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <span className="hidden sm:inline text-xs text-neutral-light/60">
               Auto-refreshes every 5 min
             </span>
+          </div>
+
+          {/* Right: Event count + Refresh */}
+          <div className="flex items-center gap-3">
+            {!listLoading && totalListEvents > 0 && (
+              <span className="text-sm text-neutral-light">
+                <span className="font-semibold text-white">{totalListEvents}</span> events
+              </span>
+            )}
             <button
               onClick={handleRefresh}
               disabled={listLoading || calendarLoading}
-              className="flex items-center gap-2 px-4 py-2 bg-primary border border-neutral-dark rounded-lg text-neutral-light hover:border-teal-500 transition-colors disabled:opacity-50"
+              className="flex items-center gap-2 px-3 py-2 bg-primary border border-neutral-dark rounded-lg text-neutral-light hover:border-teal-500 transition-colors disabled:opacity-50"
               aria-label="Refresh all events"
             >
               <HiRefresh
-                className={`text-xl ${listLoading || calendarLoading ? 'animate-spin' : ''}`}
+                className={`text-lg ${listLoading || calendarLoading ? 'animate-spin' : ''}`}
               />
               <span className="hidden sm:inline">Refresh</span>
             </button>
@@ -531,38 +630,77 @@ const TrainingSchedule = () => {
               exit="exit"
               transition={{ duration: 0.2 }}
             >
-              {/* Filter Chips */}
-              <div
-                role="group"
-                aria-label="Filter events by type"
-                className="flex flex-wrap gap-2 mb-6"
-              >
-                {filterChips.map(chip => {
-                  const isActive = activeFilters.includes(chip.id);
-                  return (
-                    <button
-                      key={chip.id}
-                      onClick={() => handleFilterToggle(chip.id)}
-                      aria-pressed={isActive}
-                      className={`px-4 py-2 rounded-full font-medium text-sm transition-all duration-200 border flex items-center gap-2 ${
-                        isActive
-                          ? chip.activeColor + ' border-transparent shadow-md'
-                          : chip.color + ' hover:opacity-80'
-                      }`}
-                    >
-                      {chip.label}
-                      {chip.count !== undefined && !listLoading && (
-                        <span
-                          className={`text-xs px-1.5 py-0.5 rounded-full ${
-                            isActive ? 'bg-white/20' : 'bg-black/20'
+              {/* Filter Chips - Two rows: Type + Location */}
+              <div className="space-y-3 mb-6">
+                {/* Type Filters */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-neutral-light/60 uppercase tracking-wider flex-shrink-0 w-14">
+                    Type
+                  </span>
+                  <div
+                    role="group"
+                    aria-label="Filter events by type"
+                    className="flex flex-wrap gap-2"
+                  >
+                    {filterChips.map(chip => {
+                      const isActive = activeFilters.includes(chip.id);
+                      return (
+                        <button
+                          key={chip.id}
+                          onClick={() => handleFilterToggle(chip.id)}
+                          aria-pressed={isActive}
+                          className={`px-3 py-1.5 rounded-full font-medium text-sm transition-all duration-200 border flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 ${
+                            isActive
+                              ? chip.activeColor + ' border-transparent shadow-md'
+                              : chip.color + ' hover:opacity-80'
                           }`}
                         >
-                          {chip.count}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
+                          {chip.label}
+                          {chip.count !== undefined && !listLoading && (
+                            <span
+                              className={`text-xs px-1.5 py-0.5 rounded-full ${
+                                isActive ? 'bg-white/20' : 'bg-black/20'
+                              }`}
+                            >
+                              {chip.count}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Location Filters */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-neutral-light/60 uppercase tracking-wider flex-shrink-0 w-14 flex items-center gap-1">
+                    <HiLocationMarker className="text-sm" />
+                    Area
+                  </span>
+                  <div
+                    role="group"
+                    aria-label="Filter events by location"
+                    className="flex flex-wrap gap-2"
+                  >
+                    {locationChips.map(chip => {
+                      const isActive = activeLocationFilters.includes(chip.id);
+                      return (
+                        <button
+                          key={chip.id}
+                          onClick={() => handleLocationFilterToggle(chip.id)}
+                          aria-pressed={isActive}
+                          className={`px-3 py-1.5 rounded-full font-medium text-sm transition-all duration-200 border flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 ${
+                            isActive
+                              ? chip.activeColor + ' border-transparent shadow-md'
+                              : chip.color + ' hover:opacity-80'
+                          }`}
+                        >
+                          {chip.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
 
               {/* List Error State */}
@@ -590,7 +728,7 @@ const TrainingSchedule = () => {
                 <div>
                   <AnimatePresence mode="wait">
                     <motion.div
-                      key={activeFilters.join('-')}
+                      key={`${activeFilters.join('-')}_${activeLocationFilters.join('-')}`}
                       variants={tabContentVariants}
                       initial="initial"
                       animate="animate"
@@ -643,11 +781,11 @@ const TrainingSchedule = () => {
                     style={{ clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)' }}
                     aria-hidden="true"
                   />
-                  <span className="text-neutral-light">Rockville Small Group</span>
+                  <span className="text-neutral-light">Small Group</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 bg-green-500" aria-hidden="true" />
-                  <span className="text-neutral-light">Mt Vernon Skating</span>
+                  <span className="text-neutral-light">Private Skating</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div

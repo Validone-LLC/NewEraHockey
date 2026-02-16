@@ -10,7 +10,7 @@ import { COLOR_TO_EVENT_TYPE, EVENT_TYPES } from '@/config/constants';
 /**
  * Categorize a single calendar event
  * @param {Object} event - Google Calendar event object
- * @returns {string} - 'camp', 'lesson', 'at_home_training', 'mt_vernon_skating', 'rockville_small_group', or 'other'
+ * @returns {string} - 'camp', 'lesson', 'at_home_training', 'mt_vernon_skating', 'small_group', or 'other'
  */
 export const categorizeEvent = event => {
   if (!event) return EVENT_TYPES.OTHER;
@@ -24,9 +24,13 @@ export const categorizeEvent = event => {
       normalized === EVENT_TYPES.LESSON ||
       normalized === EVENT_TYPES.AT_HOME_TRAINING ||
       normalized === EVENT_TYPES.MT_VERNON_SKATING ||
-      normalized === EVENT_TYPES.ROCKVILLE_SMALL_GROUP
+      normalized === EVENT_TYPES.SMALL_GROUP
     ) {
       return normalized;
+    }
+    // Backward compat: map old type to new
+    if (normalized === 'rockville_small_group') {
+      return EVENT_TYPES.SMALL_GROUP;
     }
   }
 
@@ -34,9 +38,9 @@ export const categorizeEvent = event => {
   // This is needed because some events share colors or need explicit title matching
   const title = (event.summary || '').toLowerCase();
 
-  // Rockville Small Group - check before color since title is definitive
-  if (title.includes('rockville small group')) {
-    return EVENT_TYPES.ROCKVILLE_SMALL_GROUP;
+  // Small Group - check before color since title is definitive
+  if (title.includes('small group')) {
+    return EVENT_TYPES.SMALL_GROUP;
   }
 
   // Mt Vernon events - Matches: "Mount Vernon...", "Mt Vernon...", "Mt. Vernon..."
@@ -79,7 +83,7 @@ export const filterEventsByType = (events, type) => {
 /**
  * Group events by category
  * @param {Array} events - Array of Google Calendar event objects
- * @returns {Object} - { camps: [], lessons: [], atHomeTraining: [], mtVernonSkating: [], rockvilleSmallGroup: [], other: [] }
+ * @returns {Object} - { camps: [], lessons: [], atHomeTraining: [], mtVernonSkating: [], smallGroup: [], other: [] }
  */
 export const groupEventsByType = events => {
   if (!events || !Array.isArray(events)) {
@@ -88,7 +92,7 @@ export const groupEventsByType = events => {
       lessons: [],
       atHomeTraining: [],
       mtVernonSkating: [],
-      rockvilleSmallGroup: [],
+      smallGroup: [],
       other: [],
     };
   }
@@ -104,8 +108,8 @@ export const groupEventsByType = events => {
         grouped.atHomeTraining.push(event);
       } else if (category === 'mt_vernon_skating') {
         grouped.mtVernonSkating.push(event);
-      } else if (category === 'rockville_small_group') {
-        grouped.rockvilleSmallGroup.push(event);
+      } else if (category === 'small_group') {
+        grouped.smallGroup.push(event);
       } else {
         grouped.other.push(event);
       }
@@ -116,7 +120,7 @@ export const groupEventsByType = events => {
       lessons: [],
       atHomeTraining: [],
       mtVernonSkating: [],
-      rockvilleSmallGroup: [],
+      smallGroup: [],
       other: [],
     }
   );
@@ -125,7 +129,7 @@ export const groupEventsByType = events => {
 /**
  * Get count of events by type
  * @param {Array} events - Array of Google Calendar event objects
- * @returns {Object} - { camps: 0, lessons: 0, atHomeTraining: 0, mtVernonSkating: 0, rockvilleSmallGroup: 0, other: 0, total: 0 }
+ * @returns {Object} - { camps: 0, lessons: 0, atHomeTraining: 0, mtVernonSkating: 0, smallGroup: 0, other: 0, total: 0 }
  */
 export const getEventCounts = events => {
   if (!events || !Array.isArray(events)) {
@@ -134,7 +138,7 @@ export const getEventCounts = events => {
       lessons: 0,
       atHomeTraining: 0,
       mtVernonSkating: 0,
-      rockvilleSmallGroup: 0,
+      smallGroup: 0,
       other: 0,
       total: 0,
     };
@@ -147,7 +151,7 @@ export const getEventCounts = events => {
     lessons: grouped.lessons.length,
     atHomeTraining: grouped.atHomeTraining.length,
     mtVernonSkating: grouped.mtVernonSkating.length,
-    rockvilleSmallGroup: grouped.rockvilleSmallGroup.length,
+    smallGroup: grouped.smallGroup.length,
     other: grouped.other.length,
     total: events.length,
   };
