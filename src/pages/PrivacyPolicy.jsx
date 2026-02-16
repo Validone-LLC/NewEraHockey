@@ -36,7 +36,11 @@ const PrivacyPolicy = () => {
                 How we protect and handle your information
               </p>
               <p className="text-sm text-neutral-text mt-4">
-                Last Updated: {privacyPolicy.lastUpdated}
+                Last Updated:{' '}
+                {new Date(privacyPolicy.lastUpdated).toLocaleDateString('en-US', {
+                  month: 'long',
+                  year: 'numeric',
+                })}
               </p>
             </motion.div>
           </div>
