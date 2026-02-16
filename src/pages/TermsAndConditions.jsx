@@ -36,7 +36,11 @@ const TermsAndConditions = () => {
                 Please review our terms of service
               </p>
               <p className="text-sm text-neutral-text mt-4">
-                Last Updated: {termsAndConditions.lastUpdated}
+                Last Updated:{' '}
+                {new Date(termsAndConditions.lastUpdated).toLocaleDateString('en-US', {
+                  month: 'long',
+                  year: 'numeric',
+                })}
               </p>
             </motion.div>
           </div>

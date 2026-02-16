@@ -40,7 +40,11 @@ const Waiver = () => {
                 Release of Liability, Assumption of Risk, and Indemnity Agreement
               </p>
               <p className="text-sm text-neutral-text mt-4">
-                Last Updated: {waiverData.lastUpdated}
+                Last Updated:{' '}
+                {new Date(waiverData.lastUpdated).toLocaleDateString('en-US', {
+                  month: 'long',
+                  year: 'numeric',
+                })}
               </p>
             </motion.div>
           </div>
