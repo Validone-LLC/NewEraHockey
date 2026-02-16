@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "January 2026",
+  "lastUpdated": "2026-02-14T05:57:50.072Z",
   "sections": [
     {
       "id": "introduction",
@@ -15,11 +15,11 @@
       "title": "Information We Collect",
       "content": [
         "We collect information that you provide directly to us when contacting us or expressing interest in our services:",
-        "\u2022 Personal Information: Name, email address, phone number",
-        "\u2022 Participant Information: Age, skill level, medical information relevant to training, emergency contact details (collected during in-person registration or consultation)",
-        "\u2022 Event Registration: When our event registration system is available, we will collect name, email address, and phone number only",
-        "\u2022 Communications: Messages, inquiries, and feedback you send to us through our contact form or social media",
-        "\u2022 Usage Data: Information about how you interact with our website, including IP address, browser type, pages visited, and access times"
+        "• Personal Information: Name, email address, phone number",
+        "• Participant Information: Age, skill level, medical information relevant to training, emergency contact details (collected during in-person registration or consultation)",
+        "• Event Registration: When our event registration system is available, we will collect name, email address, and phone number only",
+        "• Communications: Messages, inquiries, and feedback you send to us through our contact form or social media",
+        "• Usage Data: Information about how you interact with our website, including IP address, browser type, pages visited, and access times"
       ]
     },
     {
@@ -27,12 +27,12 @@
       "title": "How We Use Your Information",
       "content": [
         "We use the collected information for the following purposes:",
-        "\u2022 Program Administration: Managing inquiries, scheduling, and participant communications",
-        "\u2022 Service Delivery: Providing coaching, training programs, and related services",
-        "\u2022 Safety: Ensuring participant safety through emergency contact information and medical awareness",
-        "\u2022 Communication: Sending updates, confirmations, schedule changes, and promotional information about our programs",
-        "\u2022 Improvement: Analyzing usage patterns to enhance our services and website functionality",
-        "\u2022 Legal Compliance: Meeting legal obligations and protecting our rights"
+        "• Program Administration: Managing inquiries, scheduling, and participant communications",
+        "• Service Delivery: Providing coaching, training programs, and related services",
+        "• Safety: Ensuring participant safety through emergency contact information and medical awareness",
+        "• Communication: Sending updates, confirmations, schedule changes, and promotional information about our programs",
+        "• Improvement: Analyzing usage patterns to enhance our services and website functionality",
+        "• Legal Compliance: Meeting legal obligations and protecting our rights"
       ]
     },
     {
@@ -40,12 +40,12 @@
       "title": "Information Sharing and Disclosure",
       "content": [
         "We do not sell, trade, or rent your personal information to third parties. We may share information only in the following circumstances:",
-        "\u2022 Service Providers: With trusted third-party vendors who assist in operating our website or providing services (e.g., email service providers for contact form submissions)",
-        "\u2022 Facility Partners: With ice rink facilities where training sessions occur, for scheduling and access purposes",
-        "\u2022 Emergency Situations: With emergency responders or medical personnel if participant safety requires it",
-        "\u2022 Legal Requirements: When required by law, court order, or government regulation",
-        "\u2022 Business Transfers: In connection with any merger, sale of assets, or acquisition (participants would be notified of any such change)",
-        "\u2022 With Consent: When you explicitly authorize us to share information"
+        "• Service Providers: With trusted third-party vendors who assist in operating our website or providing services (e.g., email service providers for contact form submissions)",
+        "• Facility Partners: With ice rink facilities where training sessions occur, for scheduling and access purposes",
+        "• Emergency Situations: With emergency responders or medical personnel if participant safety requires it",
+        "• Legal Requirements: When required by law, court order, or government regulation",
+        "• Business Transfers: In connection with any merger, sale of assets, or acquisition (participants would be notified of any such change)",
+        "• With Consent: When you explicitly authorize us to share information"
       ]
     },
     {
@@ -114,11 +114,11 @@
       "title": "Your Privacy Rights",
       "content": [
         "You have certain rights regarding your personal information:",
-        "\u2022 Access: Request a copy of the personal information we hold about you",
-        "\u2022 Correction: Request correction of inaccurate or incomplete information",
-        "\u2022 Deletion: Request deletion of your personal information, subject to legal retention requirements",
-        "\u2022 Opt-Out: Unsubscribe from marketing communications at any time",
-        "\u2022 Objection: Object to certain processing of your information",
+        "• Access: Request a copy of the personal information we hold about you",
+        "• Correction: Request correction of inaccurate or incomplete information",
+        "• Deletion: Request deletion of your personal information, subject to legal retention requirements",
+        "• Opt-Out: Unsubscribe from marketing communications at any time",
+        "• Objection: Object to certain processing of your information",
         "To exercise these rights, please contact us using the information provided below. We will respond to your request within a reasonable timeframe."
       ]
     },
@@ -127,10 +127,10 @@
       "title": "California Privacy Rights",
       "content": [
         "California residents have additional rights under the California Consumer Privacy Act (CCPA):",
-        "\u2022 Right to know what personal information is collected, used, shared, or sold",
-        "\u2022 Right to delete personal information held by businesses",
-        "\u2022 Right to opt-out of sale of personal information (note: we do not sell personal information)",
-        "\u2022 Right to non-discrimination for exercising CCPA rights",
+        "• Right to know what personal information is collected, used, shared, or sold",
+        "• Right to delete personal information held by businesses",
+        "• Right to opt-out of sale of personal information (note: we do not sell personal information)",
+        "• Right to non-discrimination for exercising CCPA rights",
         "To exercise these rights, California residents may contact us as specified in this Privacy Policy."
       ]
     },

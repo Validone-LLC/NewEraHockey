@@ -231,11 +231,19 @@ export const fetchMtVernonSkating = async () => {
 };
 
 /**
- * Fetch only Rockville Small Group events
+ * Fetch only Small Group events
  * @returns {Promise<Object>}
  */
-export const fetchRockvilleSmallGroup = async () => {
-  return fetchEvents('rockville_small_group');
+export const fetchSmallGroup = async () => {
+  return fetchEvents('small_group');
+};
+
+/**
+ * Fetch only At Home Training events (all upcoming, not month-specific)
+ * @returns {Promise<Object>}
+ */
+export const fetchAtHomeTraining = async () => {
+  return fetchEvents('at_home_training');
 };
 
 /**
@@ -429,14 +437,14 @@ export const filterAvailableMtVernonSkating = events => {
 };
 
 /**
- * Filter out sold-out or incomplete Rockville Small Group events
+ * Filter out sold-out or incomplete Small Group events
  * Hides events marked as sold out via registrationData
  * Hides events missing required fields (price) to prevent incomplete listings
  *
- * @param {Array} events - Array of calendar events (pre-filtered to rockville_small_group type)
- * @returns {Array} - Only available Rockville Small Group events with complete info
+ * @param {Array} events - Array of calendar events (pre-filtered to small_group type)
+ * @returns {Array} - Only available Small Group events with complete info
  */
-export const filterAvailableRockvilleSmallGroup = events => {
+export const filterAvailableSmallGroup = events => {
   return events.filter(event => {
     // Hide sold out events
     if (isSoldOut(event)) return false;

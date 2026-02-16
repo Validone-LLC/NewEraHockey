@@ -111,10 +111,10 @@ exports.handler = async (event, context) => {
           break;
         }
 
-        // Parse players data for multi-player event types (At Home Training, Rockville Small Group)
+        // Parse players data for multi-player event types (At Home Training, Small Group)
         const isAtHomeTraining = eventType === 'at_home_training';
-        const isRockvilleSmallGroup = eventType === 'rockville_small_group';
-        const isMultiPlayerEvent = isAtHomeTraining || isRockvilleSmallGroup;
+        const isSmallGroup = eventType === 'small_group' || eventType === 'rockville_small_group';
+        const isMultiPlayerEvent = isAtHomeTraining || isSmallGroup;
         const players = isMultiPlayerEvent && playersData ? JSON.parse(playersData) : null;
 
         // Calculate actual player count for multi-player events
@@ -204,14 +204,14 @@ exports.handler = async (event, context) => {
           }
         }
 
-        // For Rockville Small Group: Update calendar with registration details
-        if (isRockvilleSmallGroup) {
+        // For Small Group: Update calendar with registration details
+        if (isSmallGroup) {
           try {
             const calendarUpdateUrl =
               process.env.DEPLOY_URL || process.env.URL || 'http://localhost:8888';
             const calendarFunctionUrl = `${calendarUpdateUrl}/.netlify/functions/calendar-update-event`;
 
-            // Construct formData for Rockville Small Group
+            // Construct formData for Small Group
             const formDataForCalendar = {
               players,
               guardianFirstName,
@@ -237,13 +237,13 @@ exports.handler = async (event, context) => {
 
             if (!calendarResponse.ok) {
               const errorText = await calendarResponse.text();
-              console.error('Calendar update failed for Rockville Small Group:', calendarResponse.status, errorText);
+              console.error('Calendar update failed for Small Group:', calendarResponse.status, errorText);
             } else {
               const calendarResult = await calendarResponse.json();
-              console.log('Rockville Small Group calendar updated successfully:', calendarResult);
+              console.log('Small Group calendar updated successfully:', calendarResult);
             }
           } catch (calendarError) {
-            console.error('Failed to update Rockville Small Group calendar (non-blocking):', calendarError.message);
+            console.error('Failed to update Small Group calendar (non-blocking):', calendarError.message);
           }
         }
 

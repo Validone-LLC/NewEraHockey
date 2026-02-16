@@ -124,8 +124,8 @@ export const FORM_CONFIGS = {
     },
   },
 
-  [EVENT_TYPES.ROCKVILLE_SMALL_GROUP]: {
-    label: 'Rockville Small Group',
+  [EVENT_TYPES.SMALL_GROUP]: {
+    label: 'Small Group',
     features: {
       multiPlayer: true, // Allow multiple siblings to be registered
       showAddress: false, // No parent address needed
@@ -138,7 +138,7 @@ export const FORM_CONFIGS = {
     leagueOptions: PLAYER_LEAGUE_OPTIONS,
     // Page display settings
     display: {
-      pageTitle: 'Rockville Small Group Registration',
+      pageTitle: 'Small Group Registration',
       pageSubtitle: 'Complete the form below to register for this small group session',
       sidebarTitle: 'Event Details',
       gradientClasses: 'from-cyan-400 to-cyan-600',

@@ -15,7 +15,7 @@ export const GOOGLE_CALENDAR_COLORS = {
   AT_HOME_BOOKED: '5', // Yellow (Banana)
   MT_VERNON_SKATING_AVAILABLE: '10', // Green (Basil) - available for registration
   MT_VERNON_SKATING_REGISTERED: '5', // Yellow (Banana) - already registered
-  ROCKVILLE_SMALL_GROUP: '7', // Peacock (Teal/Cyan) - Rockville Small Group lessons
+  SMALL_GROUP: '7', // Peacock (Teal/Cyan) - Small Group lessons
   DEV_ONLY: '8', // Graphite - dev-only events, hidden in production
 };
 
@@ -27,7 +27,7 @@ export const EVENT_TYPES = {
   LESSON: 'lesson',
   AT_HOME_TRAINING: 'at_home_training',
   MT_VERNON_SKATING: 'mt_vernon_skating',
-  ROCKVILLE_SMALL_GROUP: 'rockville_small_group',
+  SMALL_GROUP: 'small_group',
   OTHER: 'other',
 };
 
@@ -42,7 +42,7 @@ export const COLOR_TO_EVENT_TYPE = {
   [GOOGLE_CALENDAR_COLORS.AT_HOME_AVAILABLE]: EVENT_TYPES.AT_HOME_TRAINING,
   [GOOGLE_CALENDAR_COLORS.AT_HOME_BOOKED]: EVENT_TYPES.AT_HOME_TRAINING,
   [GOOGLE_CALENDAR_COLORS.MT_VERNON_SKATING_AVAILABLE]: EVENT_TYPES.MT_VERNON_SKATING,
-  [GOOGLE_CALENDAR_COLORS.ROCKVILLE_SMALL_GROUP]: EVENT_TYPES.ROCKVILLE_SMALL_GROUP,
+  [GOOGLE_CALENDAR_COLORS.SMALL_GROUP]: EVENT_TYPES.SMALL_GROUP,
 };
 
 /**
@@ -53,7 +53,7 @@ export const CALENDAR_DISPLAY_COLORS = {
   [EVENT_TYPES.LESSON]: '#3b82f6', // Blue
   [EVENT_TYPES.AT_HOME_TRAINING]: '#f97316', // Orange
   [EVENT_TYPES.MT_VERNON_SKATING]: '#22c55e', // Green (Basil-like)
-  [EVENT_TYPES.ROCKVILLE_SMALL_GROUP]: '#0891b2', // Peacock/Cyan
+  [EVENT_TYPES.SMALL_GROUP]: '#0891b2', // Peacock/Cyan
   [EVENT_TYPES.OTHER]: '#6b7280', // Gray
 };
 

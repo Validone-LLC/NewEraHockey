@@ -5,7 +5,6 @@ import SEO from '@components/common/SEO/SEO';
 import { galleryImages, galleryCategories } from '@data/galleryImages';
 import { galleryVideos } from '@data/videos';
 import { VideoGallery } from '@components/gallery';
-import { isFeatureEnabled } from '@/config/featureFlags';
 
 const BASE_URL = 'https://newerahockeytraining.com';
 
@@ -148,7 +147,7 @@ const Gallery = () => {
         </div>
 
         {/* Videos Section - controlled by feature flag */}
-        {isFeatureEnabled('instagramVideos') && galleryVideos.length > 0 && (
+        {galleryVideos.length > 0 && (
           <VideoGallery
             videos={galleryVideos}
             title={

@@ -28,17 +28,17 @@ const getTypeStyles = eventType => {
         badge: 'bg-red-500',
         label: 'Camp',
       };
-    case 'rockville':
+    case 'smallGroup':
       return {
         headerBg: 'bg-gradient-to-r from-cyan-500/20 to-cyan-700/10',
         badge: 'bg-cyan-500',
-        label: 'Rockville',
+        label: 'Small Group',
       };
-    case 'skating':
+    case 'privateSkating':
       return {
         headerBg: 'bg-gradient-to-r from-green-500/20 to-green-700/10',
         badge: 'bg-green-500',
-        label: 'Mt Vernon',
+        label: 'Private Skating',
       };
     case 'at-home':
       return {
@@ -118,9 +118,9 @@ const EventBottomSheet = ({ isOpen, onClose, event, eventType }) => {
       : actualEventType === 'camp'
         ? 'camps'
         : actualEventType === 'mt_vernon_skating'
-          ? 'skating'
-          : actualEventType === 'rockville_small_group'
-            ? 'rockville'
+          ? 'privateSkating'
+          : actualEventType === 'small_group'
+            ? 'smallGroup'
             : 'lessons');
 
   const typeStyles = getTypeStyles(displayEventType);
@@ -265,12 +265,13 @@ const EventBottomSheet = ({ isOpen, onClose, event, eventType }) => {
               )}
 
               {/* Warning Text */}
-              {warningText && (displayEventType === 'camps' || displayEventType === 'skating') && (
-                <div className="flex items-start gap-2 text-amber-400 text-sm">
-                  <span>⚠️</span>
-                  <span>{warningText}</span>
-                </div>
-              )}
+              {warningText &&
+                (displayEventType === 'camps' || displayEventType === 'privateSkating') && (
+                  <div className="flex items-start gap-2 text-amber-400 text-sm">
+                    <span>⚠️</span>
+                    <span>{warningText}</span>
+                  </div>
+                )}
             </div>
 
             {/* Footer Actions */}

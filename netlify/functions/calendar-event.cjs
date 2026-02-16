@@ -150,7 +150,7 @@ exports.handler = async (event, context) => {
 /**
  * Categorize calendar event based on extended properties, color, or keywords
  * @param {Object} event - Google Calendar event object
- * @returns {string} - 'camp', 'lesson', 'at_home_training', 'mt_vernon_skating', or 'other'
+ * @returns {string} - 'camp', 'lesson', 'at_home_training', 'mt_vernon_skating', 'small_group', or 'other'
  */
 function categorizeEvent(event) {
   if (!event) return 'other';
@@ -159,14 +159,24 @@ function categorizeEvent(event) {
   const eventType = event.extendedProperties?.shared?.eventType;
   if (eventType) {
     const normalized = eventType.toLowerCase();
-    if (['camp', 'lesson', 'at_home_training', 'mt_vernon_skating'].includes(normalized)) {
+    if (['camp', 'lesson', 'at_home_training', 'mt_vernon_skating', 'small_group'].includes(normalized)) {
       return normalized;
+    }
+    // Backward compat: map old type to new
+    if (normalized === 'rockville_small_group') {
+      return 'small_group';
     }
   }
 
-  // Method 2: Title-based detection (check before color for Mt Vernon events)
-  // This is needed because registered Mt Vernon events use yellow (same as AT_HOME_BOOKED)
+  // Method 2: Title-based detection (check before color for specific event types)
   const title = (event.summary || '').toLowerCase();
+
+  // Small Group - check before color since title is definitive
+  if (title.includes('small group')) {
+    return 'small_group';
+  }
+
+  // Mt Vernon events - check before color since registered events use yellow (same as AT_HOME_BOOKED)
   if (title.includes('mount vernon') || title.includes('mt vernon') || title.includes('mt. vernon')) {
     return 'mt_vernon_skating';
   }
@@ -178,6 +188,7 @@ function categorizeEvent(event) {
     '6': 'at_home_training', // Orange (Tangerine) - available slots
     '5': 'at_home_training', // Yellow (Banana) - booked slots
     '10': 'mt_vernon_skating', // Green (Basil) - available for registration
+    '7': 'small_group', // Peacock (Teal/Cyan)
   };
 
   if (event.colorId && colorMap[event.colorId]) {

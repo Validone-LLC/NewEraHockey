@@ -110,8 +110,8 @@ exports.handler = async (event, context) => {
 
     // For multi-player event types: validate player count and calculate total
     const isAtHomeTraining = calendarEvent.eventType === 'at_home_training';
-    const isRockvilleSmallGroup = calendarEvent.eventType === 'rockville_small_group';
-    const isMultiPlayerEvent = isAtHomeTraining || isRockvilleSmallGroup;
+    const isSmallGroup = calendarEvent.eventType === 'small_group' || calendarEvent.eventType === 'rockville_small_group';
+    const isMultiPlayerEvent = isAtHomeTraining || isSmallGroup;
     const playerCount = isMultiPlayerEvent && formData.players ? formData.players.length : 1;
     const totalPrice = isMultiPlayerEvent ? calendarEvent.price * playerCount : calendarEvent.price;
 
@@ -198,7 +198,7 @@ exports.handler = async (event, context) => {
 
         // Player information (backwards compatible)
         // For single player (camps/lessons): use formData fields directly
-        // For multi-player (at home, rockville small group): serialize players array to JSON
+        // For multi-player (at home, small group): serialize players array to JSON
         ...(isMultiPlayerEvent
           ? {
               playersData: JSON.stringify(formData.players),
