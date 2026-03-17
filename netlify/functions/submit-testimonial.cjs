@@ -14,6 +14,7 @@
 
 const { SESClient, SendEmailCommand } = require('@aws-sdk/client-ses');
 const { S3Client, GetObjectCommand, PutObjectCommand } = require('@aws-sdk/client-s3');
+const { escapeHtml } = require('./lib/htmlUtils.cjs');
 
 const awsCredentials = {
   accessKeyId: process.env.NEH_AWS_ACCESS_KEY_ID,
@@ -33,6 +34,28 @@ const s3Client = CMS_BUCKET
   ? new S3Client({ credentials: awsCredentials, region: awsRegion })
   : null;
 
+// Helper: Verify Turnstile token (shared pattern with contact.cjs)
+async function verifyTurnstile(token, ip) {
+  const secretKey = process.env.TURNSTILE_SECRET_KEY;
+  if (!secretKey) {
+    console.error('TURNSTILE_SECRET_KEY not configured');
+    return false;
+  }
+  try {
+    const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ secret: secretKey, response: token, remoteip: ip }),
+      signal: AbortSignal.timeout(5000),
+    });
+    const data = await response.json();
+    return data.success === true;
+  } catch (error) {
+    console.error('Turnstile verification failed:', error);
+    return false;
+  }
+}
+
 exports.handler = async (event, context) => {
   // Only allow POST requests
   if (event.httpMethod !== 'POST') {
@@ -42,12 +65,32 @@ exports.handler = async (event, context) => {
     };
   }
 
+  const clientIp =
+    event.headers['x-forwarded-for']?.split(',')[0] || event.headers['client-ip'] || 'unknown';
+
+  let testimonialData;
   try {
-    // Parse request body
-    const testimonialData = JSON.parse(event.body);
+    testimonialData = JSON.parse(event.body);
+  } catch {
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ error: 'Invalid request body' }),
+    };
+  }
+
+  try {
+
+    // 🍯 PROTECTION 1: Honeypot check
+    if (testimonialData.website && testimonialData.website.trim() !== '') {
+      console.log(`Honeypot triggered from IP: ${clientIp}`);
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ success: true, message: 'Testimonial submitted successfully' }),
+      };
+    }
 
     // Validate required fields
-    const { displayName, role, testimonial, rating } = testimonialData;
+    const { displayName, role, testimonial, rating, turnstileToken } = testimonialData;
     const teamName = testimonialData.teamName || '';
 
     if (!displayName || !role || !testimonial || !rating) {
@@ -60,8 +103,39 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Validate rating is between 1-5
-    if (rating < 1 || rating > 5) {
+    // Validate field lengths
+    if (displayName.length > 100) {
+      return { statusCode: 400, body: JSON.stringify({ error: 'Display name must be 100 characters or less' }) };
+    }
+    if (role.length > 100) {
+      return { statusCode: 400, body: JSON.stringify({ error: 'Role must be 100 characters or less' }) };
+    }
+    if (teamName && teamName.length > 100) {
+      return { statusCode: 400, body: JSON.stringify({ error: 'Team name must be 100 characters or less' }) };
+    }
+    if (testimonial.length > 2000) {
+      return { statusCode: 400, body: JSON.stringify({ error: 'Testimonial must be 2000 characters or less' }) };
+    }
+
+    // ✅ PROTECTION 2: Turnstile verification
+    if (!turnstileToken) {
+      console.log(`Missing Turnstile token from IP: ${clientIp}`);
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Verification required' }),
+      };
+    }
+    const isTurnstileValid = await verifyTurnstile(turnstileToken, clientIp);
+    if (!isTurnstileValid) {
+      console.log(`Turnstile verification failed from IP: ${clientIp}`);
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Verification failed' }),
+      };
+    }
+
+    // Validate rating is between 1-5 (must be an integer)
+    if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
       return {
         statusCode: 400,
         body: JSON.stringify({
@@ -131,8 +205,14 @@ async function sendTestimonialEmail(data) {
   // Generate star rating display
   const starRating = '⭐'.repeat(rating) + '☆'.repeat(5 - rating);
 
+  // Escape user input for safe HTML insertion
+  const safeDisplayName = escapeHtml(displayName);
+  const safeRole = escapeHtml(role);
+  const safeTeamName = escapeHtml(teamName);
+  const safeTestimonial = escapeHtml(testimonial);
+
   // Format display name with role and team (if provided)
-  const authorDisplay = teamName ? `${role} • ${teamName}` : role;
+  const authorDisplay = safeTeamName ? `${safeRole} • ${safeTeamName}` : safeRole;
 
   const emailParams = {
     Source: fromEmail,
@@ -141,7 +221,7 @@ async function sendTestimonialEmail(data) {
     },
     Message: {
       Subject: {
-        Data: `New Testimonial Submission: ${displayName}`,
+        Data: `New Testimonial Submission: ${safeDisplayName}`,
       },
       Body: {
         Html: {
@@ -155,16 +235,16 @@ async function sendTestimonialEmail(data) {
 
               <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
                 <h3 style="color: #333; margin-top: 0;">Testimonial Details</h3>
-                <p><strong>Display Name:</strong> ${displayName}</p>
-                <p><strong>Role:</strong> ${role}</p>
-                ${teamName ? `<p><strong>Team Name:</strong> ${teamName}</p>` : ''}
+                <p><strong>Display Name:</strong> ${safeDisplayName}</p>
+                <p><strong>Role:</strong> ${safeRole}</p>
+                ${safeTeamName ? `<p><strong>Team Name:</strong> ${safeTeamName}</p>` : ''}
                 <p><strong>Display As:</strong> ${authorDisplay}</p>
                 <p><strong>Rating:</strong> ${starRating} (${rating} out of 5)</p>
               </div>
 
               <div style="background-color: #fff; padding: 20px; border-left: 4px solid #14b8a6; margin: 20px 0;">
                 <h3 style="color: #333; margin-top: 0;">Testimonial</h3>
-                <p style="font-style: italic; line-height: 1.6; white-space: pre-wrap;">"${testimonial}"</p>
+                <p style="font-style: italic; line-height: 1.6; white-space: pre-wrap;">"${safeTestimonial}"</p>
               </div>
 
               <div style="background-color: #e0f2f1; padding: 15px; border-radius: 8px; margin: 20px 0;">

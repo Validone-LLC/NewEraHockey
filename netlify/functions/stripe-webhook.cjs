@@ -11,7 +11,7 @@
 
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const { SESClient, SendEmailCommand } = require('@aws-sdk/client-ses');
-const { addRegistration } = require('./lib/registrationStore.cjs');
+const { addRegistration, getEventRegistrations } = require('./lib/registrationStore.cjs');
 const { escapeHtml, formatDate, formatEventDateTime, buildGoogleCalendarUrl, calculateAge } = require('./lib/htmlUtils.cjs');
 
 // Initialize AWS SES v3 client for email notifications
@@ -102,20 +102,124 @@ exports.handler = async (event, context) => {
           emergencyPhone,
           emergencyRelationship,
           medicalNotes,
+          // Custom capacity from Google Calendar description (set by create-checkout-session)
+          customMaxCapacity,
         } = session.metadata || {};
 
         // Validate required metadata
         if (!eventId || !eventType) {
-          console.warn('⚠️  Skipping registration: missing eventId or eventType in metadata');
-          console.log('Session metadata:', session.metadata);
+          console.error('⚠️  CORRUPT METADATA: Session paid but missing eventId or eventType. Manual investigation required.');
+          console.error('Session ID:', session.id);
+          console.error('Session metadata:', JSON.stringify(session.metadata));
+
+          // Alert admin — customer was charged but registration cannot be created
+          const adminEmail = process.env.ADMIN_EMAIL;
+          const fromEmail = process.env.SES_FROM_EMAIL || 'noreply@newerahockeytraining.com';
+          if (adminEmail) {
+            try {
+              await sesClient.send(new SendEmailCommand({
+                Source: fromEmail,
+                Destination: { ToAddresses: [adminEmail] },
+                Message: {
+                  Subject: { Data: '⚠️ Payment Alert: Registration Could Not Be Saved — Manual Action Required' },
+                  Body: {
+                    Html: {
+                      Data: `
+                        <div style="font-family: Arial, sans-serif; max-width: 600px;">
+                          <h2 style="color: #ef4444;">Payment Alert — Manual Action Required</h2>
+                          <p>A payment was received but the registration could not be saved because the event metadata was missing or corrupted in the Stripe session.</p>
+                          <table style="border-collapse: collapse; width: 100%;">
+                            <tr><td style="padding: 6px; font-weight: bold;">Stripe Session:</td><td style="padding: 6px;">${session.id}</td></tr>
+                            <tr><td style="padding: 6px; font-weight: bold;">Amount Paid:</td><td style="padding: 6px;">$${(session.amount_total / 100).toFixed(2)}</td></tr>
+                            <tr><td style="padding: 6px; font-weight: bold;">Customer Email:</td><td style="padding: 6px;">${session.customer_email || 'unknown'}</td></tr>
+                            <tr><td style="padding: 6px; font-weight: bold;">Raw Metadata:</td><td style="padding: 6px; font-size: 12px;">${JSON.stringify(session.metadata)}</td></tr>
+                          </table>
+                          <p style="margin-top: 20px; color: #6b7280;">Review the session in the <a href="https://dashboard.stripe.com/payments/${session.payment_intent}">Stripe Dashboard</a> and either manually register the customer or issue a refund.</p>
+                        </div>
+                      `,
+                    },
+                  },
+                },
+              }));
+              console.log('Corrupt metadata alert sent to admin');
+            } catch (alertError) {
+              console.error('Failed to send corrupt metadata alert:', alertError.message);
+            }
+          }
           break;
+        }
+
+        // Idempotency guard: skip if this Stripe session was already processed.
+        // Stripe may retry webhooks on timeout, which would otherwise create duplicates.
+        try {
+          const existing = await getEventRegistrations(eventId);
+          const alreadyProcessed = existing.registrations?.some(
+            (r) => r.id === session.id || r.stripePaymentId === session.payment_intent
+          );
+          if (alreadyProcessed) {
+            console.log(`Duplicate webhook: session ${session.id} already registered for event ${eventId}. Skipping.`);
+            return {
+              statusCode: 200,
+              body: JSON.stringify({ received: true, skipped: 'duplicate' }),
+            };
+          }
+        } catch (idempotencyError) {
+          // If we can't check, proceed — addRegistration will still work correctly
+          console.warn('Idempotency check failed (non-blocking):', idempotencyError.message);
         }
 
         // Parse players data for multi-player event types (At Home Training, Small Group)
         const isAtHomeTraining = eventType === 'at_home_training';
         const isSmallGroup = eventType === 'small_group' || eventType === 'rockville_small_group';
         const isMultiPlayerEvent = isAtHomeTraining || isSmallGroup;
-        const players = isMultiPlayerEvent && playersData ? JSON.parse(playersData) : null;
+
+        let players = null;
+        if (isMultiPlayerEvent && playersData) {
+          try {
+            players = JSON.parse(playersData);
+          } catch (parseError) {
+            // Corrupted playersData is deterministic — retrying won't fix it.
+            // Alert admin and return 200 to stop Stripe retrying this webhook.
+            console.error('⚠️  CORRUPT PLAYERS DATA: Could not parse playersData for session', session.id);
+            console.error('Raw playersData:', playersData);
+
+            const adminEmail = process.env.ADMIN_EMAIL;
+            const fromEmail = process.env.SES_FROM_EMAIL || 'noreply@newerahockeytraining.com';
+            if (adminEmail) {
+              try {
+                await sesClient.send(new SendEmailCommand({
+                  Source: fromEmail,
+                  Destination: { ToAddresses: [adminEmail] },
+                  Message: {
+                    Subject: { Data: '⚠️ Payment Alert: Player Data Corrupted — Manual Action Required' },
+                    Body: {
+                      Html: {
+                        Data: `
+                          <div style="font-family: Arial, sans-serif; max-width: 600px;">
+                            <h2 style="color: #ef4444;">Payment Alert — Manual Action Required</h2>
+                            <p>A payment was received but the player data could not be parsed from the Stripe session metadata.</p>
+                            <table style="border-collapse: collapse; width: 100%;">
+                              <tr><td style="padding: 6px; font-weight: bold;">Stripe Session:</td><td style="padding: 6px;">${session.id}</td></tr>
+                              <tr><td style="padding: 6px; font-weight: bold;">Amount Paid:</td><td style="padding: 6px;">$${(session.amount_total / 100).toFixed(2)}</td></tr>
+                              <tr><td style="padding: 6px; font-weight: bold;">Customer Email:</td><td style="padding: 6px;">${session.customer_email || 'unknown'}</td></tr>
+                              <tr><td style="padding: 6px; font-weight: bold;">Event:</td><td style="padding: 6px;">${eventSummary || eventId}</td></tr>
+                              <tr><td style="padding: 6px; font-weight: bold;">Raw playersData:</td><td style="padding: 6px; font-size: 12px;">${playersData}</td></tr>
+                            </table>
+                            <p style="margin-top: 20px; color: #6b7280;">Review the session in the <a href="https://dashboard.stripe.com/payments/${session.payment_intent}">Stripe Dashboard</a> and manually register the customer or issue a refund.</p>
+                          </div>
+                        `,
+                      },
+                    },
+                  },
+                }));
+                console.log('Corrupt players data alert sent to admin');
+              } catch (alertError) {
+                console.error('Failed to send corrupt players data alert:', alertError.message);
+              }
+            }
+            break;
+          }
+        }
 
         // Calculate actual player count for multi-player events
         const actualPlayerCount = isMultiPlayerEvent && players ? players.length : 1;
@@ -144,7 +248,63 @@ exports.handler = async (event, context) => {
           status: 'confirmed',
         };
 
-        const registrationData = await addRegistration(eventId, eventType, regPayload, actualPlayerCount);
+        let registrationData;
+        try {
+          const parsedCustomCapacity = customMaxCapacity ? parseInt(customMaxCapacity, 10) : null;
+          registrationData = await addRegistration(eventId, eventType, regPayload, actualPlayerCount, parsedCustomCapacity);
+        } catch (regError) {
+          if (regError.message === 'Event is sold out') {
+            // Someone paid after capacity was reached. Return 200 to stop Stripe
+            // retries (retrying won't help — event is still full). Alert admin so
+            // a manual refund can be issued from the Stripe Dashboard.
+            console.error(`⚠️  OVERSELL: Session ${session.id} paid for sold-out event ${eventId} (${eventSummary}). Manual refund required.`);
+            console.error(`   Guardian: ${guardianFirstName} ${guardianLastName} <${guardianEmail}>`);
+            console.error(`   Amount: $${(session.amount_total / 100).toFixed(2)}`);
+
+            const adminEmail = process.env.ADMIN_EMAIL;
+            const fromEmail = process.env.SES_FROM_EMAIL || 'noreply@newerahockeytraining.com';
+            if (adminEmail) {
+              try {
+                await sesClient.send(new SendEmailCommand({
+                  Source: fromEmail,
+                  Destination: { ToAddresses: [adminEmail] },
+                  Message: {
+                    Subject: { Data: `⚠️ Oversell Alert: ${eventSummary} — Manual Refund Required` },
+                    Body: {
+                      Html: {
+                        Data: `
+                          <div style="font-family: Arial, sans-serif; max-width: 600px;">
+                            <h2 style="color: #ef4444;">Oversell Alert — Manual Refund Required</h2>
+                            <p>A payment was received for a <strong>sold-out event</strong>. The registration could not be saved. Please issue a manual refund via the Stripe Dashboard.</p>
+                            <table style="border-collapse: collapse; width: 100%;">
+                              <tr><td style="padding: 6px; font-weight: bold;">Event:</td><td style="padding: 6px;">${eventSummary}</td></tr>
+                              <tr><td style="padding: 6px; font-weight: bold;">Event ID:</td><td style="padding: 6px;">${eventId}</td></tr>
+                              <tr><td style="padding: 6px; font-weight: bold;">Stripe Session:</td><td style="padding: 6px;">${session.id}</td></tr>
+                              <tr><td style="padding: 6px; font-weight: bold;">Guardian:</td><td style="padding: 6px;">${guardianFirstName} ${guardianLastName}</td></tr>
+                              <tr><td style="padding: 6px; font-weight: bold;">Guardian Email:</td><td style="padding: 6px;">${guardianEmail}</td></tr>
+                              <tr><td style="padding: 6px; font-weight: bold;">Amount Paid:</td><td style="padding: 6px;">$${(session.amount_total / 100).toFixed(2)}</td></tr>
+                            </table>
+                            <p style="margin-top: 20px; color: #6b7280;">Go to <a href="https://dashboard.stripe.com/payments/${session.payment_intent}">Stripe Dashboard</a> to issue the refund.</p>
+                          </div>
+                        `,
+                      },
+                    },
+                  },
+                }));
+                console.log('Oversell alert email sent to admin');
+              } catch (alertError) {
+                console.error('Failed to send oversell alert email:', alertError.message);
+              }
+            }
+
+            return {
+              statusCode: 200,
+              body: JSON.stringify({ received: true, warning: 'event_sold_out', sessionId: session.id }),
+            };
+          }
+          // Re-throw unexpected errors so Stripe retries (correct behaviour for server errors)
+          throw regError;
+        }
 
         console.log(`Registration complete for event ${eventId}:`, {
           eventSummary,
@@ -182,7 +342,10 @@ exports.handler = async (event, context) => {
 
             const calendarResponse = await fetch(calendarFunctionUrl, {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: {
+                'Content-Type': 'application/json',
+                'x-internal-secret': process.env.CALENDAR_UPDATE_SECRET || '',
+              },
               body: JSON.stringify({
                 eventId,
                 formData: formDataForCalendar,
@@ -227,7 +390,10 @@ exports.handler = async (event, context) => {
 
             const calendarResponse = await fetch(calendarFunctionUrl, {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: {
+                'Content-Type': 'application/json',
+                'x-internal-secret': process.env.CALENDAR_UPDATE_SECRET || '',
+              },
               body: JSON.stringify({
                 eventId,
                 formData: formDataForCalendar,
@@ -278,7 +444,10 @@ exports.handler = async (event, context) => {
 
             const calendarResponse = await fetch(calendarFunctionUrl, {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: {
+                'Content-Type': 'application/json',
+                'x-internal-secret': process.env.CALENDAR_UPDATE_SECRET || '',
+              },
               body: JSON.stringify({
                 eventId,
                 formData: formDataForCalendar,

@@ -29,7 +29,7 @@ let syncToken = null;
 let pollingInterval = null;
 
 // Cache configuration
-const CACHE_TTL = 60 * 1000; // 60 seconds in milliseconds (reduced for real-time updates)
+const CACHE_TTL = 15 * 1000; // 15 seconds — matches API Cache-Control max-age
 const CACHE_KEY_PREFIX = 'calendar_events_';
 
 /**
@@ -107,8 +107,8 @@ export const fetchEventById = async eventId => {
     const url = new URL('/.netlify/functions/calendar-event', window.location.origin);
     url.searchParams.set('eventId', eventId);
 
-    // Fetch from Netlify function
-    const response = await fetch(url.toString());
+    // Fetch from Netlify function — bypass browser cache for fresh registration data
+    const response = await fetch(url.toString(), { cache: 'no-store' });
 
     if (!response.ok) {
       const errorData = await response.json();
