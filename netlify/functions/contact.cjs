@@ -30,6 +30,7 @@ async function verifyTurnstile(token, ip) {
         response: token,
         remoteip: ip,
       }),
+      signal: AbortSignal.timeout(5000),
     });
 
     const data = await response.json();
@@ -78,9 +79,20 @@ exports.handler = async event => {
   const clientIp =
     event.headers['x-forwarded-for']?.split(',')[0] || event.headers['client-ip'] || 'unknown';
 
+  let parsedBody;
+  try {
+    parsedBody = JSON.parse(event.body);
+  } catch {
+    return {
+      statusCode: 400,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ error: 'Invalid request body' }),
+    };
+  }
+
   try {
     // Parse form data
-    const { name, email, phone, message, website, turnstileToken } = JSON.parse(event.body);
+    const { name, email, phone, message, website, turnstileToken } = parsedBody;
 
     // 🍯 PROTECTION 1: Honeypot Check
     if (website && website.trim() !== '') {
@@ -102,6 +114,15 @@ exports.handler = async event => {
         statusCode: 400,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ error: 'Name, email, and message are required' }),
+      };
+    }
+
+    // Validate email format
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return {
+        statusCode: 400,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'Invalid email address' }),
       };
     }
 

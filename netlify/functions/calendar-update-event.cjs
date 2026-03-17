@@ -1,5 +1,22 @@
 const { GoogleAuth } = require('google-auth-library');
 const { google } = require('googleapis');
+const crypto = require('crypto');
+
+// Allowed origins for CORS — internal endpoint called by stripe-webhook
+const ALLOWED_ORIGINS = [
+  'https://newerahockeytraining.com',
+  'https://www.newerahockeytraining.com',
+  'https://newerahockey.netlify.app',
+];
+
+function isAllowedOrigin(origin) {
+  if (!origin) return false;
+  if (ALLOWED_ORIGINS.includes(origin)) return true;
+  if (origin.match(/^https:\/\/[a-z0-9-]+--newerahockey\.netlify\.app$/)) return true;
+  if (origin.match(/^http:\/\/localhost:\d+$/)) return true;
+  if (origin.match(/^http:\/\/127\.0\.0\.1:\d+$/)) return true;
+  return false;
+}
 
 /**
  * Calendar Update Event - Netlify Function
@@ -64,32 +81,23 @@ function formatBookingDetails(formData, eventType) {
 }
 
 /**
- * Find paired time slot on same day
- * If booked 3:30pm, find 5:00pm (and vice versa)
+ * Find paired (unbooked) At Home Training slot on the same day.
+ *
+ * Logic: any other Orange (#6) At Home Training event on the same calendar
+ * day that is NOT the one just booked is considered the paired slot.
+ * This is time-agnostic — works for any slot times, not just 3:30/5:00.
  */
-async function findPairedSlot(calendar, calendarId, bookedEventId, slotDate, bookedTime) {
+async function findPairedSlot(calendar, calendarId, bookedEventId, slotDate) {
   try {
-    console.log('Finding paired slot for:', { bookedEventId, slotDate, bookedTime });
+    console.log('Finding paired slot for:', { bookedEventId, slotDate });
 
-    // Normalize the booked time (could be "3:30 PM" or "3:30pm" etc.)
-    const normalizedBookedTime = bookedTime.toLowerCase().replace(/\s+/g, '');
-
-    // Determine paired time based on booked time
-    let pairedTimeHour;
-    if (normalizedBookedTime.includes('3:30')) {
-      pairedTimeHour = '5'; // Looking for 5:00pm slot
-    } else if (normalizedBookedTime.includes('5:00') || normalizedBookedTime.includes('5pm')) {
-      pairedTimeHour = '3'; // Looking for 3:30pm slot
-    } else {
-      console.log('Unknown time slot format:', bookedTime, '(normalized:', normalizedBookedTime, ')');
-      return null;
-    }
-
-    console.log('Looking for paired slot with hour:', pairedTimeHour);
-
-    // Search for events on same date
-    const startOfDay = new Date(slotDate + 'T00:00:00');
-    const endOfDay = new Date(slotDate + 'T23:59:59');
+    // Use Eastern Time offset to build day boundaries so we match the
+    // business calendar regardless of the server's timezone (UTC in Lambda).
+    // EST = UTC-5, EDT = UTC-4. Using -5 is safe: worst case we include
+    // an extra hour on each side, which doesn't cause false positives
+    // because we still filter by date string and color.
+    const startOfDay = new Date(`${slotDate}T00:00:00-05:00`);
+    const endOfDay = new Date(`${slotDate}T23:59:59-05:00`);
 
     console.log('Searching events between:', startOfDay.toISOString(), 'and', endOfDay.toISOString());
 
@@ -103,42 +111,22 @@ async function findPairedSlot(calendar, calendarId, bookedEventId, slotDate, boo
     const events = response.data.items || [];
     console.log('Found', events.length, 'events on this day');
 
-    // Find event with paired time and Orange color (#6)
     for (const event of events) {
-      if (event.id === bookedEventId) {
-        console.log('Skipping booked event:', event.id);
-        continue;
-      }
+      if (event.id === bookedEventId) continue;
 
-      const eventSummary = event.summary || '';
-      const eventColorId = event.colorId;
-      const isOrange = eventColorId === '6';
-      const isAtHomeTraining = eventSummary.toLowerCase().includes('at home') ||
-                                eventSummary.toLowerCase().includes('training');
-
-      // Check if this event's start time matches the paired hour
-      const eventStartTime = event.start?.dateTime;
-      let eventHour = null;
-      if (eventStartTime) {
-        const eventDate = new Date(eventStartTime);
-        eventHour = eventDate.getHours();
-        // Convert 24h to check: 15 = 3pm, 17 = 5pm
-        if (eventHour === 15) eventHour = '3';
-        else if (eventHour === 17) eventHour = '5';
-        else eventHour = String(eventHour);
-      }
+      const eventSummary = (event.summary || '').toLowerCase();
+      const isOrange = event.colorId === '6';
+      const isAtHomeTraining = eventSummary.includes('at home') || eventSummary.includes('training');
 
       console.log('Checking event:', {
         id: event.id,
-        summary: eventSummary,
-        colorId: eventColorId,
+        summary: event.summary,
+        colorId: event.colorId,
         isOrange,
         isAtHomeTraining,
-        eventHour,
-        pairedTimeHour
       });
 
-      if (isOrange && isAtHomeTraining && eventHour === pairedTimeHour) {
+      if (isOrange && isAtHomeTraining) {
         console.log('Found paired slot to delete:', event.id);
         return event.id;
       }
@@ -156,9 +144,12 @@ async function findPairedSlot(calendar, calendarId, bookedEventId, slotDate, boo
  * Main handler
  */
 exports.handler = async (event) => {
-  // CORS headers
+  const origin = event.headers.origin || event.headers.Origin || '';
+  const allowedOrigin = isAllowedOrigin(origin) ? origin : ALLOWED_ORIGINS[0];
+
+  // CORS headers — restricted to known origins (internal endpoint)
   const headers = {
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': allowedOrigin,
     'Access-Control-Allow-Headers': 'Content-Type',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
   };
@@ -168,14 +159,59 @@ exports.handler = async (event) => {
     return { statusCode: 200, headers, body: '' };
   }
 
+  // Verify internal secret — this endpoint is only for internal calls from stripe-webhook
+  const expectedSecret = process.env.CALENDAR_UPDATE_SECRET;
+  if (!expectedSecret) {
+    console.error('CALENDAR_UPDATE_SECRET not configured');
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ error: 'Server configuration error' }),
+    };
+  }
+
+  const providedSecret = event.headers['x-internal-secret'] || event.headers['X-Internal-Secret'] || '';
+  const secretsMatch =
+    providedSecret.length === expectedSecret.length &&
+    crypto.timingSafeEqual(Buffer.from(providedSecret), Buffer.from(expectedSecret));
+
+  if (!secretsMatch) {
+    console.warn('Unauthorized request to calendar-update-event');
+    return {
+      statusCode: 401,
+      headers,
+      body: JSON.stringify({ error: 'Unauthorized' }),
+    };
+  }
+
+  let parsedBody;
   try {
-    const { eventId, formData, eventType, slotDate, slotTime } = JSON.parse(event.body);
+    parsedBody = JSON.parse(event.body);
+  } catch {
+    return {
+      statusCode: 400,
+      headers,
+      body: JSON.stringify({ error: 'Invalid request body' }),
+    };
+  }
+
+  try {
+    const { eventId, formData, eventType, slotDate, slotTime } = parsedBody;
 
     if (!eventId || !formData || !eventType) {
       return {
         statusCode: 400,
         headers,
         body: JSON.stringify({ error: 'Missing required fields: eventId, formData, eventType' }),
+      };
+    }
+
+    // Ensure players is an array (required for formatBookingDetails)
+    if (!Array.isArray(formData.players) || formData.players.length === 0) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ error: 'formData.players must be a non-empty array' }),
       };
     }
 
@@ -252,8 +288,8 @@ exports.handler = async (event) => {
     // 4. Find and delete paired time slot (At Home Training only - not for Mt Vernon Skating)
     let pairedEventDeleted = false;
     const isAtHomeTraining = eventType === 'at_home_training';
-    if (isAtHomeTraining && slotDate && slotTime) {
-      const pairedEventId = await findPairedSlot(calendar, calendarId, eventId, slotDate, slotTime);
+    if (isAtHomeTraining && slotDate) {
+      const pairedEventId = await findPairedSlot(calendar, calendarId, eventId, slotDate);
 
       if (pairedEventId) {
         await calendar.events.delete({
@@ -286,7 +322,7 @@ exports.handler = async (event) => {
       headers,
       body: JSON.stringify({
         error: 'Failed to update calendar',
-        details: error.message,
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined,
       }),
     };
   }

@@ -1,5 +1,23 @@
 const { GoogleAuth } = require('google-auth-library');
 const { google } = require('googleapis');
+const crypto = require('crypto');
+
+// Allowed origins for CORS — admin write endpoint
+const ALLOWED_ORIGINS = [
+  'https://admin.newerahockeytraining.com',
+  'https://newerahockeytraining.com',
+  'https://www.newerahockeytraining.com',
+  'https://newerahockey.netlify.app',
+];
+
+function isAllowedOrigin(origin) {
+  if (!origin) return false;
+  if (ALLOWED_ORIGINS.includes(origin)) return true;
+  if (origin.match(/^https:\/\/[a-z0-9-]+--newerahockey\.netlify\.app$/)) return true;
+  if (origin.match(/^http:\/\/localhost:\d+$/)) return true;
+  if (origin.match(/^http:\/\/127\.0\.0\.1:\d+$/)) return true;
+  return false;
+}
 
 /**
  * Netlify Function: Batch Update Event Extended Properties
@@ -28,11 +46,15 @@ const { google } = require('googleapis');
  */
 
 exports.handler = async (event, context) => {
-  // CORS headers
+  const origin = event.headers.origin || event.headers.Origin || '';
+  const allowedOrigin = isAllowedOrigin(origin) ? origin : ALLOWED_ORIGINS[0];
+
+  // CORS headers — restricted to known origins
   const headers = {
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': allowedOrigin,
     'Access-Control-Allow-Headers': 'Content-Type, x-admin-secret',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Credentials': 'true',
     'Content-Type': 'application/json',
   };
 
@@ -67,7 +89,11 @@ exports.handler = async (event, context) => {
       };
     }
 
-    if (adminSecret !== expectedSecret) {
+    const secretsMatch =
+      adminSecret != null &&
+      adminSecret.length === expectedSecret.length &&
+      crypto.timingSafeEqual(Buffer.from(adminSecret), Buffer.from(expectedSecret));
+    if (!secretsMatch) {
       console.warn('Invalid admin secret provided');
       return {
         statusCode: 401,
@@ -80,7 +106,16 @@ exports.handler = async (event, context) => {
     }
 
     // Parse request body
-    const { updates } = JSON.parse(event.body);
+    let updates;
+    try {
+      ({ updates } = JSON.parse(event.body));
+    } catch {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ error: 'Invalid request body' }),
+      };
+    }
 
     if (!Array.isArray(updates) || updates.length === 0) {
       return {
@@ -162,7 +197,7 @@ exports.handler = async (event, context) => {
         await calendar.events.patch({
           calendarId: calendarId,
           eventId: eventId,
-          resource: {
+          requestBody: {
             extendedProperties: extendedProperties,
           },
         });

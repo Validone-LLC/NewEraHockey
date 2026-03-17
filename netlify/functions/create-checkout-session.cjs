@@ -1,4 +1,7 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const { GoogleAuth } = require('google-auth-library');
+const { google } = require('googleapis');
+const { getEventRegistrations, DEFAULT_CAPACITY } = require('./lib/registrationStore.cjs');
 
 /**
  * Calculate age from date of birth
@@ -19,17 +22,90 @@ function calculateAge(dateOfBirth) {
 }
 
 /**
+ * Parse price from event description (server-side authoritative source)
+ * Looks for patterns like "Price: $350", "$350.00", "Price: 350"
+ * @param {string} description - Event description
+ * @returns {number|null} - Price in dollars, or null if not found
+ */
+function parsePriceFromDescription(description) {
+  if (!description) return null;
+  const pricePattern1 = /price:\s*\$?(\d+(?:\.\d{2})?)/i;
+  const match1 = description.match(pricePattern1);
+  if (match1) return parseFloat(match1[1]);
+  const pricePattern2 = /\$(\d+(?:\.\d{2})?)/;
+  const match2 = description.match(pricePattern2);
+  if (match2) return parseFloat(match2[1]);
+  return null;
+}
+
+/**
+ * Parse custom capacity from event description.
+ * Same logic as calendarUtils.cjs parseSpotsFromDescription.
+ */
+function parseSpotsFromDescription(description) {
+  if (!description) return null;
+  const spotsPattern = /(?:spots?|capacity|slots?):\s*(\d+)/i;
+  const match = description.match(spotsPattern);
+  if (match) {
+    const spots = parseInt(match[1], 10);
+    if (spots >= 1 && spots <= 100) return spots;
+  }
+  return null;
+}
+
+/**
+ * Fetch the authoritative price and summary for an event directly from Google Calendar.
+ * This prevents clients from submitting a manipulated price.
+ * @param {string} eventId - Google Calendar event ID
+ * @returns {Promise<{price: number, summary: string, start: object, end: object}>}
+ */
+async function fetchCalendarEventData(eventId) {
+  const serviceAccountKey = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
+  if (!serviceAccountKey) {
+    throw new Error('GOOGLE_SERVICE_ACCOUNT_KEY not configured');
+  }
+
+  const credentials = JSON.parse(serviceAccountKey);
+  const calendarId = process.env.CALENDAR_ID || 'coachwill@newerahockeytraining.com';
+
+  const auth = new GoogleAuth({
+    credentials,
+    scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
+    clientOptions: { subject: calendarId },
+  });
+
+  const client = await auth.getClient();
+  const calendar = google.calendar({ version: 'v3', auth: client });
+
+  const response = await calendar.events.get({ calendarId, eventId });
+  const calEvent = response.data;
+
+  const price = parsePriceFromDescription(calEvent.description);
+  const customSpots = parseSpotsFromDescription(calEvent.description);
+  return {
+    price,
+    customSpots,
+    summary: calEvent.summary || '',
+    start: calEvent.start,
+    end: calEvent.end,
+  };
+}
+
+/**
  * Netlify Function: Create Stripe Checkout Session
  *
- * Creates a Stripe Checkout session for event registration payment
+ * Creates a Stripe Checkout session for event registration payment.
+ * Price is fetched server-side from Google Calendar — the client-provided
+ * price is ignored to prevent price manipulation.
  *
  * Environment Variables Required:
  * - STRIPE_SECRET_KEY: Stripe secret key (sandbox or production)
- * - VITE_CONTACT_EMAIL: Email for receipt_email
+ * - GOOGLE_SERVICE_ACCOUNT_KEY: Service account JSON for Calendar price lookup
+ * - CALENDAR_ID: Calendar ID (default: coachwill@newerahockeytraining.com)
  *
  * Request Body:
  * {
- *   event: { id, summary, price },
+ *   event: { id, eventType, summary, start, end, slotDate, slotTime },
  *   formData: { player info, guardian info, emergency contact }
  * }
  */
@@ -81,18 +157,29 @@ exports.handler = async (event, context) => {
     };
   }
 
+  let parsedBody;
+  try {
+    parsedBody = JSON.parse(event.body);
+  } catch {
+    return {
+      statusCode: 400,
+      headers,
+      body: JSON.stringify({ error: 'Invalid request body' }),
+    };
+  }
+
   try {
     // Parse request body
-    const { event: calendarEvent, formData, idempotencyKey } = JSON.parse(event.body);
+    const { event: calendarEvent, formData, idempotencyKey } = parsedBody;
 
-    // Validate required fields
-    if (!calendarEvent || !calendarEvent.id || !calendarEvent.price || !calendarEvent.eventType) {
+    // Validate required fields — price is NOT accepted from client; fetched server-side below
+    if (!calendarEvent || !calendarEvent.id || !calendarEvent.eventType) {
       return {
         statusCode: 400,
         headers,
         body: JSON.stringify({
           error: 'Missing required event data',
-          message: 'Event ID, price, and event type are required',
+          message: 'Event ID and event type are required',
         }),
       };
     }
@@ -108,12 +195,106 @@ exports.handler = async (event, context) => {
       };
     }
 
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.guardianEmail)) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({
+          error: 'Invalid form data',
+          message: 'Guardian email address is invalid',
+        }),
+      };
+    }
+
     // For multi-player event types: validate player count and calculate total
     const isAtHomeTraining = calendarEvent.eventType === 'at_home_training';
     const isSmallGroup = calendarEvent.eventType === 'small_group' || calendarEvent.eventType === 'rockville_small_group';
     const isMultiPlayerEvent = isAtHomeTraining || isSmallGroup;
     const playerCount = isMultiPlayerEvent && formData.players ? formData.players.length : 1;
-    const totalPrice = isMultiPlayerEvent ? calendarEvent.price * playerCount : calendarEvent.price;
+
+    // Guard against empty players array which would produce a $0 checkout session
+    if (isMultiPlayerEvent && playerCount === 0) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({
+          error: 'Invalid player count',
+          message: 'At least one player is required to register for this event',
+        }),
+      };
+    }
+
+    // Fetch authoritative price + capacity from Google Calendar — client-provided price is ignored
+    let verifiedPrice, verifiedSummary, verifiedStart, verifiedEnd, descriptionSpots;
+    try {
+      const serverEvent = await fetchCalendarEventData(calendarEvent.id);
+      verifiedPrice = serverEvent.price;
+      descriptionSpots = serverEvent.customSpots;
+      verifiedSummary = serverEvent.summary || calendarEvent.summary || 'Event Registration';
+      verifiedStart = serverEvent.start;
+      verifiedEnd = serverEvent.end;
+    } catch (calError) {
+      console.error('Failed to fetch event from Google Calendar:', calError.message);
+      return {
+        statusCode: 502,
+        headers,
+        body: JSON.stringify({
+          error: 'Could not verify event pricing',
+          message: 'Unable to retrieve event details. Please try again.',
+        }),
+      };
+    }
+
+    if (verifiedPrice === null || verifiedPrice <= 0) {
+      console.error(`Invalid price (${verifiedPrice}) in Google Calendar event ${calendarEvent.id}`);
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({
+          error: 'Event pricing unavailable',
+          message: 'This event does not have a valid price configured. Please contact us.',
+        }),
+      };
+    }
+
+    // Pre-checkout capacity check: prevent payment when event is already full.
+    // Uses same priority as frontend: description spots > S3 stored > default.
+    if (calendarEvent.eventType !== 'camp') {
+      try {
+        const regData = await getEventRegistrations(calendarEvent.id);
+        const maxCapacity =
+          descriptionSpots ||
+          regData.maxCapacity ||
+          DEFAULT_CAPACITY[calendarEvent.eventType] ||
+          DEFAULT_CAPACITY.other;
+        const currentRegistrations = regData.currentRegistrations || 0;
+
+        // Note: S3 maxCapacity sync is handled by addRegistration (via customMaxCapacity
+        // in Stripe metadata) which uses ETag-based concurrency control. We intentionally
+        // do NOT call updateEventCapacity here to avoid a non-ETag write that could
+        // overwrite concurrent registration writes.
+
+        if (currentRegistrations + playerCount > maxCapacity) {
+          console.warn(`Pre-checkout capacity block: event ${calendarEvent.id} has ${currentRegistrations}/${maxCapacity} registrations, requested ${playerCount} more`);
+          return {
+            statusCode: 409,
+            headers,
+            body: JSON.stringify({
+              error: 'Event is full',
+              message: currentRegistrations >= maxCapacity
+                ? 'Sorry, this event is now sold out. Please check back for future events.'
+                : `Sorry, only ${maxCapacity - currentRegistrations} spot(s) remaining but ${playerCount} requested.`,
+            }),
+          };
+        }
+      } catch (capError) {
+        // Non-blocking: if we can't check capacity, allow checkout to proceed.
+        // The webhook's addRegistration will catch true oversells.
+        console.warn('Pre-checkout capacity check failed (non-blocking):', capError.message);
+      }
+    }
+
+    const totalPrice = isMultiPlayerEvent ? verifiedPrice * playerCount : verifiedPrice;
 
     // Validate Stripe configuration
     if (!process.env.STRIPE_SECRET_KEY) {
@@ -144,8 +325,8 @@ exports.handler = async (event, context) => {
 
     // Build product name with player count for multi-player events
     const productName = isMultiPlayerEvent
-      ? `${calendarEvent.summary || 'Event Registration'} (${playerCount} player${playerCount > 1 ? 's' : ''})`
-      : calendarEvent.summary || 'Event Registration';
+      ? `${verifiedSummary} (${playerCount} player${playerCount > 1 ? 's' : ''})`
+      : verifiedSummary;
 
     // Create Stripe Checkout session (idempotency key prevents duplicate sessions from rapid submits)
     const stripeOptions = idempotencyKey ? { idempotencyKey } : {};
@@ -176,13 +357,15 @@ exports.handler = async (event, context) => {
         // Event information
         eventId: calendarEvent.id,
         eventType: calendarEvent.eventType, // 'camp', 'lesson', or 'at_home_training'
-        eventSummary: calendarEvent.summary || '',
-        eventPrice: calendarEvent.price.toString(),
+        eventSummary: verifiedSummary,
+        eventPrice: verifiedPrice.toString(),
         playerCount: playerCount.toString(),
         totalPrice: totalPrice.toString(),
-        // Event date/time (from Google Calendar start/end)
-        eventStartDateTime: calendarEvent.start?.dateTime || calendarEvent.start?.date || '',
-        eventEndDateTime: calendarEvent.end?.dateTime || calendarEvent.end?.date || '',
+        // Custom capacity from Google Calendar description (authoritative source)
+        ...(descriptionSpots && { customMaxCapacity: descriptionSpots.toString() }),
+        // Event date/time — use server-fetched values, fall back to client-provided
+        eventStartDateTime: verifiedStart?.dateTime || verifiedStart?.date || calendarEvent.start?.dateTime || calendarEvent.start?.date || '',
+        eventEndDateTime: verifiedEnd?.dateTime || verifiedEnd?.date || calendarEvent.end?.dateTime || calendarEvent.end?.date || '',
 
         // At Home Training specific
         ...(isAtHomeTraining && {
@@ -226,7 +409,7 @@ exports.handler = async (event, context) => {
 
         // Additional notes
         medicalNotes: formData.medicalNotes || '',
-        waiverAccepted: formData.waiverAccepted.toString(),
+        waiverAccepted: String(formData.waiverAccepted ?? false),
       },
       success_url: `${baseUrl}/register/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/register/cancel?event_id=${calendarEvent.id}`,
@@ -261,7 +444,7 @@ exports.handler = async (event, context) => {
       headers,
       body: JSON.stringify({
         error: 'Failed to create checkout session',
-        message: error.message,
+        message: process.env.NODE_ENV === 'development' ? error.message : 'An unexpected error occurred. Please try again.',
       }),
     };
   }

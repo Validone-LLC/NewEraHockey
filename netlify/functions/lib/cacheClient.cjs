@@ -100,7 +100,7 @@ async function setCachedRegistration(eventId, data) {
           data,
           ttl: calculateTTL(TTL.REGISTRATION),
           updatedAt: new Date().toISOString(),
-        }),
+        }, { removeUndefinedValues: true }),
       })
     );
 
@@ -115,7 +115,7 @@ async function setCachedRegistration(eventId, data) {
           maxCapacity: data.maxCapacity || null,
           eventType: data.eventType,
           ttl: calculateTTL(TTL.REGISTRATION_META),
-        }),
+        }, { removeUndefinedValues: true }),
       })
     );
 
