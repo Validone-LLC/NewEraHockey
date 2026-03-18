@@ -323,9 +323,40 @@ exports.handler = async (event, context) => {
     // Logo URL - using the deployed site's logo
     const logoUrl = `${baseUrl}/assets/images/logo/neh-logo.png`;
 
+    // Build human-readable event date for Stripe dashboard visibility
+    const eventStartRaw = verifiedStart?.dateTime || verifiedStart?.date || calendarEvent.start?.dateTime || calendarEvent.start?.date || '';
+    const eventEndRaw = verifiedEnd?.dateTime || verifiedEnd?.date || calendarEvent.end?.dateTime || calendarEvent.end?.date || '';
+    let formattedEventDate = '';
+    if (eventStartRaw) {
+      try {
+        const startDate = new Date(eventStartRaw);
+        formattedEventDate = startDate.toLocaleDateString('en-US', {
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        });
+        // Add time if it's a dateTime (not all-day event)
+        if (eventStartRaw.includes('T')) {
+          formattedEventDate += ' at ' + startDate.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true,
+          });
+        }
+      } catch {
+        formattedEventDate = eventStartRaw;
+      }
+    }
+
     // Build product name with player count for multi-player events
     const productName = isMultiPlayerEvent
       ? `${verifiedSummary} (${playerCount} player${playerCount > 1 ? 's' : ''})`
+      : verifiedSummary;
+
+    // Description visible on Stripe dashboard payment list (most prominent field for admins)
+    const paymentDescription = formattedEventDate
+      ? `${verifiedSummary} — ${formattedEventDate}`
       : verifiedSummary;
 
     // Create Stripe Checkout session (idempotency key prevents duplicate sessions from rapid submits)
@@ -334,6 +365,13 @@ exports.handler = async (event, context) => {
       payment_method_types: ['card'],
       mode: 'payment',
       automatic_tax: { enabled: true },
+      payment_intent_data: {
+        description: paymentDescription,
+        metadata: {
+          eventName: verifiedSummary,
+          eventDate: formattedEventDate,
+        },
+      },
       line_items: [
         {
           price_data: {
@@ -358,14 +396,15 @@ exports.handler = async (event, context) => {
         eventId: calendarEvent.id,
         eventType: calendarEvent.eventType, // 'camp', 'lesson', or 'at_home_training'
         eventSummary: verifiedSummary,
+        eventDate: formattedEventDate,
         eventPrice: verifiedPrice.toString(),
         playerCount: playerCount.toString(),
         totalPrice: totalPrice.toString(),
         // Custom capacity from Google Calendar description (authoritative source)
         ...(descriptionSpots && { customMaxCapacity: descriptionSpots.toString() }),
         // Event date/time — use server-fetched values, fall back to client-provided
-        eventStartDateTime: verifiedStart?.dateTime || verifiedStart?.date || calendarEvent.start?.dateTime || calendarEvent.start?.date || '',
-        eventEndDateTime: verifiedEnd?.dateTime || verifiedEnd?.date || calendarEvent.end?.dateTime || calendarEvent.end?.date || '',
+        eventStartDateTime: eventStartRaw,
+        eventEndDateTime: eventEndRaw,
 
         // At Home Training specific
         ...(isAtHomeTraining && {
