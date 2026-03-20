@@ -321,6 +321,7 @@ const TrainingSchedule = () => {
   const getEventLocationCategory = event => {
     const location = (event.location || '').toLowerCase();
     const summary = (event.summary || '').toLowerCase();
+    if (location.includes('cabin john') || summary.includes('cabin john')) return 'cabinjohn';
     if (location.includes('rockville') || summary.includes('rockville')) return 'rockville';
     if (
       location.includes('mt vernon') ||
@@ -348,6 +349,12 @@ const TrainingSchedule = () => {
       label: 'Mt Vernon',
       color: 'bg-blue-500/20 text-blue-400 border-blue-500/50',
       activeColor: 'bg-blue-500 text-white',
+    },
+    {
+      id: 'cabinjohn',
+      label: 'Cabin John',
+      color: 'bg-amber-500/20 text-amber-400 border-amber-500/50',
+      activeColor: 'bg-amber-500 text-white',
     },
   ];
 
