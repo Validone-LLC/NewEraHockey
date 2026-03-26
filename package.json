@@ -12,7 +12,8 @@
     "lint": "eslint src --ext js,jsx",
     "format": "prettier --write \"src/**/*.{js,jsx,json,css}\"",
     "format:check": "prettier --check \"src/**/*.{js,jsx,json,css}\"",
-    "prepare": "node -e \"try { require('husky') } catch (e) { if (e.code !== 'MODULE_NOT_FOUND') throw e }\"",
+    "typecheck": "tsc --project jsconfig.json --noEmit",
+    "prepare": "husky",
     "git:r": "git checkout master && git fetch && git pull origin master"
   },
   "dependencies": {
@@ -20,7 +21,7 @@
     "@aws-sdk/client-s3": "^3.978.0",
     "@aws-sdk/client-ses": "^3.978.0",
     "@aws-sdk/util-dynamodb": "^3.0.0",
-"axios": "^1.6.7",
+    "axios": "^1.6.7",
     "date-fns": "^3.6.0",
     "formik": "^2.4.5",
     "framer-motion": "^11.0.8",
@@ -52,6 +53,7 @@
     "postcss": "^8.4.35",
     "prettier": "^3.2.5",
     "tailwindcss": "^3.4.1",
+    "typescript": "^6.0.2",
     "vite": "^5.1.4"
   },
   "lint-staged": {
