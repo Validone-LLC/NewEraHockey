@@ -324,6 +324,7 @@ exports.handler = async (event, context) => {
     const logoUrl = `${baseUrl}/assets/images/logo/neh-logo.png`;
 
     // Build human-readable event date for Stripe dashboard visibility
+    // IMPORTANT: Must specify timeZone since Lambda runs in UTC
     const eventStartRaw = verifiedStart?.dateTime || verifiedStart?.date || calendarEvent.start?.dateTime || calendarEvent.start?.date || '';
     const eventEndRaw = verifiedEnd?.dateTime || verifiedEnd?.date || calendarEvent.end?.dateTime || calendarEvent.end?.date || '';
     let formattedEventDate = '';
@@ -335,14 +336,29 @@ exports.handler = async (event, context) => {
           month: 'short',
           day: 'numeric',
           year: 'numeric',
+          timeZone: 'America/New_York',
         });
         // Add time if it's a dateTime (not all-day event)
         if (eventStartRaw.includes('T')) {
-          formattedEventDate += ' at ' + startDate.toLocaleTimeString('en-US', {
+          const startTime = startDate.toLocaleTimeString('en-US', {
             hour: 'numeric',
             minute: '2-digit',
             hour12: true,
+            timeZone: 'America/New_York',
           });
+          // Include end time if available for a complete time range
+          if (eventEndRaw && eventEndRaw.includes('T')) {
+            const endDate = new Date(eventEndRaw);
+            const endTime = endDate.toLocaleTimeString('en-US', {
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true,
+              timeZone: 'America/New_York',
+            });
+            formattedEventDate += ` at ${startTime} to ${endTime}`;
+          } else {
+            formattedEventDate += ` at ${startTime}`;
+          }
         }
       } catch {
         formattedEventDate = eventStartRaw;

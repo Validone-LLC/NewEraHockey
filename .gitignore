@@ -80,3 +80,7 @@ vite.config.ts.timestamp-*
 
 # Npmrc
 .npmrc
+
+
+# TO DELETE
+docs/arch-designs
